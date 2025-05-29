@@ -1,0 +1,47 @@
+services:
+
+  # Database service
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - /var/lib/postgresql/data
+
+  # Database user interface
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - 8080:80
+
+  # Frontend
+  react:
+    image: oven/bun
+    restart: always
+    volumes:                   # 1. Create a virtual volume 
+      - type: bind             # and bind it to the real folder
+        source: ./frontend     # 2. Bind ./frontend
+        target: /home/bun/app  # to /front (in the container)
+    working_dir: /home/bun/app # 3. Set workdir to /home/bun/app
+    command: bun run dev       # 4. Run dev script in /home/bun/app
+    ports:
+      - 3000:3000
+
+
+  # Frontend
+  backend:
+    image: oven/bun
+    restart: always
+    volumes:                   # 1. Create a virtual volume 
+      - type: bind             # and bind it to the real folder
+        source: ./backend      # 2. Bind ./backend
+        target: /home/bun/app  # to /back (in the container)
+    working_dir: /home/bun/app # 3. Set workdir to /home/bun/app
+    command: bun run dev       # 4. Run dev script in /home/bun/app
+    ports:
+      - 3001:3000
