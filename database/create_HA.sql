@@ -13,7 +13,7 @@ CREATE TABLE Receta (
 CREATE TABLE Instruccion (
     cod_inst serial,
     nombre_inst text NOT NULL,
-    fk_receta serial NOT NULL,
+    fk_receta integer NOT NULL,
     PRIMARY KEY (cod_inst),
     CONSTRAINT instruye FOREIGN KEY (fk_receta) REFERENCES Receta (cod_rece)
 );
@@ -21,7 +21,7 @@ CREATE TABLE Instruccion (
 CREATE TABLE Tipo_Cerveza (
     cod_tipo_cerv serial,
     nombre_tipo_cerv varchar(40) NOT NULL,
-    fk_receta serial NOT NULL,
+    fk_receta integer NOT NULL,
     fk_tipo_cerv integer,
     PRIMARY KEY (cod_tipo_cerv),
     CONSTRAINT sigue FOREIGN KEY (fk_receta) REFERENCES Receta (cod_rece),
@@ -37,7 +37,7 @@ CREATE TABLE Caracteristica (
 CREATE TABLE Cerveza (
     cod_cerv serial,
     nombre_cerv varchar(40) NOT NULL,
-    fk_tipo_cerv serial NOT NULL,
+    fk_tipo_cerv integer NOT NULL,
     PRIMARY KEY (cod_cerv),
     CONSTRAINT clasificado FOREIGN KEY (fk_tipo_cerv) REFERENCES Tipo_Cerveza (cod_tipo_cerv)
 );
@@ -45,7 +45,7 @@ CREATE TABLE Cerveza (
 CREATE TABLE Presentacion (
     cod_pres serial,
     nombre_pres varchar(40) NOT NULL,
-    capacidad_pres numeric NOT NULL,
+    capacidad_pres integer NOT NULL,
     PRIMARY KEY (cod_pres)
 );
 
@@ -63,7 +63,7 @@ CREATE TABLE Tienda (
     nombre_tien varchar(40) NOT NULL,
     fecha_apertura_tien date,
     direccion_tien text NOT NULL,
-    fk_luga serial NOT NULL,
+    fk_luga integer NOT NULL,
     PRIMARY KEY (cod_tien),
     CONSTRAINT asignado FOREIGN KEY (fk_luga) REFERENCES Lugar (cod_luga)
 );
@@ -72,7 +72,7 @@ CREATE TABLE Lugar_Tienda (
     cod_luga_tien serial,
     nombre_luga_tien varchar(40) NOT NULL,
     tipo_luga_tien varchar(40) NOT NULL,
-    fk_luga_tien serial,
+    fk_luga_tien integer,
     PRIMARY KEY (cod_luga_tien),
     CONSTRAINT localizado FOREIGN KEY (fk_luga_tien) REFERENCES Lugar_Tienda (cod_luga_tien)
 );
@@ -89,12 +89,12 @@ CREATE TABLE Evento (
     fecha_hora_ini_even timestamp NOT NULL,
     fecha_hora_fin_even timestamp NOT NULL,
     direccion_even text NOT NULL,
-    capacidad_even numeric NOT NULL,
+    capacidad_even integer NOT NULL,
     descripcion_even text NOT NULL,
     precio_entrada_even numeric,
-    cant_entradas_evento numeric NOT NULL,
-    fk_tipo_even serial NOT NULL,
-    fk_luga serial NOT NULL,
+    cant_entradas_evento integer NOT NULL,
+    fk_tipo_even integer NOT NULL,
+    fk_luga integer NOT NULL,
     PRIMARY KEY (cod_even),
     CONSTRAINT es FOREIGN KEY (fk_tipo_even) REFERENCES Tipo_Evento (cod_tipo_even),
     CONSTRAINT desarrollado FOREIGN KEY (fk_luga) REFERENCES Lugar (cod_luga)
@@ -102,7 +102,7 @@ CREATE TABLE Evento (
 
 CREATE TABLE Empleado (
     cod_empl serial,
-    ci_empl numeric NOT NULL,
+    ci_empl integer NOT NULL,
     primer_nom_empl varchar(40) NOT NULL,
     segundo_nom_empl varchar(40),
     primer_ape_empl varchar(40) NOT NULL,
@@ -118,13 +118,13 @@ CREATE TABLE Cargo (
 );
 
 CREATE TABLE Miembro (
-    rif_miem numeric,
+    rif_miem integer,
     razon_social_miem varchar(40) NOT NULL,
     denom_comercial_miem varchar(40) NOT NULL,
     direccion_fiscal_miem text NOT NULL,
     pag_web_miem text,
-    fk_luga_1 serial NOT NULL,
-    fk_luga_2 serial,
+    fk_luga_1 integer NOT NULL,
+    fk_luga_2 integer,
     PRIMARY KEY (rif_miem),
     CONSTRAINT encontrado FOREIGN KEY (fk_luga_1) REFERENCES Lugar (cod_luga),
     CONSTRAINT proveniente FOREIGN KEY (fk_luga_2) REFERENCES Lugar (cod_luga)
@@ -136,7 +136,7 @@ CREATE TABLE Contacto (
     segundo_nom_pers varchar(40),
     primer_ape_pers varchar(40) NOT NULL,
     segundo_ape_pers varchar(40),
-    fk_miem numeric,
+    fk_miem integer,
     PRIMARY KEY (cod_pers),
     CONSTRAINT cuenta_con FOREIGN KEY (fk_miem) REFERENCES Miembro (rif_miem)
 );
@@ -144,25 +144,25 @@ CREATE TABLE Contacto (
 CREATE TABLE Beneficio (
     cod_bene serial,
     nombre_bene varchar(40) NOT NULL,
-    cantidad_bene numeric NOT NULL,
+    cantidad_bene integer NOT NULL,
     PRIMARY KEY (cod_bene)
 );
 
 CREATE TABLE Departamento (
     cod_depa serial,
-    fk_tien serial,
+    fk_tien integer,
     PRIMARY KEY (cod_depa, fk_tien),
     CONSTRAINT formada FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien)
 );
 
 CREATE TABLE EMPL_CARG (
-    fk_empl serial,
-    fk_carg serial,
+    fk_empl integer,
+    fk_carg integer,
     fecha_ini date NOT NULL,
     fecha_fin date,
-    cantidad_total_salario numeric NOT NULL,
-    fk_depa_1 serial,
-    fk_depa_2 serial,
+    cantidad_total_salario integer NOT NULL,
+    fk_depa_1 integer,
+    fk_depa_2 integer,
     PRIMARY KEY (fk_empl, fk_carg),
     CONSTRAINT desempena FOREIGN KEY (fk_empl) REFERENCES Empleado (cod_empl),
     CONSTRAINT desempenado FOREIGN KEY (fk_carg) REFERENCES Cargo (cod_carg),
@@ -174,8 +174,8 @@ CREATE TABLE Vacacion (
     fecha_ini_vaca date NOT NULL,
     fecha_fin_vaca date NOT NULL,
     pagada boolean,
-    fk_empl_carg_1 serial NOT NULL,
-    fk_empl_carg_2 serial NOT NULL,
+    fk_empl_carg_1 integer NOT NULL,
+    fk_empl_carg_2 integer NOT NULL,
     PRIMARY KEY (cod_vaca),
     CONSTRAINT goza FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg)
 );
@@ -184,8 +184,8 @@ CREATE TABLE Asistencia (
     cod_asis serial,
     fecha_hora_ini_asis timestamp NOT NULL,
     fecha_hora_fin_asis timestamp NOT NULL,
-    fk_empl_carg_1 serial NOT NULL,
-    fk_empl_carg_2 serial NOT NULL,
+    fk_empl_carg_1 integer NOT NULL,
+    fk_empl_carg_2 integer NOT NULL,
     PRIMARY KEY (cod_asis),
     CONSTRAINT asiste FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg)
 );
@@ -227,7 +227,7 @@ CREATE TABLE Juez (
     segundo_nom_juez varchar(40),
     primar_ape_juez varchar(40) NOT NULL,
     segundo_ape_juez varchar(40),
-    ci_juez numeric NOT NULL,
+    ci_juez integer NOT NULL,
     PRIMARY KEY (cod_juez)
 );
 
@@ -257,18 +257,18 @@ CREATE TABLE Compra (
     iva_comp numeric NOT NULL,
     base_imponible_comp numeric NOT NULL,
     total_comp numeric NOT NULL,
-    fk_tien serial,
-    fk_miem numeric,
+    fk_tien integer,
+    fk_miem integer,
     PRIMARY KEY (cod_comp),
     CONSTRAINT registra FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien),
     CONSTRAINT realiza FOREIGN KEY (fk_miem) REFERENCES Miembro (rif_miem)
 );
 
 CREATE TABLE CERV_PRES (
-    fk_cerv serial,
-    fk_pres serial,
+    fk_cerv integer,
+    fk_pres integer,
     precio_pres_cerv numeric NOT NULL,
-    fk_miem numeric NOT NULL,
+    fk_miem integer NOT NULL,
     PRIMARY KEY (fk_cerv, fk_pres),
     CONSTRAINT empaqueta FOREIGN KEY (fk_cerv) REFERENCES Cerveza (cod_cerv),
     CONSTRAINT empaquetada FOREIGN KEY (fk_pres) REFERENCES Presentacion (cod_pres),
@@ -277,40 +277,40 @@ CREATE TABLE CERV_PRES (
 
 CREATE TABLE Detalle_Compra (
     cod_deta_comp serial,
-    cant_deta_comp numeric NOT NULL,
+    cant_deta_comp integer NOT NULL,
     precio_unitario_comp numeric NOT NULL,
-    fk_cerv_pres_1 serial NOT NULL,
-    fk_cerv_pres_2 serial NOT NULL,
-    fk_comp serial NOT NULL,
+    fk_cerv_pres_1 integer NOT NULL,
+    fk_cerv_pres_2 integer NOT NULL,
+    fk_comp integer NOT NULL,
     PRIMARY KEY (cod_deta_comp),
     CONSTRAINT obtenido FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres),
     CONSTRAINT necesita FOREIGN KEY (fk_comp) REFERENCES Compra (cod_comp)
 );
 
 CREATE TABLE Cliente (
-    rif_clie numeric,
+    rif_clie integer,
     direccion_fiscal_clie text NOT NULL,
     direccion_fisica_clie text NOT NULL,
-    fk_luga_1 serial NOT NULL,
-    fk_luga_2 serial NOT NULL, -- TODO: ESTO NO DEBERIA SER NULL ? (porque es la secundaria)
+    fk_luga_1 integer NOT NULL,
+    fk_luga_2 integer NOT NULL, -- TODO: ESTO NO DEBERIA SER NULL ? (porque es la secundaria)
     PRIMARY KEY (rif_clie),
     CONSTRAINT domiciliado FOREIGN KEY (fk_luga_1) REFERENCES Lugar (cod_luga),
     CONSTRAINT ubicado FOREIGN KEY (fk_luga_2) REFERENCES Lugar (cod_luga)
 );
 
 CREATE TABLE Cliente_Natural (
-    fk_clie serial,
+    fk_clie integer,
     primer_nom_natu varchar(40) NOT NULL,
     segundo_nom_natu varchar(40),
     primer_ape_natu varchar(40) NOT NULL,
     segundo_ape_natu varchar(40),
-    ci_natu numeric NOT NULL,
+    ci_natu integer NOT NULL,
     PRIMARY KEY (fk_clie),
     FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie)
 );
 
 CREATE TABLE Cliente_Juridico (
-    fk_clie serial,
+    fk_clie integer,
     razon_social_juri varchar(40) NOT NULL,
     denom_comercial_juri varchar(40) NOT NULL,
     capital_juri numeric NOT NULL,
@@ -326,16 +326,16 @@ CREATE TABLE Venta (
     base_imponible_vent numeric NOT NULL,
     total_vent numeric NOT NULL,
     online boolean,
-    fk_clie numeric,
-    fk_miem numeric,
+    fk_clie integer,
+    fk_miem integer,
+    fk_even integer,
+    fk_tien integer,
+    fk_cuot integer,
     PRIMARY KEY (cod_vent),
     -- Arco entre fk_clie - fk_miem
     CONSTRAINT compra FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
     CONSTRAINT comercializa FOREIGN KEY (fk_miem) REFERENCES Miembro (rif_miem),
     CHECK ((fk_clie IS NOT NULL AND fk_miem IS NULL) OR (fk_miem IS NOT NULL AND fk_clie IS NULL)),
-    fk_even serial,
-    fk_tien serial,
-    fk_cuot serial,
     -- Arco entre fk_even - fk_tien - fk_cuot
     CONSTRAINT promociona FOREIGN KEY (fk_even) REFERENCES Evento (cod_even),
     CONSTRAINT hace FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien),
@@ -347,10 +347,10 @@ CREATE TABLE Usuario (
     cod_usua serial,
     contra_usua text NOT NULL,
     username_usua varchar(40) NOT NULL,
-    fk_rol serial NOT NULL,
-    fk_empl serial,
-    fk_miem numeric,
-    fk_clie numeric,
+    fk_rol integer NOT NULL,
+    fk_empl integer,
+    fk_miem integer,
+    fk_clie integer,
     PRIMARY KEY (cod_usua),
     CONSTRAINT ejecuta FOREIGN KEY (fk_rol) REFERENCES Rol (cod_rol),
     CONSTRAINT transformado FOREIGN KEY (fk_empl) REFERENCES Empleado (cod_empl),
@@ -361,11 +361,11 @@ CREATE TABLE Usuario (
 );
 
 CREATE TABLE Inventario_Tienda (
-    fk_cerv_pres_1 serial,
-    fk_cerv_pres_2 serial,
-    fk_tien serial,
-    fk_luga_tien serial NOT NULL,
-    cant_pres numeric NOT NULL,
+    fk_cerv_pres_1 integer,
+    fk_cerv_pres_2 integer,
+    fk_tien integer,
+    fk_luga_tien integer NOT NULL,
+    cant_pres integer NOT NULL,
     precio_actual_pres numeric NOT NULL,
     PRIMARY KEY (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien),
     CONSTRAINT conformado FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres),
@@ -374,10 +374,10 @@ CREATE TABLE Inventario_Tienda (
 );
 
 CREATE TABLE Inventario_Evento (
-    fk_cerv_pres_1 serial,
-    fk_cerv_pres_2 serial,
-    fk_even serial,
-    cant_pres numeric NOT NULL,
+    fk_cerv_pres_1 integer,
+    fk_cerv_pres_2 integer,
+    fk_even integer,
+    cant_pres integer NOT NULL,
     precio_actual_pres numeric NOT NULL,
     PRIMARY KEY (fk_cerv_pres_1, fk_cerv_pres_2, fk_even),
     CONSTRAINT dispone FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres),
@@ -386,15 +386,15 @@ CREATE TABLE Inventario_Evento (
 
 CREATE TABLE Detalle_Venta (
     cod_deta_vent serial,
-    cant_deta_vent numeric NOT NULL,
+    cant_deta_vent integer NOT NULL,
     precio_unitario_vent numeric NOT NULL,
-    fk_vent serial NOT NULL,
-    fk_inve_tien_1 serial,
-    fk_inve_tien_2 serial,
-    fk_inve_tien_3 serial,
-    fk_inve_even_1 serial,
-    fk_inve_even_2 serial,
-    fk_inve_even_3 serial,
+    fk_vent integer NOT NULL,
+    fk_inve_tien_1 integer,
+    fk_inve_tien_2 integer,
+    fk_inve_tien_3 integer,
+    fk_inve_even_1 integer,
+    fk_inve_even_2 integer,
+    fk_inve_even_3 integer,
     CONSTRAINT incluye FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent),
     CONSTRAINT sustrae FOREIGN KEY (fk_inve_even_1, fk_inve_even_2, fk_inve_even_3) REFERENCES Inventario_Evento (fk_cerv_pres_1, fk_cerv_pres_2, fk_even),
     CONSTRAINT vincula FOREIGN KEY (fk_inve_tien_1, fk_inve_tien_2, fk_inve_tien_3) REFERENCES Inventario_Tienda (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien),
@@ -408,10 +408,10 @@ CREATE TABLE Metodo_Pago (
 );
 
 CREATE TABLE Tarjeta (
-    fk_meto_pago serial,
-    numero_tarj numeric NOT NULL,
+    fk_meto_pago integer,
+    numero_tarj integer NOT NULL,
     fecha_venci_tarj date NOT NULL,
-    cvv_tarj numeric NOT NULL,
+    cvv_tarj integer NOT NULL,
     nombre_titu_tarj varchar(40) NOT NULL,
     credito boolean,
     PRIMARY KEY (fk_meto_pago),
@@ -419,34 +419,34 @@ CREATE TABLE Tarjeta (
 );
 
 CREATE TABLE Punto_Canjeo (
-    fk_meto_pago serial,
+    fk_meto_pago integer,
     PRIMARY KEY (fk_meto_pago),
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago)
 );
 
 CREATE TABLE Cheque (
-    fk_meto_pago serial,
-    numero_cheque numeric NOT NULL,
-    numero_cuenta_cheque numeric NOT NULL,
-    fk_banc serial NOT NULL,
+    fk_meto_pago integer,
+    numero_cheque integer NOT NULL,
+    numero_cuenta_cheque integer NOT NULL,
+    fk_banc integer NOT NULL,
     PRIMARY KEY (fk_meto_pago),
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago),
     CONSTRAINT emite FOREIGN KEY (fk_banc) REFERENCES Banco (cod_banc)
 );
 
 CREATE TABLE Efectivo (
-    fk_meto_pago serial,
+    fk_meto_pago integer,
     denominacion_efec char NOT NULL,
     PRIMARY KEY (fk_meto_pago),
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago)
 );
 
 CREATE TABLE Pago (
-    fk_vent serial,
-    fk_meto_pago serial,
+    fk_vent integer,
+    fk_meto_pago integer,
     monto_pago numeric NOT NULL,
     fecha_pago date NOT NULL,
-    fk_tasa serial NOT NULL,
+    fk_tasa integer NOT NULL,
     PRIMARY KEY (fk_vent, fk_meto_pago),
     CONSTRAINT formada FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent),
     CONSTRAINT usa FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago),
@@ -455,11 +455,11 @@ CREATE TABLE Pago (
 
 CREATE TABLE Telefono (
     cod_tele serial,
-    cod_area_tele numeric NOT NULL,
-    num_tele numeric NOT NULL,
-    fk_clie numeric UNIQUE,
-    fk_pers serial UNIQUE,
-    fk_miem numeric,
+    cod_area_tele integer NOT NULL,
+    num_tele integer NOT NULL,
+    fk_clie integer UNIQUE,
+    fk_pers integer UNIQUE,
+    fk_miem integer,
     PRIMARY KEY (cod_tele),
     CONSTRAINT asocia FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
     CONSTRAINT tiene FOREIGN KEY (fk_pers) REFERENCES Contacto (cod_pers),
@@ -471,10 +471,10 @@ CREATE TABLE Correo (
     cod_corr serial,
     prefijo_corr varchar(40) NOT NULL,
     dominio_corr varchar(40) NOT NULL,
-    fk_clie numeric UNIQUE,
-    fk_empl serial UNIQUE,
-    fk_pers serial UNIQUE,
-    fk_miem numeric,
+    fk_clie integer UNIQUE,
+    fk_empl integer UNIQUE,
+    fk_pers integer UNIQUE,
+    fk_miem integer,
     PRIMARY KEY (cod_corr),
     CONSTRAINT relaciona FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
     CONSTRAINT identifica FOREIGN KEY (fk_empl) REFERENCES Empleado (cod_empl),
@@ -494,10 +494,11 @@ CREATE TABLE Descuento (
 
 CREATE TABLE Registro_Evento (
     cod_regi_even serial,
-    fk_even serial,
-    fk_juez serial,
-    fk_clie numeric,
-    fk_miem numeric,
+    fk_even integer NOT NULL,
+    fk_juez integer,
+    fk_clie integer,
+    fk_miem integer,
+    fecha_hora_regi_even timestamp NOT NULL,
     PRIMARY KEY (cod_regi_even, fk_even),
     CONSTRAINT genera FOREIGN KEY (fk_even) REFERENCES Evento (cod_even),
     CONSTRAINT forma_parte FOREIGN KEY (fk_juez) REFERENCES Juez (cod_juez),
@@ -509,9 +510,9 @@ CREATE TABLE Registro_Evento (
 
 -- MUCHOS A MUCHOS
 CREATE TABLE DESC_CERV (
-    fk_desc serial,
-    fk_cerv_pres_1 serial,
-    fk_cerv_pres_2 serial,
+    fk_desc integer,
+    fk_cerv_pres_1 integer,
+    fk_cerv_pres_2 integer,
     porcentaje_desc numeric NOT NULL,
     PRIMARY KEY (fk_desc, fk_cerv_pres_1, fk_cerv_pres_2),
     CONSTRAINT aplica FOREIGN KEY (fk_desc) REFERENCES Descuento (cod_desc),
@@ -519,26 +520,26 @@ CREATE TABLE DESC_CERV (
 );
 
 CREATE TABLE PRIV_ROL (
-    fk_rol serial,
-    fk_priv serial,
+    fk_rol integer,
+    fk_priv integer,
     PRIMARY KEY (fk_rol, fk_priv),
     CONSTRAINT otorgado FOREIGN KEY (fk_priv) REFERENCES Privilegio (cod_priv),
     CONSTRAINT otorga FOREIGN KEY (fk_rol) REFERENCES Rol (cod_rol)
 );
 
 CREATE TABLE EMPL_HORA (
-    fk_hora serial,
-    fk_empl_carg_1 serial,
-    fk_empl_carg_2 serial,
+    fk_hora integer,
+    fk_empl_carg_1 integer,
+    fk_empl_carg_2 integer,
     PRIMARY KEY (fk_empl_carg_1, fk_empl_carg_2, fk_hora),
     CONSTRAINT cumple FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg),
     CONSTRAINT cumplido FOREIGN KEY (fk_hora) REFERENCES Horario (cod_hora)
 );
 
 CREATE TABLE EMPL_BENE (
-    fk_empl_carg_1 serial,
-    fk_empl_carg_2 serial,
-    fk_bene serial,
+    fk_empl_carg_1 integer,
+    fk_empl_carg_2 integer,
+    fk_bene integer,
     monto_bene numeric,
     PRIMARY KEY (fk_empl_carg_1, fk_empl_carg_2, fk_bene),
     CONSTRAINT disfruta FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg),
@@ -546,8 +547,8 @@ CREATE TABLE EMPL_BENE (
 );
 
 CREATE TABLE CERV_CARA (
-    fk_cerv serial,
-    fk_cara serial,
+    fk_cerv integer,
+    fk_cara integer,
     valor_cara varchar(40) NOT NULL,
     PRIMARY KEY (fk_cerv, fk_cara),
     CONSTRAINT caracteriza FOREIGN KEY (fk_cara) REFERENCES Caracteristica (cod_cara),
@@ -555,8 +556,8 @@ CREATE TABLE CERV_CARA (
 );
 
 CREATE TABLE TIPO_CARA (
-    fk_tipo_cerv serial,
-    fk_cara serial,
+    fk_tipo_cerv integer,
+    fk_cara integer,
     valor_cara varchar(50) NOT NULL,
     PRIMARY KEY (fk_tipo_cerv, fk_cara),
     CONSTRAINT estiliza FOREIGN KEY (fk_cara) REFERENCES Caracteristica (cod_cara),
@@ -564,8 +565,8 @@ CREATE TABLE TIPO_CARA (
 );
 
 CREATE TABLE RECE_INGR (
-    fk_rece serial,
-    fk_ingr serial,
+    fk_rece integer,
+    fk_ingr integer,
     cant_ingr varchar(50) NOT NULL,
     PRIMARY KEY (fk_rece, fk_ingr),
     CONSTRAINT compone FOREIGN KEY (fk_ingr) REFERENCES Ingrediente (cod_ingr),
@@ -573,40 +574,43 @@ CREATE TABLE RECE_INGR (
 );
 
 CREATE TABLE ESTA_COMP (
-    fk_esta serial,
-    fk_comp serial,
+    cod_esta_comp serial,
+    fk_esta integer,
+    fk_comp integer,
     fecha_ini date NOT NULL,
     fecha_fin date,
-    PRIMARY KEY (fk_esta, fk_comp),
+    PRIMARY KEY (cod_esta_comp, fk_esta, fk_comp),
     CONSTRAINT ensena FOREIGN KEY (fk_comp) REFERENCES Compra (cod_comp),
     CONSTRAINT ensenado FOREIGN KEY (fk_esta) REFERENCES Estatus (cod_esta)
 );
 
 CREATE TABLE ESTA_EVEN (
-    fk_esta serial,
-    fk_even serial,
+    cod_esta_even serial,
+    fk_esta integer,
+    fk_even integer,
     fecha_ini date NOT NULL,
     fecha_fin date,
-    PRIMARY KEY (fk_esta, fk_even),
+    PRIMARY KEY (cod_esta_even, fk_esta, fk_even),
     CONSTRAINT muestra FOREIGN KEY (fk_even) REFERENCES Evento (cod_even),
     CONSTRAINT mostrado FOREIGN KEY (fk_esta) REFERENCES Estatus (cod_esta)
 );
 
 CREATE TABLE ESTA_VENT (
-    fk_esta serial,
-    fk_vent serial,
+    cod_esta_vent serial,
+    fk_esta integer,
+    fk_vent integer,
     fecha_ini date NOT NULL,
     fecha_fin date,
-    PRIMARY KEY (fk_esta, fk_vent),
+    PRIMARY KEY (cod_esta_vent, fk_esta, fk_vent),
     CONSTRAINT refleja FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent),
     CONSTRAINT reflejado FOREIGN KEY (fk_esta) REFERENCES Estatus (cod_esta)
 );
 
 CREATE TABLE PUNT_CLIE (
-    fk_clie numeric,
-    fk_meto_pago serial,
-    fk_tasa serial NOT NULL,
-    fk_vent serial NOT NULL,
+    fk_clie integer,
+    fk_meto_pago integer,
+    fk_tasa integer NOT NULL,
+    fk_vent integer NOT NULL UNIQUE,
     PRIMARY KEY (fk_clie, fk_meto_pago),
     CONSTRAINT guarda FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
     CONSTRAINT reformado FOREIGN KEY (fk_meto_pago) REFERENCES Punto_Canjeo (fk_meto_pago),
