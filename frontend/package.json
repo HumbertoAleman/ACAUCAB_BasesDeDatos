@@ -11,8 +11,17 @@
     "start": "NODE_ENV=production bun src/index.tsx"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.1.1",
+    "@tanstack/react-query": "^5.80.6",
+    "@tanstack/react-table": "^8.21.3",
+    "axios": "^1.9.0",
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "react-hook-form": "^7.57.0",
+    "react-router-dom": "^7.6.2",
+    "zod": "^3.25.56"
   },
   "devDependencies": {
     "@types/react": "^19",
