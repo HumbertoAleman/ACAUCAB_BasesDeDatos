@@ -12,7 +12,7 @@ CREATE TABLE Receta (
 
 CREATE TABLE Instruccion (
     cod_inst serial,
-    nombre_inst varchar(40) NOT NULL,
+    nombre_inst text NOT NULL,
     fk_receta serial NOT NULL,
     PRIMARY KEY (cod_inst),
     CONSTRAINT instruye FOREIGN KEY (fk_receta) REFERENCES Receta (cod_rece)
