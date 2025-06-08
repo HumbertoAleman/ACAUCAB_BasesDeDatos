@@ -492,11 +492,12 @@ CREATE TABLE Descuento (
 );
 
 CREATE TABLE Registro_Evento (
+    cod_regi_even serial,
     fk_even serial,
     fk_juez serial,
     fk_clie numeric,
     fk_miem numeric,
-    PRIMARY KEY (fk_even),
+    PRIMARY KEY (cod_regi_even, fk_even),
     CONSTRAINT genera FOREIGN KEY (fk_even) REFERENCES Evento (cod_even),
     CONSTRAINT forma_parte FOREIGN KEY (fk_juez) REFERENCES Juez (cod_juez),
     CONSTRAINT participa FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
