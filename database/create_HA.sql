@@ -293,30 +293,21 @@ CREATE TABLE Cliente (
     direccion_fisica_clie text NOT NULL,
     fk_luga_1 integer NOT NULL,
     fk_luga_2 integer NOT NULL, -- TODO: ESTO NO DEBERIA SER NULL ? (porque es la secundaria)
+    tipo_clie varchar(10) NOT NULL CHECK (tipo_clie IN ('Natural', 'Juridico')),
+    primer_nom_natu varchar(40),
+    segundo_nom_natu varchar(40),
+    primer_ape_natu varchar(40),
+    segundo_ape_natu varchar(40),
+    ci_natu integer,
+    razon_social_juri varchar(40),
+    denom_comercial_juri varchar(40),
+    capital_juri numeric,
+    pag_web_juri text,
     PRIMARY KEY (rif_clie),
     CONSTRAINT domiciliado FOREIGN KEY (fk_luga_1) REFERENCES Lugar (cod_luga),
-    CONSTRAINT ubicado FOREIGN KEY (fk_luga_2) REFERENCES Lugar (cod_luga)
-);
-
-CREATE TABLE Cliente_Natural (
-    fk_clie integer,
-    primer_nom_natu varchar(40) NOT NULL,
-    segundo_nom_natu varchar(40),
-    primer_ape_natu varchar(40) NOT NULL,
-    segundo_ape_natu varchar(40),
-    ci_natu integer NOT NULL,
-    PRIMARY KEY (fk_clie),
-    FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie)
-);
-
-CREATE TABLE Cliente_Juridico (
-    fk_clie integer,
-    razon_social_juri varchar(40) NOT NULL,
-    denom_comercial_juri varchar(40) NOT NULL,
-    capital_juri numeric NOT NULL,
-    pag_web_juri text,
-    PRIMARY KEY (fk_clie),
-    FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie)
+    CONSTRAINT ubicado FOREIGN KEY (fk_luga_2) REFERENCES Lugar (cod_luga),
+    -- Check supertipo
+    CHECK ((tipo_clie = 'Natural' AND primer_nom_natu IS NOT NULL AND primer_ape_natu IS NOT NULL AND ci_natu IS NOT NULL AND razon_social_juri IS NULL AND denom_comercial_juri IS NULL AND capital_juri IS NULL AND pag_web_juri IS NULL) OR (tipo_clie = 'Juridico' AND razon_social_juri IS NOT NULL AND denom_comercial_juri IS NOT NULL AND capital_juri IS NOT NULL AND primer_nom_natu IS NULL AND segundo_nom_natu IS NULL AND primer_ape_natu IS NULL AND segundo_ape_natu IS NULL AND ci_natu IS NULL))
 );
 
 CREATE TABLE Venta (

@@ -119,10 +119,6 @@ DROP TABLE Banco;
 DROP TABLE Metodo_Pago;
 
 -- Drop Clientes
-DROP TABLE Cliente_Natural;
-
-DROP TABLE Cliente_Juridico;
-
 DROP TABLE Cliente;
 
 -- Drop Miembros
