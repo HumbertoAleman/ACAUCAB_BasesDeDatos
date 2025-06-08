@@ -346,6 +346,7 @@ CREATE TABLE Venta (
 CREATE TABLE Usuario (
     cod_usua serial,
     contra_usua text NOT NULL,
+    username_usua varchar(40) NOT NULL,
     fk_rol serial NOT NULL,
     fk_empl serial,
     fk_miem numeric,
