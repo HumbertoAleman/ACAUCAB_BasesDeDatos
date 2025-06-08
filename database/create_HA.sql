@@ -22,7 +22,7 @@ CREATE TABLE Tipo_Cerveza (
     cod_tipo_cerv serial,
     nombre_tipo_cerv varchar(40) NOT NULL,
     fk_receta serial NOT NULL,
-    fk_tipo_cerv serial,
+    fk_tipo_cerv integer,
     PRIMARY KEY (cod_tipo_cerv),
     CONSTRAINT sigue FOREIGN KEY (fk_receta) REFERENCES Receta (cod_rece),
     CONSTRAINT categorizado FOREIGN KEY (fk_tipo_cerv) REFERENCES Tipo_Cerveza (cod_tipo_cerv)
@@ -53,7 +53,7 @@ CREATE TABLE Lugar (
     cod_luga serial,
     nombre_luga varchar(40) NOT NULL,
     tipo_luga varchar(40) NOT NULL, -- TODO: AGREGARLE EL CHECK A LUGAR
-    fk_luga serial,
+    fk_luga integer,
     PRIMARY KEY (cod_luga),
     CONSTRAINT esta FOREIGN KEY (fk_luga) REFERENCES Lugar (cod_luga)
 );
