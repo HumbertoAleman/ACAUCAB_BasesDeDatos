@@ -1,23 +1,33 @@
-import "./index.css";
-import { APITester } from "./APITester";
 
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
+import { Box, Typography, Button } from '@mui/material';
 
-export function App() {
+function App() {
   return (
-    <div className="app">
-      <div className="logo-container">
-        <img src={logo} alt="Bun Logo" className="logo bun-logo" />
-        <img src={reactLogo} alt="React Logo" className="logo react-logo" />
-      </div>
-
-      <h1>Bun + React</h1>
-      <p>
-        Edit <code>src/App.tsx</code> and save to test HMR
-      </p>
-      <APITester />
-    </div>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#e0f7fa', // Color de fondo claro
+        textAlign: 'center',
+        p: 3, // Padding
+      }}
+    >
+      <Typography variant="h3" component="h1" gutterBottom>
+        ¡Bienvenido a ACAUCAB!
+      </Typography>
+      <Typography variant="h6" color="text.secondary" paragraph>
+        Esta es la página de inicio de tu aplicación frontend.
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 4 }}>
+        Estamos listos para construir.
+      </Typography>
+      <Button variant="contained" color="primary" size="large">
+        Comenzar
+      </Button>
+    </Box>
   );
 }
 
