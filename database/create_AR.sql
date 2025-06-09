@@ -1,22 +1,22 @@
 CREATE TABLE Ingrediente (
     cod_ingr serial PRIMARY KEY,
-    nombre_ingr varchar(50) NOT NULL 
+    nombre_ingr varchar(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE Receta (
     cod_rece serial PRIMARY KEY,
-    nombre_rece varchar(50) NOT NULL 
+    nombre_rece varchar(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE Presentacion (
     cod_pres serial PRIMARY KEY,
-    nombre_pres varchar(50) NOT NULL ,
+    nombre_pres varchar(50) NOT NULL UNIQUE,
     capacidad_pres numeric(5) NOT NULL
 );
 
 CREATE TABLE Caracteristica (
     cod_cara serial PRIMARY KEY,
-    nombre_cara varchar(50) NOT NULL 
+    nombre_cara varchar(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE Descuento (
@@ -29,7 +29,7 @@ CREATE TABLE Descuento (
 
 CREATE TABLE Tipo_Evento (
     cod_tipo_even serial PRIMARY KEY,
-    nombre_tipo_even varchar(50) NOT NULL 
+    nombre_tipo_even varchar(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE Juez (
@@ -38,7 +38,7 @@ CREATE TABLE Juez (
     segundo_nom_juez varchar(20),
     primer_ape_juez varchar(20) NOT NULL,
     segundo_ape_juez varchar(20),
-    CI_juez varchar(20) NOT NULL 
+    CI_juez varchar(20) NOT NULL UNIQUE
 );
 
 CREATE TABLE Tasa (
@@ -52,7 +52,7 @@ CREATE TABLE Tasa (
 
 CREATE TABLE Banco (
     cod_banc serial PRIMARY KEY,
-    nombre_banc varchar(50) NOT NULL 
+    nombre_banc varchar(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE Metodo_Pago (
@@ -61,7 +61,7 @@ CREATE TABLE Metodo_Pago (
 
 CREATE TABLE Empleado (
     cod_empl serial PRIMARY KEY,
-    CI_empl varchar(20) NOT NULL ,
+    CI_empl varchar(20) NOT NULL UNIQUE,
     primer_nom_empl varchar(20) NOT NULL,
     segundo_nom_empl varchar(20),
     primer_ape_empl varchar(20) NOT NULL,
@@ -71,24 +71,24 @@ CREATE TABLE Empleado (
 
 CREATE TABLE Cargo (
     cod_carg serial PRIMARY KEY,
-    nombre_carg varchar(50) NOT NULL 
+    nombre_carg varchar(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE Beneficio (
     cod_bene serial PRIMARY KEY,
-    nombre_bene varchar(50) NOT NULL ,
+    nombre_bene varchar(50) NOT NULL UNIQUE,
     cant_bene numeric(10, 2) NOT NULL
 );
 
 CREATE TABLE Rol (
     cod_rol serial PRIMARY KEY,
-    nombre_rol varchar(50) NOT NULL ,
+    nombre_rol varchar(50) NOT NULL UNIQUE,
     descripcion_rol text NOT NULL
 );
 
 CREATE TABLE Privilegio (
     cod_priv serial PRIMARY KEY,
-    nombre_priv varchar(50) NOT NULL ,
+    nombre_priv varchar(50) NOT NULL UNIQUE,
     descripcion_priv text NOT NULL
 );
 
@@ -102,13 +102,13 @@ CREATE TABLE Horario (
 
 CREATE TABLE Estatus (
     cod_esta serial PRIMARY KEY,
-    nombre_esta varchar(50) NOT NULL ,
+    nombre_esta varchar(50) NOT NULL UNIQUE,
     descripcion_esta text
 );
 
 CREATE TABLE Cuota (
     cod_cuot serial PRIMARY KEY,
-    nombre_plan_cuot varchar(50) NOT NULL ,
+    nombre_plan_cuot varchar(50) NOT NULL UNIQUE,
     precio_cuot numeric(10, 2) NOT NULL
 );
 
@@ -124,8 +124,8 @@ CREATE TABLE Lugar (
 
 CREATE TABLE Tipo_Cerveza (
     cod_tipo_cerv serial PRIMARY KEY,
-    nombre_tipo_cerv varchar(50) NOT NULL ,
-    fk_rece integer NOT NULL ,
+    nombre_tipo_cerv varchar(50) NOT NULL UNIQUE,
+    fk_rece integer NOT NULL UNIQUE,
     fk_tipo_cerv_padre integer,
     FOREIGN KEY (fk_rece) REFERENCES Receta (cod_rece),
     FOREIGN KEY (fk_tipo_cerv_padre) REFERENCES Tipo_Cerveza (cod_tipo_cerv)
@@ -141,34 +141,34 @@ CREATE TABLE Instruccion (
 
 CREATE TABLE Cerveza (
     cod_cerv serial PRIMARY KEY,
-    nombre_cerv varchar(50) NOT NULL ,
+    nombre_cerv varchar(50) NOT NULL UNIQUE,
     fk_tipo_cerv integer NOT NULL,
     FOREIGN KEY (fk_tipo_cerv) REFERENCES Tipo_Cerveza (cod_tipo_cerv)
 );
 
 CREATE TABLE Punto_Canjeo (
     cod_punt_canj serial PRIMARY KEY,
-    fk_meto_pago integer NOT NULL ,
+    fk_meto_pago integer NOT NULL UNIQUE,
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago)
 );
 
 CREATE TABLE Tarjeta (
     cod_tarj serial PRIMARY KEY,
-    numero_tarj varchar(16) NOT NULL ,
+    numero_tarj varchar(16) NOT NULL UNIQUE,
     fecha_venci_tarj date NOT NULL,
     cvv_tarj varchar(4) NOT NULL,
     nombre_titu_tarj varchar(50) NOT NULL,
     credito boolean NOT NULL,
-    fk_meto_pago integer NOT NULL ,
+    fk_meto_pago integer NOT NULL UNIQUE,
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago)
 );
 
 CREATE TABLE Cheque (
     cod_cheq serial PRIMARY KEY,
-    numero_cheq varchar(50) NOT NULL ,
+    numero_cheq varchar(50) NOT NULL UNIQUE,
     numero_cuenta_cheq varchar(50) NOT NULL,
     fk_banc integer NOT NULL,
-    fk_meto_pago integer NOT NULL ,
+    fk_meto_pago integer NOT NULL UNIQUE,
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago),
     FOREIGN KEY (fk_banc) REFERENCES Banco (cod_banc)
 );
@@ -176,7 +176,7 @@ CREATE TABLE Cheque (
 CREATE TABLE Efectivo (
     cod_efec serial PRIMARY KEY,
     denominacion_efect numeric(10, 2) NOT NULL,
-    fk_meto_pago integer NOT NULL ,
+    fk_meto_pago integer NOT NULL UNIQUE,
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago)
 );
 
@@ -204,7 +204,7 @@ CREATE TABLE Vacacion (
 
 CREATE TABLE Tienda (
     cod_tien serial PRIMARY KEY,
-    nombre_tien varchar(50) NOT NULL ,
+    nombre_tien varchar(50) NOT NULL UNIQUE,
     fecha_apertura_tien date NOT NULL,
     direccion_tien varchar(100) NOT NULL,
     fk_luga integer NOT NULL,
@@ -213,7 +213,7 @@ CREATE TABLE Tienda (
 
 CREATE TABLE Departamento (
     cod_depa serial,
-    nombre_depa varchar(50) NOT NULL ,
+    nombre_depa varchar(50) NOT NULL UNIQUE,
     fk_tien integer NOT NULL,
     PRIMARY KEY (cod_depa, fk_tien),
     FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien)
@@ -233,7 +233,7 @@ CREATE TABLE Compra (
 
 CREATE TABLE Lugar_Tienda (
     cod_luga_tien serial PRIMARY KEY,
-    nombre_luga_tien varchar(50) NOT NULL ,
+    nombre_luga_tien varchar(50) NOT NULL UNIQUE,
     tipo_luga_tien varchar(15) NOT NULL CHECK (tipo_luga_tien IN ('Almacen', 'Pasillo', 'Anaquel')),
     fk_luga_tien_padre integer,
     FOREIGN KEY (fk_luga_tien_padre) REFERENCES Lugar_Tienda (cod_luga_tien)
@@ -291,9 +291,9 @@ CREATE TABLE Cliente (
     segundo_nom_clie varchar(20),
     primer_ape_clie varchar(20),
     segundo_ape_clie varchar(20),
-    CI_clie varchar(20) ,
+    CI_clie varchar(20) UNIQUE,
 
-    razon_social_clie varchar(50) ,
+    razon_social_clie varchar(50) UNIQUE,
     denom_comercial_clie varchar(50),
     capital_clie numeric(9, 2),
     pag_web_clie text,
@@ -317,7 +317,7 @@ CREATE TABLE Cliente (
 
 CREATE TABLE Miembro (
     rif_miem varchar(20) PRIMARY KEY,
-    razon_social_miem varchar(50) NOT NULL ,
+    razon_social_miem varchar(50) NOT NULL UNIQUE,
     denom_comercial_miem varchar(50) NOT NULL,
     direccion_fiscal_miem varchar(100) NOT NULL,
     direccion_fisica_miem varchar(100) NOT NULL,
@@ -340,7 +340,7 @@ CREATE TABLE Contacto (
 
 CREATE TABLE Evento (
     cod_even serial PRIMARY KEY,
-    nombre_even varchar(50) NOT NULL ,
+    nombre_even varchar(50) NOT NULL UNIQUE,
     fecha_hora_ini_even timestamp NOT NULL,
     fecha_hora_fin_even timestamp NOT NULL,
     direccion_even varchar(100) NOT NULL,
@@ -397,11 +397,11 @@ CREATE TABLE Correo (
 CREATE TABLE Usuario (
     cod_usua serial PRIMARY KEY,
     contra_usua varchar(255) NOT NULL,
-    username_usua varchar(50) NOT NULL ,
+    username_usua varchar(50) NOT NULL UNIQUE,
     fk_rol integer NOT NULL,
-    fk_empl integer ,
-    fk_clie varchar(20) ,
-    fk_miem varchar(20) ,
+    fk_empl integer UNIQUE,
+    fk_clie varchar(20) UNIQUE,
+    fk_miem varchar(20) UNIQUE,
     FOREIGN KEY (fk_rol) REFERENCES Rol (cod_rol),
     FOREIGN KEY (fk_empl) REFERENCES Empleado (cod_empl),
     FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
@@ -418,9 +418,9 @@ CREATE TABLE Registro_Evento (
     cod_regi serial PRIMARY KEY,
     fecha_hora_regi timestamp NOT NULL,
     fk_even integer NOT NULL,
-    fk_juez integer ,
-    fk_clie varchar(20) ,
-    fk_miem varchar(20) ,
+    fk_juez integer UNIQUE,
+    fk_clie varchar(20) UNIQUE,
+    fk_miem varchar(20) UNIQUE,
     FOREIGN KEY (fk_even) REFERENCES Evento (cod_even),
     FOREIGN KEY (fk_juez) REFERENCES Juez (cod_juez),
     FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
@@ -562,7 +562,7 @@ CREATE TABLE Detalle_Compra (
     FOREIGN KEY (fk_comp) REFERENCES Compra (cod_comp),
     FOREIGN KEY (fk_pres) REFERENCES Presentacion (cod_pres),
     FOREIGN KEY (fk_cerv) REFERENCES Cerveza (cod_cerv),
-    CONSTRAINT UQ_DetalleCompra  (fk_comp, fk_pres, fk_cerv)
+    CONSTRAINT UQ_DetalleCompra UNIQUE (fk_comp, fk_pres, fk_cerv)
 );
 
 CREATE TABLE Venta (
