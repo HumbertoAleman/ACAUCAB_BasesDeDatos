@@ -6,7 +6,7 @@ CREATE TABLE Ingrediente (
 
 CREATE TABLE Receta (
     cod_rece serial,
-    nombre_rece varchar(40) NOT NULL,
+    nombre_rece varchar(80) NOT NULL,
     PRIMARY KEY (cod_rece)
 );
 
