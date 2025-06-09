@@ -91,7 +91,7 @@ CREATE TABLE Evento (
     direccion_even text NOT NULL,
     capacidad_even integer NOT NULL,
     descripcion_even text NOT NULL,
-    precio_entrada_even numeric,
+    precio_entrada_even numeric(8, 2),
     cant_entradas_evento integer NOT NULL,
     fk_tipo_even integer NOT NULL,
     fk_luga integer NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE Empleado (
     segundo_nom_empl varchar(40),
     primer_ape_empl varchar(40) NOT NULL,
     segundo_ape_empl varchar(40),
-    salario_base_empl numeric NOT NULL,
+    salario_base_empl numeric(8, 2) NOT NULL,
     PRIMARY KEY (cod_empl)
 );
 
@@ -214,8 +214,8 @@ CREATE TABLE Privilegio (
 
 CREATE TABLE Tasa (
     cod_tasa serial,
-    tasa_dolar_bcv numeric NOT NULL,
-    tasa_punto numeric NOT NULL,
+    tasa_dolar_bcv numeric(8, 2) NOT NULL,
+    tasa_punto numeric(8, 2) NOT NULL,
     fecha_ini_tasa date NOT NULL,
     fecha_fin_tasa date, -- TODO: ESTO DEBERIA SER NOT NULL CREEEEO
     PRIMARY KEY (cod_tasa)
@@ -240,7 +240,7 @@ CREATE TABLE Banco (
 CREATE TABLE Cuota (
     cod_cuot serial,
     nombre_plan_cuot varchar(40) NOT NULL,
-    precio_cuot numeric NOT NULL,
+    precio_cuot numeric(8, 2) NOT NULL,
     PRIMARY KEY (cod_cuot)
 );
 
@@ -254,9 +254,9 @@ CREATE TABLE Estatus (
 CREATE TABLE Compra (
     cod_comp serial,
     fecha_comp date NOT NULL, -- TODO: ESTO DEBERIA SER NULL SI LA COMPRA ES UN PEDIDO (NO SE HA TERMINADO)
-    iva_comp numeric NOT NULL,
-    base_imponible_comp numeric NOT NULL,
-    total_comp numeric NOT NULL,
+    iva_comp numeric(8, 2) NOT NULL,
+    base_imponible_comp numeric(8, 2) NOT NULL,
+    total_comp numeric(8, 2) NOT NULL,
     fk_tien integer,
     fk_miem integer,
     PRIMARY KEY (cod_comp),
@@ -267,7 +267,7 @@ CREATE TABLE Compra (
 CREATE TABLE CERV_PRES (
     fk_cerv integer,
     fk_pres integer,
-    precio_pres_cerv numeric NOT NULL,
+    precio_pres_cerv numeric(8, 2) NOT NULL,
     fk_miem integer NOT NULL,
     PRIMARY KEY (fk_cerv, fk_pres),
     CONSTRAINT empaqueta FOREIGN KEY (fk_cerv) REFERENCES Cerveza (cod_cerv),
@@ -278,7 +278,7 @@ CREATE TABLE CERV_PRES (
 CREATE TABLE Detalle_Compra (
     cod_deta_comp serial,
     cant_deta_comp integer NOT NULL,
-    precio_unitario_comp numeric NOT NULL,
+    precio_unitario_comp numeric(8, 2) NOT NULL,
     fk_cerv_pres_1 integer NOT NULL,
     fk_cerv_pres_2 integer NOT NULL,
     fk_comp integer NOT NULL,
@@ -301,7 +301,7 @@ CREATE TABLE Cliente (
     ci_natu integer,
     razon_social_juri varchar(40),
     denom_comercial_juri varchar(40),
-    capital_juri numeric,
+    capital_juri numeric(8, 2),
     pag_web_juri text,
     PRIMARY KEY (rif_clie),
     CONSTRAINT domiciliado FOREIGN KEY (fk_luga_1) REFERENCES Lugar (cod_luga),
@@ -313,9 +313,9 @@ CREATE TABLE Cliente (
 CREATE TABLE Venta (
     cod_vent serial,
     fecha_vent date NOT NULL,
-    iva_vent numeric NOT NULL,
-    base_imponible_vent numeric NOT NULL,
-    total_vent numeric NOT NULL,
+    iva_vent numeric(8, 2) NOT NULL,
+    base_imponible_vent numeric(8, 2) NOT NULL,
+    total_vent numeric(8, 2) NOT NULL,
     online boolean,
     fk_clie integer,
     fk_miem integer,
@@ -357,7 +357,7 @@ CREATE TABLE Inventario_Tienda (
     fk_tien integer,
     fk_luga_tien integer NOT NULL,
     cant_pres integer NOT NULL,
-    precio_actual_pres numeric NOT NULL,
+    precio_actual_pres numeric(8, 2) NOT NULL,
     PRIMARY KEY (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien),
     CONSTRAINT conformado FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres),
     CONSTRAINT posicionado FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien),
@@ -369,7 +369,7 @@ CREATE TABLE Inventario_Evento (
     fk_cerv_pres_2 integer,
     fk_even integer,
     cant_pres integer NOT NULL,
-    precio_actual_pres numeric NOT NULL,
+    precio_actual_pres numeric(8, 2) NOT NULL,
     PRIMARY KEY (fk_cerv_pres_1, fk_cerv_pres_2, fk_even),
     CONSTRAINT dispone FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres),
     CONSTRAINT administra FOREIGN KEY (fk_even) REFERENCES Evento (cod_even)
@@ -378,7 +378,7 @@ CREATE TABLE Inventario_Evento (
 CREATE TABLE Detalle_Venta (
     cod_deta_vent serial,
     cant_deta_vent integer NOT NULL,
-    precio_unitario_vent numeric NOT NULL,
+    precio_unitario_vent numeric(8, 2) NOT NULL,
     fk_vent integer NOT NULL,
     fk_inve_tien_1 integer,
     fk_inve_tien_2 integer,
@@ -435,7 +435,7 @@ CREATE TABLE Efectivo (
 CREATE TABLE Pago (
     fk_vent integer,
     fk_meto_pago integer,
-    monto_pago numeric NOT NULL,
+    monto_pago numeric(8, 2) NOT NULL,
     fecha_pago date NOT NULL,
     fk_tasa integer NOT NULL,
     PRIMARY KEY (fk_vent, fk_meto_pago),
@@ -504,7 +504,7 @@ CREATE TABLE DESC_CERV (
     fk_desc integer,
     fk_cerv_pres_1 integer,
     fk_cerv_pres_2 integer,
-    porcentaje_desc numeric NOT NULL,
+    porcentaje_desc numeric(3, 2) NOT NULL,
     PRIMARY KEY (fk_desc, fk_cerv_pres_1, fk_cerv_pres_2),
     CONSTRAINT aplica FOREIGN KEY (fk_desc) REFERENCES Descuento (cod_desc),
     CONSTRAINT aplicado FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres)
@@ -531,7 +531,7 @@ CREATE TABLE EMPL_BENE (
     fk_empl_carg_1 integer,
     fk_empl_carg_2 integer,
     fk_bene integer,
-    monto_bene numeric,
+    monto_bene numeric(8, 2),
     PRIMARY KEY (fk_empl_carg_1, fk_empl_carg_2, fk_bene),
     CONSTRAINT disfruta FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg),
     CONSTRAINT disfrutado FOREIGN KEY (fk_bene) REFERENCES Beneficio (cod_bene)
