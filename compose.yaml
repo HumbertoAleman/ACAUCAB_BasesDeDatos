@@ -5,6 +5,7 @@ services:
     image: postgres:alpine
     restart: always
     environment:
+      POSTGRES_DB: acaucab_test
       POSTGRES_PASSWORD: admin
     volumes:
       - /var/lib/postgresql/data
@@ -39,6 +40,8 @@ services:
   backend:
     image: oven/bun
     restart: always
+    environment:
+      POSTGRES_URL: postgres://postgres:admin@db:5432/acaucab_test
     volumes:                   # 1. Create a virtual volume 
       - type: bind             # and bind it to the real folder
         source: ./backend      # 2. Bind ./backend
