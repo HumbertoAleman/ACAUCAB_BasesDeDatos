@@ -52,7 +52,7 @@ CREATE TABLE Presentacion (
 CREATE TABLE Lugar (
     cod_luga serial,
     nombre_luga varchar(40) NOT NULL,
-    tipo_luga varchar(40) NOT NULL, -- TODO: AGREGARLE EL CHECK A LUGAR
+    tipo_luga varchar(40) NOT NULL (tipo_luga IN ('Estado', 'Ciudad', 'Parroquia')),
     fk_luga integer,
     PRIMARY KEY (cod_luga),
     CONSTRAINT esta FOREIGN KEY (fk_luga) REFERENCES Lugar (cod_luga)
