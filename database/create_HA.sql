@@ -194,7 +194,7 @@ CREATE TABLE Horario (
     cod_hora serial,
     hora_ini_hora time NOT NULL,
     hora_fin_hora time NOT NULL,
-    dia_hora varchar(20) NOT NULL, -- TODO: CHECK DIA DE LA SEMANA
+    dia_hora varchar(20) NOT NULL CHECK (dia_hora IN ('Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo')),
     PRIMARY KEY (cod_hora)
 );
 
@@ -217,7 +217,7 @@ CREATE TABLE Tasa (
     tasa_dolar_bcv numeric(8, 2) NOT NULL,
     tasa_punto numeric(8, 2) NOT NULL,
     fecha_ini_tasa date NOT NULL,
-    fecha_fin_tasa date, -- TODO: ESTO DEBERIA SER NOT NULL CREEEEO
+    fecha_fin_tasa date,
     PRIMARY KEY (cod_tasa)
 );
 
@@ -253,7 +253,7 @@ CREATE TABLE Estatus (
 
 CREATE TABLE Compra (
     cod_comp serial,
-    fecha_comp date NOT NULL, -- TODO: ESTO DEBERIA SER NULL SI LA COMPRA ES UN PEDIDO (NO SE HA TERMINADO)
+    fecha_comp date NOT NULL,
     iva_comp numeric(8, 2) NOT NULL,
     base_imponible_comp numeric(8, 2) NOT NULL,
     total_comp numeric(8, 2) NOT NULL,
@@ -292,7 +292,7 @@ CREATE TABLE Cliente (
     direccion_fiscal_clie text NOT NULL,
     direccion_fisica_clie text NOT NULL,
     fk_luga_1 integer NOT NULL,
-    fk_luga_2 integer NOT NULL, -- TODO: ESTO NO DEBERIA SER NULL ? (porque es la secundaria)
+    fk_luga_2 integer NOT NULL,
     tipo_clie varchar(10) NOT NULL CHECK (tipo_clie IN ('Natural', 'Juridico')),
     primer_nom_natu varchar(40),
     segundo_nom_natu varchar(40),
