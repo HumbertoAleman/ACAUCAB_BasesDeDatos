@@ -52,7 +52,7 @@ CREATE TABLE Presentacion (
 CREATE TABLE Lugar (
     cod_luga serial,
     nombre_luga varchar(40) NOT NULL,
-    tipo_luga varchar(40) NOT NULL (tipo_luga IN ('Estado', 'Ciudad', 'Parroquia')),
+    tipo_luga varchar(40) NOT NULL CHECK (tipo_luga IN ('Estado', 'Ciudad', 'Parroquia')),
     fk_luga integer,
     PRIMARY KEY (cod_luga),
     CONSTRAINT esta FOREIGN KEY (fk_luga) REFERENCES Lugar (cod_luga)
@@ -606,7 +606,7 @@ CREATE TABLE PUNT_CLIE (
     cant_puntos_acum numeric(10, 2),
     cant_puntos_canj numeric(10, 2),
     fecha_transaccion date NOT NULL,
-    canjeado boolean NOT NULL,
+    canjeado boolean,
     PRIMARY KEY (cod_punt_clie, fk_clie, fk_meto_pago),
     CONSTRAINT guarda FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
     CONSTRAINT reformado FOREIGN KEY (fk_meto_pago) REFERENCES Punto_Canjeo (fk_meto_pago),
