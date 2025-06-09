@@ -35,7 +35,7 @@ services:
       - 3000:3000
 
 
-  # Frontend
+  # Backend
   backend:
     image: oven/bun
     restart: always
