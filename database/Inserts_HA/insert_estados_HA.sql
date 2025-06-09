@@ -26,19 +26,19 @@ INSERT INTO Lugar (cod_luga, nombre_luga, tipo_luga, fk_luga)
 
 -- Insertar en Miranda
 INSERT INTO Lugar (cod_luga, nombre_luga, tipo_luga, fk_luga)
-    VALUES (23, 'Acevedo', 'Provincia', 14),
-    (24, 'Andrés Bello', 'Provincia', 14),
-    (25, 'Baruta', 'Provincia', 14),
-    (26, 'Buroz', 'Provincia', 14),
-    (27, 'Carrizal', 'Provincia', 14),
-    (28, 'Chacao', 'Provincia', 14),
-    (29, 'El Hatillo', 'Provincia', 14),
-    (30, 'Guaicaipuro', 'Provincia', 14),
-    (31, 'Independencia', 'Provincia', 14),
-    (32, 'Los Salias', 'Provincia', 14),
-    (33, 'Paz Castillo', 'Provincia', 14),
-    (34, 'Sucre', 'Provincia', 14),
-    (35, 'Urdaneta', 'Provincia', 14);
+    VALUES (23, 'Acevedo', 'Municipio', 14),
+    (24, 'Andrés Bello', 'Municipio', 14),
+    (25, 'Baruta', 'Municipio', 14),
+    (26, 'Buroz', 'Municipio', 14),
+    (27, 'Carrizal', 'Municipio', 14),
+    (28, 'Chacao', 'Municipio', 14),
+    (29, 'El Hatillo', 'Municipio', 14),
+    (30, 'Guaicaipuro', 'Municipio', 14),
+    (31, 'Independencia', 'Municipio', 14),
+    (32, 'Los Salias', 'Municipio', 14),
+    (33, 'Paz Castillo', 'Municipio', 14),
+    (34, 'Sucre', 'Municipio', 14),
+    (35, 'Urdaneta', 'Municipio', 14);
 
 -- Insertar en el Hatillo
 INSERT INTO Lugar (cod_luga, nombre_luga, tipo_luga, fk_luga)
