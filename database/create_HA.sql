@@ -598,11 +598,16 @@ CREATE TABLE ESTA_VENT (
 );
 
 CREATE TABLE PUNT_CLIE (
+    cod_punt_clie serial,
     fk_clie integer,
     fk_meto_pago integer,
     fk_tasa integer NOT NULL,
     fk_vent integer NOT NULL UNIQUE,
-    PRIMARY KEY (fk_clie, fk_meto_pago),
+    cant_puntos_acum numeric(10, 2),
+    cant_puntos_canj numeric(10, 2),
+    fecha_transaccion date NOT NULL,
+    canjeado boolean NOT NULL,
+    PRIMARY KEY (cod_punt_clie, fk_clie, fk_meto_pago),
     CONSTRAINT guarda FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
     CONSTRAINT reformado FOREIGN KEY (fk_meto_pago) REFERENCES Punto_Canjeo (fk_meto_pago),
     CONSTRAINT cambia FOREIGN KEY (fk_tasa) REFERENCES Tasa (cod_tasa),
