@@ -46,4 +46,4 @@ services:
     working_dir: /home/bun/app # 3. Set workdir to /home/bun/app
     command: bun run dev       # 4. Run dev script in /home/bun/app
     ports:
-      - 3001:3000
+      - 3000:3000
