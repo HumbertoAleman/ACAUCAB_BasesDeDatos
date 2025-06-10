@@ -452,3 +452,7 @@ SELECT sub_L.nombre_luga, sub_L.tipo_luga, sup_L.nombre_luga
 FROM Lugar as sup_L, Lugar as sub_L
 WHERE
 	sup_L.cod_luga = sub_L.fk_luga;
+
+SELECT COUNT(*) FROM Lugar WHERE tipo_luga = 'Estado'; 
+SELECT COUNT(*) FROM Lugar WHERE tipo_luga = 'Municipio'; 
+SELECT COUNT(*) FROM Lugar WHERE tipo_luga = 'Parroquia'; 
