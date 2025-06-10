@@ -13,18 +13,18 @@ CREATE TABLE Receta (
 CREATE TABLE Instruccion (
     cod_inst serial,
     nombre_inst text NOT NULL,
-    fk_receta integer NOT NULL,
+    fk_rece integer NOT NULL,
     PRIMARY KEY (cod_inst),
-    CONSTRAINT instruye FOREIGN KEY (fk_receta) REFERENCES Receta (cod_rece)
+    CONSTRAINT instruye FOREIGN KEY (fk_rece) REFERENCES Receta (cod_rece)
 );
 
 CREATE TABLE Tipo_Cerveza (
     cod_tipo_cerv serial,
     nombre_tipo_cerv varchar(40) NOT NULL,
-    fk_receta integer NOT NULL,
+    fk_rece integer NOT NULL,
     fk_tipo_cerv integer,
     PRIMARY KEY (cod_tipo_cerv),
-    CONSTRAINT sigue FOREIGN KEY (fk_receta) REFERENCES Receta (cod_rece),
+    CONSTRAINT sigue FOREIGN KEY (fk_rece) REFERENCES Receta (cod_rece),
     CONSTRAINT categorizado FOREIGN KEY (fk_tipo_cerv) REFERENCES Tipo_Cerveza (cod_tipo_cerv)
 );
 
