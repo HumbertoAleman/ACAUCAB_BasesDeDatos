@@ -75,25 +75,30 @@ BEGIN
         VALUES ('Receta para cervezas de tipo ' || $1)
     RETURNING
         cod_rece INTO x;
-    INSERT INTO Tipo_Cerveza (nombre_tipo_cerv, fk_receta, fk_tipo_cerv)
-        VALUES ($1, x, (
-                SELECT
-                    cod_tipo_cerv
-                FROM
-                    Tipo_Cerveza
-                WHERE
-                    nombre_tipo_cerv = $2));
+    INSERT INTO Tipo_Cerveza (nombre_tipo_cerv, fk_rece, fk_tipo_cerv)
+        VALUES ($1, x, get_tipo_cerv ($2));
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION relate_caracteristica (text, text, text)
-    RETURNS void
+CREATE OR REPLACE PROCEDURE relate_caracteristica (text, text, text)
     AS $$
 DECLARE
     x integer;
 BEGIN
     INSERT INTO TIPO_CARA (fk_tipo_cerv, fk_cara, valor_cara)
+        VALUES (get_tipo_cerv ($1), get_cara ($2), $3);
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE relate_ingr (text, text, text)
+    AS $$
+DECLARE
+    x integer;
+BEGIN
+    INSERT INTO RECE_INGR (fk_rece, fk_ingr, cant_ingr)
+        VALUES (get_rece_by_type ($1), get_ingr ($2), $3);
 END;
 $$
 LANGUAGE plpgsql;
