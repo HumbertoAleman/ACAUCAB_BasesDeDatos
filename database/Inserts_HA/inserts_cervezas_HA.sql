@@ -131,6 +131,8 @@ CALL insert_tipo_cerveza ('Dark Ale', 'Ale');
 
 CALL insert_tipo_cerveza ('Stout', 'Dark Ale');
 
+CALL insert_tipo_cerveza ('Guiness Irlandesa', 'Stout');
+
 CALL insert_tipo_cerveza ('Porter', 'Dark Ale');
 
 CALL insert_tipo_cerveza ('Belga', 'Ale');
