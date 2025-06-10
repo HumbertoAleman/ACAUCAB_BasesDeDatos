@@ -306,9 +306,9 @@ CALL relate_cara ('Lager', 'Color', 'Claro');
 CALL relate_cara ('Lager', 'Graduacion', '3.5% ~ 5%');
 
 -- Ale
-CALL relate_ingr ('Lager', 'Malta', 'Sin Especificar');
+CALL relate_ingr ('Ale', 'Malta', 'Sin Especificar');
 
-CALL relate_ingr ('Lager', 'Levadura Ale', 'Sin Especificar');
+CALL relate_ingr ('Ale', 'Levadura Ale', 'Sin Especificar');
 
 CALL relate_ingr ('Ale', 'Lupulo', 'Bastante');
 
@@ -355,7 +355,7 @@ CALL relate_cara ('Pale Ale', 'Sabor', 'Mucho');
 CALL relate_cara ('Pale Ale', 'Amargor (IBUs)', 'Bastante');
 
 -- Indian Pale Ale
-CALL relate_ingr ('Pale Ale', 'Lupulo', 'Mucho');
+CALL relate_ingr ('Indian Pale Ale', 'Lupulo', 'Mucho');
 
 CALL relate_cara ('Indian Pale Ale', 'Graduacion', 'Alta');
 
@@ -406,9 +406,9 @@ CALL relate_ingr ('Belga', 'Lupulo', 'Buena Cantidad');
 
 CALL relate_ingr ('Belga', 'Malta Ambar', 'Sin Especificar');
 
-CALL relate_ingr ('Belga', 'Malta de Cristal', 'Sin Especificar');
+CALL relate_ingr ('Belga', 'Malta Cristal', 'Sin Especificar');
 
-CALL relate_cara ('Belga', 'Color', 'Palidas ~ Oscuras, Tonos Rojizos o Completamente Rubias');
+CALL relate_cara ('Belga', 'Color', 'Palidas ~ Oscuras, Tonos Rojizos o Rubias');
 
 CALL relate_cara ('Belga', 'Sabor', 'Intenso, Fondo Dulce');
 
