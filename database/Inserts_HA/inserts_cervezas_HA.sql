@@ -427,6 +427,8 @@ CALL relate_cara ('Pilsener', 'Sabor', 'Ligero pero Intenso');
 CALL relate_cara ('Pilsener', 'Graduacion', 'Medio');
 
 -- NOTE: TE QUEDASTE EN AMERICAN AMBER ALE
+--
+-- Dame los tipos de cervezas, y a que supertipo pertenecen
 SELECT
     Cat.nombre_tipo_cerv,
     T.nombre_tipo_cerv
@@ -435,3 +437,31 @@ FROM
     Tipo_Cerveza AS Cat
 WHERE
     Cat.fk_tipo_cerv = T.cod_tipo_cerv;
+
+-- Dame los tipos de cervezas, con los ingredientes que van en sus recetas
+SELECT
+    nombre_tipo_cerv AS "Tipo de Cerveza",
+    nombre_ingr AS "Ingrediente",
+    cant_ingr AS "Cantidad en Receta"
+FROM
+    Tipo_Cerveza AS T,
+    Ingrediente AS I,
+    Receta AS R,
+    RECE_INGR AS R_T
+WHERE
+    T.fk_rece = R.cod_rece
+    AND R.cod_rece = R_T.fk_rece
+    AND I.cod_ingr = R_T.fk_ingr;
+
+-- Dame los tipos de cervezas con sus caracteristicas
+SELECT
+    nombre_tipo_cerv AS "Tipo de Cerveza",
+    nombre_cara AS "Caracteristica",
+    valor_cara AS "Valor"
+FROM
+    Tipo_Cerveza AS T,
+    Caracteristica AS C,
+    TIPO_CARA AS T_C
+WHERE
+    T.cod_tipo_cerv = T_C.fk_tipo_cerv
+    AND T_C.fk_cara = C.cod_cara;
