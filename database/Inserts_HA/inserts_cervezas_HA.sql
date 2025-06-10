@@ -1,3 +1,71 @@
+CREATE OR REPLACE FUNCTION get_tipo_cerv (text)
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        cod_tipo_cerv
+    FROM
+        Tipo_Cerveza
+    WHERE
+        nombre_tipo_cerv = $1 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_rece_by_type (text)
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        fk_rece
+    FROM
+        Tipo_Cerveza
+    WHERE
+        nombre_tipo_cerv = $1 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_cara (text)
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        cod_cara
+    FROM
+        Caracteristica
+    WHERE
+        nombre_cara = $1 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_ingr (text)
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        cod_ingr
+    FROM
+        Ingrediente
+    WHERE
+        nombre_ingr = $1 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
 CREATE OR REPLACE PROCEDURE insert_tipo_cerveza (text, text)
     AS $$
 DECLARE
