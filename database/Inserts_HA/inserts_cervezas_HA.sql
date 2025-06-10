@@ -284,6 +284,143 @@ INSERT INTO Caracteristica (nombre_cara)
     ('Amargor (IBUs)'),
     ('Aroma');
 
+-- Lager
+CALL relate_ingr ('Lager', 'Malta Clara', 'Alto Porcentaje');
+
+CALL relate_ingr ('Lager', 'Malta Tostada', 'Poco o Nada');
+
+CALL relate_ingr ('Lager', 'Malta Caramelizada', 'Poco o Nada');
+
+CALL relate_ingr ('Lager', 'Malta de Trigo', 'Poco o Nada');
+
+CALL relate_ingr ('Lager', 'Levadura Lager', 'Sin Especificar');
+
+CALL relate_ingr ('Lager', 'Lupulo', 'Poco');
+
+CALL relate_cara ('Lager', 'Temperatura de Fermentado', 'Menor a 10 Grados Celcius');
+
+CALL relate_cara ('Lager', 'Tiempo de Fermentado', '1 a 3 Meses');
+
+CALL relate_cara ('Lager', 'Color', 'Claro');
+
+CALL relate_cara ('Lager', 'Graduacion', '3.5% ~ 5%');
+
+-- Ale
+CALL relate_ingr ('Lager', 'Malta', 'Sin Especificar');
+
+CALL relate_ingr ('Lager', 'Levadura Ale', 'Sin Especificar');
+
+CALL relate_ingr ('Ale', 'Lupulo', 'Bastante');
+
+CALL relate_cara ('Ale', 'Temperatura de Fermentado', '~19 Grados Celcius');
+
+CALL relate_cara ('Ale', 'Tiempo de Fermentado', '5 a 7 Dias');
+
+CALL relate_cara ('Ale', 'Graduacion', 'Elevado');
+
+-- De Trigo
+CALL relate_ingr ('De Trigo', 'Levadura Ale', 'Sin Especificar');
+
+CALL relate_ingr ('De Trigo', 'Malta de Trigo', 'Muy Algo Porcentaje');
+
+CALL relate_cara ('De Trigo', 'Color', 'Claro');
+
+CALL relate_cara ('De Trigo', 'Graduacion', 'Baja');
+
+-- Bock
+CALL relate_ingr ('Bock', 'Lupulo', 'Poco');
+
+CALL relate_ingr ('Bock', 'Levadura Lager', 'Sin Especificar');
+
+CALL relate_ingr ('Bock', 'Malta Tostada', 'Alta Cantidad');
+
+CALL relate_cara ('Bock', 'Color', 'Muy Oscuro');
+
+CALL relate_cara ('Bock', 'Color de Espuma', 'Blanco');
+
+CALL relate_cara ('Bock', 'Graduacion', '7%');
+
+-- NOTE: Potencialmente agregar para poner multiples de la misma caracteristica, como sabor
+CALL relate_cara ('Bock', 'Sabor', 'A malta, Algo de Dulzor');
+
+-- Pale Ale
+CALL relate_ingr ('Pale Ale', 'Malta Tostada', 'Bajo Porcentaje');
+
+CALL relate_ingr ('Pale Ale', 'Lupulo', 'Mucho');
+
+CALL relate_cara ('Pale Ale', 'Color', 'Claro');
+
+CALL relate_cara ('Pale Ale', 'Sabor', 'Mucho');
+
+CALL relate_cara ('Pale Ale', 'Amargor (IBUs)', 'Bastante');
+
+-- Indian Pale Ale
+CALL relate_ingr ('Pale Ale', 'Lupulo', 'Mucho');
+
+CALL relate_cara ('Indian Pale Ale', 'Graduacion', 'Alta');
+
+-- Dark Ale
+CALL relate_cara ('Dark Ale', 'Color', 'Muy Oscuro');
+
+-- Stout
+CALL relate_ingr ('Stout', 'Malta Tostada', 'Grande Porcentaje');
+
+CALL relate_ingr ('Stout', 'Malta Caramelizada', 'Grande Porcentaje');
+
+CALL relate_cara ('Stout', 'Color', 'Muy Oscuro');
+
+-- NOTE: Lo mismo que la nota de arriba
+CALL relate_cara ('Stout', 'Textura', 'Espesa y Cremosa');
+
+CALL relate_cara ('Stout', 'Aroma', 'A malta');
+
+CALL relate_cara ('Stout', 'Regusto', 'Dulce');
+
+-- Imperial Stout
+CALL relate_cara ('Stout', 'Graduacion', 'Muy Alta');
+
+-- Chocolate, Coffee, Milk Stout (Se nos dice que las 3 tienen leche)
+CALL relate_ingr ('Chocolate Stout', 'Chocolate', 'Sin Especificar');
+
+CALL relate_ingr ('Chocolate Stout', 'Leche', 'Sin Especificar');
+
+CALL relate_cara ('Chocolate Stout', 'Sabor', 'Dulce');
+
+CALL relate_ingr ('Coffee Stout', 'Cafe', 'Sin Especificar');
+
+CALL relate_ingr ('Coffee Stout', 'Leche', 'Sin Especificar');
+
+CALL relate_cara ('Coffee Stout', 'Sabor', 'Dulce');
+
+CALL relate_ingr ('Milk Stout', 'Leche', 'Sin Especificar');
+
+CALL relate_cara ('Milk Stout', 'Sabor', 'Dulce');
+
+-- Porter
+CALL relate_ingr ('Porter', 'Lupulo', 'Buena Cantidad');
+
+CALL relate_cara ('Porter', 'Color', 'Medio-Oscuro');
+
+-- Belgas
+CALL relate_ingr ('Belga', 'Lupulo', 'Buena Cantidad');
+
+CALL relate_ingr ('Belga', 'Malta Ambar', 'Sin Especificar');
+
+CALL relate_ingr ('Belga', 'Malta de Cristal', 'Sin Especificar');
+
+CALL relate_cara ('Belga', 'Color', 'Palidas ~ Oscuras, Tonos Rojizos o Completamente Rubias');
+
+CALL relate_cara ('Belga', 'Sabor', 'Intenso, Fondo Dulce');
+
+-- Abadía, la Trapense, la Ámbar o la Flamenca
+CALL relate_cara ('Abadia', 'Graduacion', '6% ~ 7%');
+
+CALL relate_cara ('Trapense', 'Graduacion', '6% ~ 7%');
+
+CALL relate_cara ('Ambar', 'Graduacion', '6% ~ 7%');
+
+CALL relate_cara ('Flamenca', 'Graduacion', '6% ~ 7%');
+
 SELECT
     Cat.nombre_tipo_cerv,
     T.nombre_tipo_cerv
