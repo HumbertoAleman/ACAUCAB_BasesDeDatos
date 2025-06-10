@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "bunx --bun vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "bunx --bun tsc -b && bunx -- vite build",
+    "lint": "bunx --bun eslint .",
+    "preview": "bunx -- bun vite preview"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
