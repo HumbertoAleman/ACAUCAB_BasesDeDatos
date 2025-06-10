@@ -81,7 +81,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE relate_caracteristica (text, text, text)
+CREATE OR REPLACE PROCEDURE relate_cara (text, text, text)
     AS $$
 DECLARE
     x integer;
