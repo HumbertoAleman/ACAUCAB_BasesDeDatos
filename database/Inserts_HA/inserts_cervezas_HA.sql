@@ -421,6 +421,12 @@ CALL relate_cara ('Ambar', 'Graduacion', '6% ~ 7%');
 
 CALL relate_cara ('Flamenca', 'Graduacion', '6% ~ 7%');
 
+-- Pilsener
+CALL relate_cara ('Pilsener', 'Sabor', 'Ligero pero Intenso');
+
+CALL relate_cara ('Pilsener', 'Graduacion', 'Medio');
+
+-- NOTE: TE QUEDASTE EN AMERICAN AMBER ALE
 SELECT
     Cat.nombre_tipo_cerv,
     T.nombre_tipo_cerv
