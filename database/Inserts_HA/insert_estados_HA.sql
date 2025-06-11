@@ -41,7 +41,7 @@ $$ LANGUAGE plpgsql;
 DELETE FROM Lugar;
 
 -- States
-SELECT insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas', 'Bolivar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcon', 'Guarico', 'La Guaira', 'Lara', 'Merida', 'Miranda', 'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Tachira', 'Trujillo', 'Yaracuy', 'Zulia']);
+CALL insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas', 'Bolivar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcon', 'Guarico', 'La Guaira', 'Lara', 'Merida', 'Miranda', 'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Tachira', 'Trujillo', 'Yaracuy', 'Zulia']);
 
 -- Amazonas
 CALL insert_municipios(ARRAY['Altures', 'Alto Orinoco', 'Atabapo', 'Autana', 'Manapiare', 'Maroa', 'Rio Negro'], 'Amazonas');
@@ -205,26 +205,26 @@ CALL insert_parroquias(ARRAY['Bruzual', 'Urumaco'], 'Urumaco');
 CALL insert_parroquias(ARRAY['Puerto Cumarebo', 'La Ciénaga', 'La Soledad', 'Pueblo Cumarebo', 'Zazárida'], 'Zamora');
 
 -- Guárico
-SELECT insert_municipios(ARRAY['Infante','Mellado','Miranda','Monagas','Ribas','Roscio','Zaraza','Camaguán','San José de Guaribe','Las Mercedes','El Socorro','Ortiz','Santa María de Ipire','Chaguaramas','San Jerónimo de Guayabal'],'Guarico');
-SELECT insert_parroquias(ARRAY['Camaguán', 'Puerto Miranda', 'Uverito'], 'Camaguán');
-SELECT insert_parroquias(ARRAY['Chaguaramas'], 'Chaguaramas');
-SELECT insert_parroquias(ARRAY['El Socorro'], 'El Socorro');
-SELECT insert_parroquias(ARRAY['El Calvario', 'El Rastro', 'Guardatinajas', 'Capital Urbana Calabozo'], 'Francisco de Miranda');
-SELECT insert_parroquias(ARRAY['Tucupido', 'San Rafael de Laya'], 'José Félix Ribas');
-SELECT insert_parroquias(ARRAY['Altagracia de Orituco', 'San Rafael de Orituco', 'San Francisco Javier de Lezama', 'Paso Real de Macaira', 'Carlos Soublette', 'San Francisco de Macaira', 'Libertad de Orituco'], 'José Tadeo Monagas');
-SELECT insert_parroquias(ARRAY['Cantagallo', 'San Juan de los Morros', 'Parapara'], 'Juan Germán Roscio');
-SELECT insert_parroquias(ARRAY['El Sombrero', 'Sosa'], 'Julián Mellado');
-SELECT insert_parroquias(ARRAY['Las Mercedes', 'Cabruta', 'Santa Rita de Manapire'], 'Juan Jose Rondon');
-SELECT insert_parroquias(ARRAY['Valle de la Pascua', 'Espino'], 'Leonardo Infante');
-SELECT insert_parroquias(ARRAY['San José de Tiznados', 'San Francisco de Tiznados', 'San Lorenzo de Tiznados', 'Ortiz'], 'Ortiz');
-SELECT insert_parroquias(ARRAY['San José de Unare', 'Zaraza'], 'Pedro Zaraza');
-SELECT insert_parroquias(ARRAY['Guayabal', 'Cazorla'], 'San Jerónimo de Guayabal');
-SELECT insert_parroquias(ARRAY['San José de Guaribe'], 'San José de Guaribe');
-SELECT insert_parroquias(ARRAY['Santa María de Ipire', 'Altamira'], 'Santa María de Ipire');
+CALL insert_municipios(ARRAY['Infante','Mellado','Miranda','Monagas','Ribas','Roscio','Zaraza','Camaguán','San José de Guaribe','Las Mercedes','El Socorro','Ortiz','Santa María de Ipire','Chaguaramas','San Jerónimo de Guayabal'],'Guarico');
+CALL insert_parroquias(ARRAY['Camaguán', 'Puerto Miranda', 'Uverito'], 'Camaguán');
+CALL insert_parroquias(ARRAY['Chaguaramas'], 'Chaguaramas');
+CALL insert_parroquias(ARRAY['El Socorro'], 'El Socorro');
+CALL insert_parroquias(ARRAY['El Calvario', 'El Rastro', 'Guardatinajas', 'Capital Urbana Calabozo'], 'Francisco de Miranda');
+CALL insert_parroquias(ARRAY['Tucupido', 'San Rafael de Laya'], 'José Félix Ribas');
+CALL insert_parroquias(ARRAY['Altagracia de Orituco', 'San Rafael de Orituco', 'San Francisco Javier de Lezama', 'Paso Real de Macaira', 'Carlos Soublette', 'San Francisco de Macaira', 'Libertad de Orituco'], 'José Tadeo Monagas');
+CALL insert_parroquias(ARRAY['Cantagallo', 'San Juan de los Morros', 'Parapara'], 'Juan Germán Roscio');
+CALL insert_parroquias(ARRAY['El Sombrero', 'Sosa'], 'Julián Mellado');
+CALL insert_parroquias(ARRAY['Las Mercedes', 'Cabruta', 'Santa Rita de Manapire'], 'Juan Jose Rondon');
+CALL insert_parroquias(ARRAY['Valle de la Pascua', 'Espino'], 'Leonardo Infante');
+CALL insert_parroquias(ARRAY['San José de Tiznados', 'San Francisco de Tiznados', 'San Lorenzo de Tiznados', 'Ortiz'], 'Ortiz');
+CALL insert_parroquias(ARRAY['San José de Unare', 'Zaraza'], 'Pedro Zaraza');
+CALL insert_parroquias(ARRAY['Guayabal', 'Cazorla'], 'San Jerónimo de Guayabal');
+CALL insert_parroquias(ARRAY['San José de Guaribe'], 'San José de Guaribe');
+CALL insert_parroquias(ARRAY['Santa María de Ipire', 'Altamira'], 'Santa María de Ipire');
 
 -- La Guaira
-SELECT insert_municipio(ARRAY['Vargas'], 'La Guaira');
-SELECT insert_parroquias(ARRAY['Caraballeda','Carayaca','Carlos Soublette','Caruao','Catia La Mar','El Junko','La Guaira','Macuto','Maiquetía','Naiguatá','Urimare'],'Vargas');
+CALL insert_municipios(ARRAY['Vargas'], 'La Guaira');
+CALL insert_parroquias(ARRAY['Caraballeda','Carayaca','Carlos Soublette','Caruao','Catia La Mar','El Junko','La Guaira','Macuto','Maiquetía','Naiguatá','Urimare'],'Vargas');
 
 -- Lara
 CALL insert_municipios(ARRAY['Iribarren','Jiménez','Crespo','Andrés Eloy Blanco','Urdaneta','Torres','Palavecino','Morán','Simón Planas'],'Lara');
