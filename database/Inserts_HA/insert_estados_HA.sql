@@ -41,9 +41,7 @@ $$ LANGUAGE plpgsql;
 DELETE FROM Lugar;
 
 -- States
-CALL insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas', 'Bolivar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcon', 'Guarico', 'Lara', 
-'Merida', 'Miranda', 'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 
-'Tachira', 'Trujillo', 'Yaracuy', 'Zulia']);
+CALL insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas', 'Bolivar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcon', 'Guarico', 'La Guaira', 'Lara', 'Merida', 'Miranda', 'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Tachira', 'Trujillo', 'Yaracuy', 'Zulia']);
 
 -- Amazonas
 CALL insert_municipios(ARRAY['Altures', 'Alto Orinoco', 'Atabapo', 'Autana', 'Manapiare', 'Maroa', 'Rio Negro'], 'Amazonas');
@@ -225,8 +223,8 @@ CALL insert_parroquias(ARRAY['San José de Guaribe'], 'San José de Guaribe');
 CALL insert_parroquias(ARRAY['Santa María de Ipire', 'Altamira'], 'Santa María de Ipire');
 
 -- La Guaira
-SELECT insert_municipio(ARRAY['Vargas'], 'La Guaira');
-SELECT insert_parroquias(ARRAY['Caraballeda','Carayaca','Carlos Soublette','Caruao','Catia La Mar','El Junko','La Guaira','Macuto','Maiquetía','Naiguatá','Urimare'],'Vargas');
+CALL insert_municipios(ARRAY['Vargas'], 'La Guaira');
+CALL insert_parroquias(ARRAY['Caraballeda','Carayaca','Carlos Soublette','Caruao','Catia La Mar','El Junko','La Guaira','Macuto','Maiquetía','Naiguatá','Urimare'],'Vargas');
 
 -- Lara
 CALL insert_municipios(ARRAY['Iribarren','Jiménez','Crespo','Andrés Eloy Blanco','Urdaneta','Torres','Palavecino','Morán','Simón Planas'],'Lara');
