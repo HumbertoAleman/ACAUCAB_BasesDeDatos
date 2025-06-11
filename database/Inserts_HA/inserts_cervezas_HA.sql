@@ -430,8 +430,116 @@ CALL relate_cara ('Pilsener', 'Sabor', 'Ligero pero Intenso');
 
 CALL relate_cara ('Pilsener', 'Graduacion', 'Medio');
 
--- NOTE: TE QUEDASTE EN AMERICAN AMBER ALE
---
+-- American Amber Ale
+CALL relate_ingr ('American Amber Ale', 'Malta Best Malz Pale Ale', '5kg');
+
+CALL relate_ingr ('American Amber Ale', 'Malta Best Malz Aromatic', '0.5kg');
+
+CALL relate_ingr ('American Amber Ale', 'Malta Best Malz Caramel Light', '0.4kg');
+
+CALL relate_ingr ('American Amber Ale', 'Lupulo Columbus', '17gr');
+
+CALL relate_ingr ('American Amber Ale', 'Lupulo Cascade', '37gr');
+
+-- NOTE: Deberiamos de verdad agregarle una unique ID a TIPO_CARA para poder agregar
+-- muchos valores a la caracteristica
+CALL relate_cara ('American Amber Ale', 'Aroma', 'Cítrico, Floral, Resinoso, Herbal...');
+
+CALL relate_cara ('American Amber Ale', 'Sabor', 'Dulzura Inicial, seguida de Caramelo');
+
+CALL relate_cara ('American Amber Ale', 'Color', 'Entre Ambar y Marron Cobrizo (10 - 17)');
+
+CALL relate_cara ('American Amber Ale', 'Color de Espuma', 'Blanca');
+
+CALL relate_cara ('American Amber Ale', 'Retencion de Espuma', 'Buena');
+
+CALL relate_cara ('American Amber Ale', 'Amargor (IBUs)', '25 - 40');
+
+CALL relate_cara ('American Amber Ale', 'Cuerpo', 'Medio ~ Alto');
+
+CALL relate_cara ('American Amber Ale', 'Carbonatacion', 'Media ~ Alta');
+
+CALL relate_cara ('American Amber Ale', 'Acabado', 'Suave, Sin Astringencia');
+
+CALL relate_cara ('American Amber Ale', 'Densidad Inicial', '1.045 – 1.060');
+
+CALL relate_cara ('American Amber Ale', 'Densidad Final', '1.010 – 1.015');
+
+CALL relate_cara ('American Amber Ale', 'Graduacion', '4.5% ~ 6.2%');
+
+-- American IPA
+CALL relate_cara ('American IPA', 'Aroma', 'A Lupulo, Floral, hasta Citrico o resinoso');
+
+CALL relate_cara ('American IPA', 'Sabor', 'A Lupulo, Floral, hasta Citrico o resinoso');
+
+-- NOTE: SAbor a malta medio bajo y puede tener maltosidad dulce
+CALL relate_cara ('American IPA', 'Amargor (IBUs)', '40 ~ 60');
+
+CALL relate_cara ('American IPA', 'Graduacion', '5 ~ 7.5 grados');
+
+-- American Pale Ale
+-- NOTE: Aqui tambien
+CALL relate_cara ('American Pale Ale', 'Ester', 'De Nulo a Moderado');
+
+CALL relate_cara ('American Pale Ale', 'Aroma', 'A Lupulo, Moderado o Fuerte, Citrico, A Malta, bajo o moderado');
+
+CALL relate_cara ('American Pale Ale', 'Color', 'De Palido a Ambar');
+
+CALL relate_cara ('American Pale Ale', 'Color de Espuma', 'De Blanca a Blancuza');
+
+CALL relate_cara ('American Pale Ale', 'Retencion de Espuma', 'Buena');
+
+CALL relate_cara ('American Pale Ale', 'Sabor', 'A Lupulo Moderado, A Malta Moderado, A Caramelo: Ausente');
+
+CALL relate_cara ('American Pale Ale', 'Amargor (IBUs)', 'De Moderado a Alto');
+
+CALL relate_cara ('American Pale Ale', 'Acabado', 'Moderadamente Seco, Suave, Sin Astringencias');
+
+CALL relate_cara ('American Pale Ale', 'Cuerpo', 'Medio-Liviano');
+
+CALL relate_cara ('American Pale Ale', 'Carbonatacion', 'Moderada a Alta');
+
+-- Belgian Dubbel
+CALL relate_ingr ('Belgian Dubbel', 'Styrian Goldings', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Levadura Belga', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Agua', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Malta Pils', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Malta Pale', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'CaraVienna', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'CaraMunich', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Ester', 'Moderados');
+
+CALL relate_ingr ('Belgian Dubbel', 'Fenol', 'Sin Especificar');
+
+CALL relate_cara ('Belgian Dubbel', 'Aroma', 'Dulzor, Notas de Chocolate, Caramelo, Tostado');
+
+CALL relate_cara ('Belgian Dubbel', 'Color', 'Ambar Oscuro a Cobre');
+
+CALL relate_cara ('Belgian Dubbel', 'Color de Espuma', 'Blancuzca');
+
+CALL relate_cara ('Belgian Dubbel', 'Retencion de Espuma', 'Cremosa, Persiste');
+
+CALL relate_cara ('Belgian Dubbel', 'Sabor', 'Dulzor de Malta, A Pasas, Frutas Secas');
+
+CALL relate_cara ('Belgian Dubbel', 'Amargor (IBUs)', 'Medio-Bajo');
+
+CALL relate_cara ('Belgian Dubbel', 'Acabado', 'Moderadamente Seco');
+
+CALL relate_cara ('Belgian Dubbel', 'Cuerpo', 'Medio-Pleno');
+
+CALL relate_cara ('Belgian Dubbel', 'Carbonatacion', 'Media-Alta');
+
+CALL relate_cara ('Belgian Dubbel', 'Graduacion', '6.5% ~ 7%');
+
+-- NOTE: Te quedaste en Belgian Golden Strong Ale
+
 -- Dame los tipos de cervezas, y a que supertipo pertenecen
 SELECT
     Cat.nombre_tipo_cerv,
@@ -469,3 +577,5 @@ FROM
 WHERE
     T.cod_tipo_cerv = T_C.fk_tipo_cerv
     AND T_C.fk_cara = C.cod_cara;
+
+-- TODO: Agregar Receta Para American Amber Ale
