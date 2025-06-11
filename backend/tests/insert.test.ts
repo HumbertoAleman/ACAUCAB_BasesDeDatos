@@ -1,3 +1,4 @@
+import { sql } from "bun";
 import { expect, test } from "bun:test";
 
 const case_natural = {
@@ -18,7 +19,7 @@ const case_natural = {
 }
 
 test("Insert", async () => {
-	await fetch("http://127.0.0.1:3000/insert", {
+	await fetch("http://127.0.0.1:3000/quick", {
 		method: "POST",
 		body: JSON.stringify(case_natural),
 	}).then(async res => {
