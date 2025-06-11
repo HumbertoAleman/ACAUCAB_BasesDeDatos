@@ -1,4 +1,5 @@
 import { sql } from "bun";
+import Logger from "./logger/logger";
 
 function* sqlColumns(obj: Object) {
 	for (const val of Object.keys(obj))
@@ -14,7 +15,8 @@ function* sqlValues(obj: Object) {
 	}
 }
 
-async function quick_insert(req: Bun.BunRequest): Promise<Response> {
+async function quickInsert(req: Bun.BunRequest): Promise<Response> {
+	Logger.info(`Insert request incoming from ${req.url}`)
 	const body: any = await req.json();
 
 	let columns = "(";
@@ -27,10 +29,25 @@ async function quick_insert(req: Bun.BunRequest): Promise<Response> {
 		values += val + ", ";
 	values = values.substring(0, values.length - 2) + ")"
 
-	const sql_string = `INSERT INTO ${body.table} ${columns} VALUES ${values} RETURNING *;`;
-
-	const res = await sql.unsafe(sql_string);
-	return Response.json(res);
+	try {
+		const sqlString = `INSERT INTO ${body.table} ${columns} VALUES ${values} RETURNING *;`;
+		Logger.debug(`Generated SQL String: ${sqlString}`)
+		const res = await sql.unsafe(sqlString);
+		return Response.json(res);
+	} catch (e: unknown) {
+		let response: string = ''
+		if (typeof e === 'string')
+			response = `An error has occurred: ${e}`
+		else if (e instanceof Error)
+			response = `An error has occurred: ${e.message}`
+		Logger.error(response)
+		return new Response(response, {
+			status: 400,
+			headers: {
+				'Content-Type': 'text/plain',
+			}
+		})
+	}
 }
 
-export { quick_insert };
+export { quickInsert };
