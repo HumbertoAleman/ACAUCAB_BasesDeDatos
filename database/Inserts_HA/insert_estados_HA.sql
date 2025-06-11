@@ -40,9 +40,7 @@ $$ LANGUAGE plpgsql;
 DELETE FROM Lugar;
 
 -- States
-SELECT insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas', 'Bolivar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcon', 'Guarico', 'Lara', 
-'Merida', 'Miranda', 'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 
-'Tachira', 'Trujillo', 'Yaracuy', 'Zulia']);
+SELECT insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas', 'Bolivar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcon', 'Guarico', 'La Guaira', 'Lara', 'Merida', 'Miranda', 'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Tachira', 'Trujillo', 'Yaracuy', 'Zulia']);
 
 -- Amazonas
 SELECT insert_municipios(ARRAY['Altures', 'Alto Orinoco', 'Atabapo', 'Autana', 'Manapiare', 'Maroa', 'Rio Negro'], 'Amazonas');
@@ -222,6 +220,10 @@ SELECT insert_parroquias(ARRAY['San José de Unare', 'Zaraza'], 'Pedro Zaraza');
 SELECT insert_parroquias(ARRAY['Guayabal', 'Cazorla'], 'San Jerónimo de Guayabal');
 SELECT insert_parroquias(ARRAY['San José de Guaribe'], 'San José de Guaribe');
 SELECT insert_parroquias(ARRAY['Santa María de Ipire', 'Altamira'], 'Santa María de Ipire');
+
+-- La Guaira
+SELECT insert_municipio(ARRAY['Vargas'], 'La Guaira');
+SELECT insert_parroquias(ARRAY['Caraballeda','Carayaca','Carlos Soublette','Caruao','Catia La Mar','El Junko','La Guaira','Macuto','Maiquetía','Naiguatá','Urimare'],'Vargas');
 
 -- Lara
 SELECT insert_municipios(ARRAY['Iribarren','Jiménez','Crespo','Andrés Eloy Blanco','Urdaneta','Torres','Palavecino','Morán','Simón Planas'],'Lara');
