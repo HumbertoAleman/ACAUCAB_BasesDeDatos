@@ -9,12 +9,12 @@ BEGIN
     RETURNING
         cod_empl INTO x;
     INSERT INTO Usuario (contra_usua, username_usua, fk_rol, fk_empl)
-        VALUES ('admin', p_nom || ' ' || s_nom, 200, x);
+        VALUES ('admin', p_nom || ' ' || s_nom, 300, x);
 END;
 $$;
 
 DELETE FROM Usuario
-WHERE fk_rol = 200;
+WHERE fk_rol = 300;
 
 DELETE FROM Rol
 WHERE nombre_rol = 'Empleado';
@@ -22,7 +22,7 @@ WHERE nombre_rol = 'Empleado';
 DELETE FROM Empleado;
 
 INSERT INTO Rol
-    VALUES (200, 'Empleado', 'Empleado regular de ACAUCAB');
+    VALUES (300, 'Empleado', 'Empleado regular de ACAUCAB');
 
 CALL add_empleado(31279920, 'Serita Whittington', 'Jewel Christiansen', 'Herrick', 'Blevins', 73.02);
 
@@ -50,4 +50,4 @@ SELECT
 FROM
     Usuario
 WHERE
-	fk_rol = 200;
+	fk_rol = 300;
