@@ -16,7 +16,7 @@ function* sqlValues(obj: Object) {
 }
 
 async function quickInsert(req: Bun.BunRequest): Promise<Response> {
-	Logger.info(`Insert request incoming from ${req.url}`)
+	Logger.info(`Insert request incoming ${req.method}:${req.url}`)
 	const body: any = await req.json();
 
 	let columns = "(";
@@ -35,11 +35,11 @@ async function quickInsert(req: Bun.BunRequest): Promise<Response> {
 		const res = await sql.unsafe(sqlString);
 		return Response.json(res);
 	} catch (e: unknown) {
-		let response: string = ''
+		let response: string = 'quickInsert() -> '
 		if (typeof e === 'string')
-			response = `An error has occurred: ${e}`
+			response += `An error has occurred: ${e}`
 		else if (e instanceof Error)
-			response = `An error has occurred: ${e.message}`
+			response += `An error has occurred: ${e.message}\n`
 		Logger.error(response)
 		return new Response(response, {
 			status: 400,
