@@ -4,7 +4,9 @@ import { quickInsert } from "./src/insert";
 Bun.serve({
 	routes: {
 		"/": () => new Response(),
-		"/insert": { POST: quickInsert, },
-		"/delete": { DELETE: quickDelete, },
+		"/quick": {
+			POST: quickInsert,
+			DELETE: quickDelete,
+		},
 	}
 })
