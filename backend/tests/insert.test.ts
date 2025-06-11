@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import Logger from "../src/logger/logger";
 
 const case_natural = {
 	table: "Cliente",
