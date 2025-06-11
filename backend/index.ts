@@ -1,10 +1,10 @@
 import { quickDelete } from "./src/delete";
-import { quick_insert } from "./src/insert";
+import { quickInsert } from "./src/insert";
 
 Bun.serve({
 	routes: {
 		"/": () => new Response(),
-		"/insert": { POST: quick_insert, },
+		"/insert": { POST: quickInsert, },
 		"/delete": { DELETE: quickDelete, },
 	}
 })
