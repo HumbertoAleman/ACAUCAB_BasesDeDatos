@@ -68,4 +68,7 @@ CALL add_miembro ('J-08025', 'Coordinate Industries Company', 'Emotions Internat
 SELECT
     *
 FROM
-    Usuario;
+    Usuario
+WHERE
+	fk_rol = 100;
+
