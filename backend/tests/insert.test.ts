@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import Logger from "../src/logger/logger";
 
 const case_natural = {
 	table: "Cliente",
@@ -22,8 +23,13 @@ test("Insert", async () => {
 		method: "POST",
 		body: JSON.stringify(case_natural),
 	}).then(async res => {
-		const r = JSON.parse(await res.text())[0]
+		const r: any = JSON.parse(await res.text())[0]
+		expect(r).toBeDefined()
 		for (const val in r)
 			expect(r[val] ?? undefined).toBe(case_natural.info[val])
+	}).catch(_ => {
+		expect().fail()
 	})
 });
+
+
