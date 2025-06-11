@@ -6,21 +6,21 @@
         - TODO
 
 - Cliente Natural:
-    - ID: 101
+    - ID: 200
     - Privileges:
         - TODO
 
 - Cliente Juridico:
-    - ID: 102
+    - ID: 201
     - Privileges:
         - TODO
 
 - Empleado Regular:
-    - ID 200:
+    - ID 300:
     - Privileges
         - TODO
 
 - Empleado Administrador:
-    - ID 200:
+    - ID 400:
     - Privileges
         - TODO
