@@ -72,6 +72,13 @@ FROM pg_stat_user_tables
 ORDER BY table_name;
 ```
 
+Si prefieres ver el porcentaje que llevamos hecho:
+
+```sql
+SELECT 100 * SUM(CASE WHEN n_live_tup > 9 THEN 1 ELSE 0 END) / COUNT(*) AS "Porcentaje %"
+FROM pg_stat_user_tables;
+```
+
 ## Organizacion de Roles
 
 - Miembro:
