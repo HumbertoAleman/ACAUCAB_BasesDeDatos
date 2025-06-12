@@ -46,7 +46,7 @@
 - [ ] PRIV_ROL
 - [ ] PUNT_CLIE
 - [ ] Pago
-- [ ] Presentacion
+- [x] Presentacion
 - [x] Privilegio
 - [ ] Punto_Canjeo
 - [x] RECE_INGR
