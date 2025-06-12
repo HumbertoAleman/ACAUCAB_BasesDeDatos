@@ -5,7 +5,7 @@
 ## Entidades con 10 Inserts
 
 - [ ] Asistencia
-- [ ] Banco
+- [x] Banco
 - [ ] Beneficio
 - [ ] CERV_CARA
 - [ ] CERV_PRES
