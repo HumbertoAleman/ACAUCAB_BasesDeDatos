@@ -8,7 +8,7 @@
 - [x] Banco
 - [ ] Beneficio
 - [x] CERV_CARA
-- [ ] CERV_PRES
+- [x] CERV_PRES
 - [x] Caracteristica
 - [ ] Cargo
 - [x] Cerveza
