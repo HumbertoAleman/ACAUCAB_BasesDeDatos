@@ -1,85 +1,62 @@
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('Amazonas', 'Estado', NULL),
-    ('Anzoategui', 'Estado', NULL),
-    ('Apure', 'Estado', NULL),
-    ('Aragua', 'Estado', NULL),
-    ('Barinas', 'Estado', NULL),
-    ('Bolivar', 'Estado', NULL),
-    ('Carabobo', 'Estado', NULL),
-    ('Cojedes', 'Estado', NULL),
-    ('Delta Amacuro', 'Estado', NULL),
-    ('Falcon', 'Estado', NULL),
-    ('Guarico', 'Estado', NULL),
-    ('Lara', 'Estado', NULL),
-    ('Merida', 'Estado', NULL),
-    ('Miranda', 'Estado', NULL),
-    ('Monagas', 'Estado', NULL),
-    ('Nueva Esparta', 'Estado', NULL),
-    ('Portuguesa', 'Estado', NULL),
-    ('Sucre', 'Estado', NULL),
-    ('Tachira', 'Estado', NULL),
-    ('Trujillo', 'Estado', NULL),
-    ('Yaracuy', 'Estado', NULL),
-    ('Zulia', 'Estado', NULL);
+CREATE OR REPLACE FUNCTION insert_estados(varchar(40)[]) RETURNS void AS $$
+DECLARE
+  x varchar(40);
+BEGIN
+  FOREACH x IN ARRAY $1
+  LOOP
+	INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
+		VALUES (x, 'Estado', NULL);
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
 
--- Insertar en Amazonas
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('Altures', 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Amazonas' AND tipo_luga = 'Estado')),
-    ('Alto Orinoco', 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Amazonas' AND tipo_luga = 'Estado')),
-    ('Atabapo', 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Amazonas' AND tipo_luga = 'Estado')),
-    ('Autana', 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Amazonas' AND tipo_luga = 'Estado')),
-    ('Manapiare', 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Amazonas' AND tipo_luga = 'Estado')),
-    ('Rio Negro', 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Amazonas' AND tipo_luga = 'Estado')),
-    ('Maroa', 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Amazonas' AND tipo_luga = 'Estado'));
+CREATE OR REPLACE FUNCTION insert_municipios(varchar(40)[], text) RETURNS void AS $$
+DECLARE
+  x varchar(40);
+BEGIN
+  FOREACH x IN ARRAY $1
+  LOOP
+	INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
+		VALUES (x, 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = $2 AND tipo_luga = 'Estado' LIMIT 1));
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
 
--- Insertar en Amazonas-Altures
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('Fernando Giron Tovar', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Altures' AND tipo_luga = 'Municipio')),
-    ('Luis Alberto Gomez', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Altures' AND tipo_luga = 'Municipio')),
-    ('Parhueña', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Altures' AND tipo_luga = 'Municipio')),
-    ('Platanillal', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Altures' AND tipo_luga = 'Municipio'));
 
--- Insertar en Amazonas-Alto Orinoco
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('La Esmeralda', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Alto Orinoco' AND tipo_luga = 'Municipio')),
-    ('Marawaka', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Alto Orinoco' AND tipo_luga = 'Municipio')),
-    ('Mavaca', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Alto Orinoco' AND tipo_luga = 'Municipio')),
-    ('Sierra Parima', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Alto Orinoco' AND tipo_luga = 'Municipio'));
+CREATE OR REPLACE FUNCTION insert_parroquias(varchar(40)[], text) RETURNS void AS $$
+DECLARE
+  x varchar(40);
+BEGIN
+  FOREACH x IN ARRAY $1
+  LOOP
+	INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
+		VALUES (x, 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = $2 AND tipo_luga = 'Municipio' LIMIT 1));
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
 
--- Insertar en Amazonas-Atabapo
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('San Fernando de Atabapo', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Atabapo' AND tipo_luga = 'Municipio')),
-    ('Laja Lisa', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Atabapo' AND tipo_luga = 'Municipio')),
-    ('Santa Barbara', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Atabapo' AND tipo_luga = 'Municipio')),
-    ('Guarinuma', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Atabapo' AND tipo_luga = 'Municipio'));
 
--- Insertar en Amazonas-Autana
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('Isla Raton', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Autana' AND tipo_luga = 'Municipio')),
-    ('San Pedro del Orinoco', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Autana' AND tipo_luga = 'Municipio')),
-    ('Pendare', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Autana' AND tipo_luga = 'Municipio')),
-    ('Manduapo', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Autana' AND tipo_luga = 'Municipio')),
-    ('Samariapo', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Autana' AND tipo_luga = 'Municipio'));
 
--- Insertar en Amazonas-Manapiare
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('San Juan de Manapiare', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Manapiare' AND tipo_luga = 'Municipio')),
-    ('Camani', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Manapiare' AND tipo_luga = 'Municipio')),
-    ('Capure', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Manapiare' AND tipo_luga = 'Municipio')),
-    ('Manueta', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Manapiare' AND tipo_luga = 'Municipio'));
 
--- Insertar en Amazonas-Maroa
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('Maroa', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Maroa' AND tipo_luga = 'Municipio')),
-    ('Comunidad', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Maroa' AND tipo_luga = 'Municipio')),
-    ('Victorino', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Maroa' AND tipo_luga = 'Municipio'));
+DELETE FROM Lugar;
 
--- Insertar en Amazonas-Rio Negro
-INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-    VALUES ('San Carlos de Rio Negro', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Rio Negro' AND tipo_luga = 'Municipio')),
-    ('Solano', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Rio Negro' AND tipo_luga = 'Municipio')),
-    ('Curimacare', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Rio Negro' AND tipo_luga = 'Municipio')),
-    ('Santa Lucia', 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = 'Rio Negro' AND tipo_luga = 'Municipio'));
+SELECT insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas', 'Bolivar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Falcon', 'Guarico', 'Lara', 'Merida', 'Miranda', 'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Tachira', 'Trujillo', 'Yaracuy', 'Zulia']);
+
+-- Amazonas
+SELECT insert_municipios(ARRAY['Altures', 'Alto Orinoco', 'Atabapo', 'Autana', 'Manapiare', 'Maroa', 'Rio Negro'], 'Amazonas');
+SELECT insert_parroquias(ARRAY['Fernando Giron Tovar', 'Luis Alberto Gomez', 'Parhueña', 'Platanillal'], 'Altures');
+SELECT insert_parroquias(ARRAY['La Esmeralda', 'Marawaka', 'Mavaca', 'Sierra Parima'], 'Alto Orinoco');
+SELECT insert_parroquias(ARRAY['San Fernando de Atabapo', 'Laja Lisa', 'Santa Barbara', 'Guarinuma'], 'Atabapo');
+SELECT insert_parroquias(ARRAY['Isla Raton', 'San Pedro del Orinoco', 'Pendare', 'Manduapo', 'Samariapo'], 'Autana');
+SELECT insert_parroquias(ARRAY['San Juan de Manapiare', 'Camani', 'Capure', 'Manueta'], 'Manapiare');
+SELECT insert_parroquias(ARRAY['Maroa', 'Comunidad', 'Victorino'], 'Maroa');
+SELECT insert_parroquias(ARRAY['San Carlos de Rio Negro', 'Solano', 'Curimacare', 'Santa Lucia'], 'Rio Negro');
+
+-- Para comprobar si todo esta bien
+SELECT sub_L.nombre_luga, sub_L.tipo_luga, sup_L.nombre_luga
+FROM Lugar as sup_L, Lugar as sub_L
+WHERE
+	sup_L.cod_luga = sub_L.fk_luga;
 
 -- Insertar en Anzoategui
 INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
