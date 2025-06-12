@@ -7,11 +7,11 @@
 - [ ] Asistencia
 - [x] Banco
 - [ ] Beneficio
-- [ ] CERV_CARA
-- [ ] CERV_PRES
+- [x] CERV_CARA
+- [x] CERV_PRES
 - [x] Caracteristica
 - [ ] Cargo
-- [ ] Cerveza
+- [x] Cerveza
 - [ ] Cheque
 - [ ] Cliente
 - [ ] Compra
@@ -46,7 +46,7 @@
 - [ ] PRIV_ROL
 - [ ] PUNT_CLIE
 - [ ] Pago
-- [ ] Presentacion
+- [x] Presentacion
 - [x] Privilegio
 - [ ] Punto_Canjeo
 - [x] RECE_INGR
