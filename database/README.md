@@ -15,7 +15,7 @@
 - [ ] Cheque
 - [ ] Cliente
 - [ ] Compra
-- [ ] Contacto
+- [x] Contacto
 - [ ] Correo
 - [ ] Cuota
 - [ ] DESC_CERV
