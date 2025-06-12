@@ -47,7 +47,7 @@
 - [ ] PUNT_CLIE
 - [ ] Pago
 - [ ] Presentacion
-- [ ] Privilegio
+- [x] Privilegio
 - [ ] Punto_Canjeo
 - [x] RECE_INGR
 - [x] Receta
