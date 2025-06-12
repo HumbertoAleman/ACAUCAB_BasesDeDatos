@@ -12,12 +12,13 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION insert_municipios(varchar(40)[], text) RETURNS void AS $$
 DECLARE
+  found_id integer = (SELECT cod_luga FROM Lugar WHERE nombre_luga = $2 AND tipo_luga = 'Estado' LIMIT 1);
   x varchar(40);
 BEGIN
   FOREACH x IN ARRAY $1
   LOOP
 	INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-		VALUES (x, 'Municipio', (SELECT cod_luga FROM Lugar WHERE nombre_luga = $2 AND tipo_luga = 'Estado' LIMIT 1));
+		VALUES (x, 'Municipio', found_id);
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;
@@ -25,12 +26,13 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION insert_parroquias(varchar(40)[], text) RETURNS void AS $$
 DECLARE
+  found_id integer = (SELECT cod_luga FROM Lugar WHERE nombre_luga = $2 AND tipo_luga = 'Municipio' LIMIT 1);
   x varchar(40);
 BEGIN
   FOREACH x IN ARRAY $1
   LOOP
 	INSERT INTO Lugar (nombre_luga, tipo_luga, fk_luga)
-		VALUES (x, 'Parroquia', (SELECT cod_luga FROM Lugar WHERE nombre_luga = $2 AND tipo_luga = 'Municipio' LIMIT 1));
+		VALUES (x, 'Parroquia', found_id);
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;
