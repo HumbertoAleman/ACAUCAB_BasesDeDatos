@@ -7,11 +7,11 @@
 - [ ] Asistencia
 - [x] Banco
 - [ ] Beneficio
-- [ ] CERV_CARA
+- [x] CERV_CARA
 - [ ] CERV_PRES
 - [x] Caracteristica
 - [ ] Cargo
-- [ ] Cerveza
+- [x] Cerveza
 - [ ] Cheque
 - [ ] Cliente
 - [ ] Compra

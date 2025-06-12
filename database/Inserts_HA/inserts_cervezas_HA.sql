@@ -1,3 +1,20 @@
+CREATE OR REPLACE FUNCTION get_cerv (text)
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        cod_cerv
+    FROM
+        Cerveza
+    WHERE
+        nombre_cerv = $1 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION get_tipo_cerv (text)
     RETURNS integer
     AS $$
@@ -88,6 +105,17 @@ DECLARE
 BEGIN
     INSERT INTO TIPO_CARA (fk_tipo_cerv, fk_cara, valor_cara)
         VALUES (get_tipo_cerv ($1), get_cara ($2), $3);
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE relate_cara_cerv (text, text, text)
+    AS $$
+DECLARE
+    x integer;
+BEGIN
+    INSERT INTO CERV_CARA (fk_cerv, fk_cara, valor_cara)
+        VALUES (get_cerv ($1), get_cara ($2), $3);
 END;
 $$
 LANGUAGE plpgsql;
@@ -233,14 +261,12 @@ CALL insert_tipo_cerveza ('Chocolate Stout', 'Stout');
 
 CALL insert_tipo_cerveza ('Red IPA', 'Indian Pale Ale');
 
--- Venezolanas
+-- Venezolanas -- NOTE: Potencialmente son Cervezas, no tipo
 CALL insert_tipo_cerveza ('Destilo', 'Ale');
 
 CALL insert_tipo_cerveza ('Dos Leones Latin American Pale Ale', 'American IPA');
 
 CALL insert_tipo_cerveza ('Benitz Pale Ale', 'Pale Ale');
-
-CALL insert_tipo_cerveza ('Mito Brewhouse Candileja de Abadía', 'Belgian Dubbel');
 
 CALL insert_tipo_cerveza ('Cervecería Lago Ángel o Demonio', 'Belgian Golden Strong Ale');
 
@@ -633,15 +659,6 @@ CALL relate_cara ('Benitz Pale Ale', 'Amargor (IBUs)', 'Suave');
 
 CALL relate_cara ('Benitz Pale Ale', 'Acabado', 'Suave y fluido');
 
--- Mito Brewhouse Candileja de Abadía
-CALL relate_cara ('Mito Brewhouse Candileja de Abadía', 'Cuerpo', 'Denso');
-
-CALL relate_cara ('Mito Brewhouse Candileja de Abadía', 'Color', 'Ambar');
-
-CALL relate_cara ('Mito Brewhouse Candileja de Abadía', 'Aroma', 'Intenso a Caramelo');
-
-CALL relate_cara ('Mito Brewhouse Candileja de Abadía', 'Carbonatacion', 'Media a Alta');
-
 --Cervecería Lago Ángel o Demonio
 CALL relate_cara ('Cervecería Lago Ángel o Demonio', 'Color', 'Dorado');
 
@@ -697,4 +714,125 @@ WHERE
     T.cod_tipo_cerv = T_C.fk_tipo_cerv
     AND T_C.fk_cara = C.cod_cara;
 
--- TODO: Agregar Receta Para American Amber Ale
+-- Insert cervezas reales
+-- Pilsen Fuente: https://birrapedia.com/polar-pilsen/f-56d6d147f70fb5ca0c7e71ed
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Polar Pilsen', get_tipo_cerv ('Pilsener'));
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Color', 'Dorado');
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Color de Espuma', 'Blanca');
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Aroma', 'Ligero a Malta y Maiz');
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Cuerpo', 'Ligero');
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Sabor', 'Algo dulce, a malta y maiz');
+
+-- Solera Clasica: https://birrapedia.com/polar-pilsen/f-56d6d147f70fb5ca0c7e71ed
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Solera Clasica', get_tipo_cerv ('Munich Helles'));
+
+CALL relate_cara_cerv ('Solera Clasica', 'Cuerpo', 'Pronunciado');
+
+CALL relate_cara_cerv ('Solera Clasica', 'Graduacion', '6%');
+
+CALL relate_cara_cerv ('Solera Clasica', 'Color', 'Amarillo');
+
+-- Solera Light https://birrapedia.com/solera-light/f-598abdbd1603dad60e8d39c8
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Solera Light', get_tipo_cerv ('Lager'));
+
+CALL relate_cara_cerv ('Solera Light', 'Carbonatacion', 'Bajo');
+
+CALL relate_cara_cerv ('Solera Light', 'Graduacion', '4%');
+
+CALL relate_cara_cerv ('Solera Light', 'Color', 'Amarillo');
+
+-- Solera IPA https://birrapedia.com/solera-ipa/f-5aff60251603dacb688b4a00
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Solera IPA', get_tipo_cerv ('Indian Pale Ale'));
+
+-- Solera Kriek https://birrapedia.com/solera-kriek/f-5d489aed1603dae30d8b4807
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Solera Kriek', get_tipo_cerv ('Fruit Lambic'));
+
+CALL relate_cara_cerv ('Solera Kriek', 'Aroma', 'Frutal a cereza, persistente');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Sabor', 'Entre acido, amargo y dulcel');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Color', 'Rojo macerado');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Amargor (IBUs)', 'Ligero');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Cuerpo', 'Medio');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Graduacion', '4%');
+
+-- Mito Brewhouse Momoy https://birrapedia.com/mito-brewhouse-momoy/f-577cc4dd1603dad47a4bb481
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Momoy', get_tipo_cerv ('Witbier'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Graduacion', '4.6%');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Sabor', 'Recuerda a canela o clavo');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Carbonatacion', 'Alta');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Aroma', 'Hierba o pino fresco');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Color', 'Palido');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Retencion de Espuma', 'Estable y Consistente');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Regusto', 'Bueno');
+
+-- Mito Brewhouse Sayona https://birrapedia.com/mito-brewhouse-sayona/f-577cc62f1603dabe204bd0a6
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Sayona', get_tipo_cerv ('Red Ale'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Sayona', 'Aroma', 'Citrico y Floral');
+
+CALL relate_cara_cerv ('Mito Brewhouse Sayona', 'Sabor', 'Amargo');
+
+CALL relate_cara_cerv ('Mito Brewhouse Sayona', 'Color', 'Rojizo');
+
+-- Mito Brewhouse Silbon https://birrapedia.com/mito-brewhouse-silbon/f-577cc74f1603da5d0c4bfb3f
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Silbon', get_tipo_cerv ('Dry Stout'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Silbon', 'Amargor (IBUs)', '15');
+
+-- Mito Brewhouse Alcántara https://birrapedia.com/mito-brewhouse-alcantara/f-57e8dd271603da873690d05a
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Alcántara', get_tipo_cerv ('Imperial Stout'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Alcántara', 'Color', 'Oscuro Profundo');
+
+CALL relate_cara_cerv ('Mito Brewhouse Alcántara', 'Aroma', 'Intenso');
+
+CALL relate_cara_cerv ('Mito Brewhouse Alcántara', 'Graduacion', 'Alto');
+
+CALL relate_cara_cerv ('Mito Brewhouse Alcántara', 'Sabor', 'Roble, Malta Dulce, de Caramelo, Tostado');
+
+-- Mito Brewhouse Candilleja https://birrapedia.com/mito-brewhouse-candileja/f-57e8de101603da893690d053
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Candileja de Abadía', get_tipo_cerv ('Belgian Dubbel'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Cuerpo', 'Denso');
+
+CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Color', 'Ambar');
+
+CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Aroma', 'Intenso a Caramelo');
+
+CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Carbonatacion', 'Media a Alta');
