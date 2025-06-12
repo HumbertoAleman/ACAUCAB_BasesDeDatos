@@ -56,6 +56,8 @@ DELETE FROM Miembro;
 INSERT INTO Rol
     VALUES (100, 'Miembro', 'Proveedor de cerveza, les compramos');
 
+CALL add_miembro ('J-00041312-6', 'Compañía Anónima Cervecería Polar', 'Polar', 'Avenida José Antonio Páez, Edificio Polar, El Paraíso, Caracas, Venezuela', 'https://empresaspolar.com', 468, 468);
+
 CALL add_miembro_random ('J-66346', 'Blacks International ', 'Interior Mutual S.A', '6287 Holmcroft, Simi Valley, Rhode Island, 54650', 'https://crowd.nationwide/ver.php');
 
 CALL add_miembro_random ('J-69163', 'Gulf Corp', 'Stewart ', '8208 Melland Avenue, Fort Worth, Indiana, 05019', 'https://www.innocent.com/vienna.html');
