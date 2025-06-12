@@ -233,6 +233,21 @@ CALL insert_tipo_cerveza ('Chocolate Stout', 'Stout');
 
 CALL insert_tipo_cerveza ('Red IPA', 'Indian Pale Ale');
 
+-- Venezolanas
+CALL insert_tipo_cerveza ('Destilo', 'Ale');
+
+CALL insert_tipo_cerveza ('Dos Leones Latin American Pale Ale', 'American IPA');
+
+CALL insert_tipo_cerveza ('Benitz Pale Ale', 'Pale Ale');
+
+CALL insert_tipo_cerveza ('Mito Brewhouse Candileja de Abadía', 'Belgian Dubbel');
+
+CALL insert_tipo_cerveza ('Cervecería Lago Ángel o Demonio', 'Belgian Golden Strong Ale');
+
+CALL insert_tipo_cerveza ('Barricas Saison Belga', 'Belgian Specialty Ale');
+
+CALL insert_tipo_cerveza ('Aldarra Mantuana', 'Blonde Ale');
+
 INSERT INTO Ingrediente (nombre_ingr)
     VALUES ('Levadura'),
     ('Levadura Saccharomyces Carlsbergenesis'),
@@ -607,6 +622,41 @@ CALL relate_cara ('Belgian Specialty Ale', 'Cuerpo', 'Algunas están bien atenua
 CALL relate_cara ('Belgian Specialty Ale', 'Carbonatacion', 'Usualmente de moderada a alta');
 
 CALL relate_cara ('Belgian Specialty Ale', 'Aroma', 'Variable, con distintas cantidades de ésteres frutados, fenoles especiados, aromas de levadura, y puede incluir aromas de adiciones de especias');
+
+-- Dos Leones Latin American Pale Ale
+CALL relate_cara ('Dos Leones Latin American Pale Ale', 'Sabor', 'Tonos cítricos');
+
+-- Benitz Pale Ale
+CALL relate_cara ('Benitz Pale Ale', 'Sabor', 'Dulce de Maltas');
+
+CALL relate_cara ('Benitz Pale Ale', 'Amargor (IBUs)', 'Suave');
+
+CALL relate_cara ('Benitz Pale Ale', 'Acabado', 'Suave y fluido');
+
+-- Mito Brewhouse Candileja de Abadía
+CALL relate_cara ('Mito Brewhouse Candileja de Abadía', 'Cuerpo', 'Denso');
+
+CALL relate_cara ('Mito Brewhouse Candileja de Abadía', 'Color', 'Ambar');
+
+CALL relate_cara ('Mito Brewhouse Candileja de Abadía', 'Aroma', 'Intenso a Caramelo');
+
+CALL relate_cara ('Mito Brewhouse Candileja de Abadía', 'Carbonatacion', 'Media a Alta');
+
+--Cervecería Lago Ángel o Demonio
+CALL relate_cara ('Cervecería Lago Ángel o Demonio', 'Color', 'Dorado');
+
+CALL relate_cara ('Cervecería Lago Ángel o Demonio', 'Color de Espuma', 'Blanca');
+
+-- Aldarra Mantuana
+CALL relate_cara ('Aldarra Mantuana', 'Color', 'Dorado');
+
+CALL relate_cara ('Aldarra Mantuana', 'Sabor', 'Ligero');
+
+CALL relate_cara ('Aldarra Mantuana', 'Cuerpo', 'Liviano, Sin Astringencias');
+
+CALL relate_cara ('Aldarra Mantuana', 'Aroma', 'Recuerda a Frutas Tropicales');
+
+CALL relate_cara ('Aldarra Mantuana', 'Carbonatacion', 'Media');
 
 -- NOTE: Te quedaste en Belgian Golden Strong Ale
 -- Dame los tipos de cervezas, y a que supertipo pertenecen
