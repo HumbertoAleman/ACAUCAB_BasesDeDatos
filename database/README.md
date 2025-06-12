@@ -38,7 +38,7 @@
 - [ ] Instruccion
 - [ ] Inventario_Evento
 - [ ] Inventario_Tienda
-- [ ] Juez
+- [x] Juez
 - [x] Lugar (Geografia de Venezuela Completa)
 - [ ] Lugar_Tienda
 - [ ] Metodo_Pago
