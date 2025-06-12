@@ -59,7 +59,7 @@
 - [ ] Telefono
 - [ ] Tienda
 - [x] Tipo_Cerveza
-- [ ] Tipo_Evento
+- [x] Tipo_Evento
 - [x] Usuario
 - [ ] Vacacion
 - [ ] Venta
