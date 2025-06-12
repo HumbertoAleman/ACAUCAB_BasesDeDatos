@@ -118,7 +118,7 @@ CREATE TABLE Cargo (
 );
 
 CREATE TABLE Miembro (
-    rif_miem integer,
+    rif_miem varchar(20),
     razon_social_miem varchar(40) NOT NULL,
     denom_comercial_miem varchar(40) NOT NULL,
     direccion_fiscal_miem text NOT NULL,
@@ -136,7 +136,7 @@ CREATE TABLE Contacto (
     segundo_nom_pers varchar(40),
     primer_ape_pers varchar(40) NOT NULL,
     segundo_ape_pers varchar(40),
-    fk_miem integer,
+    fk_miem varchar(20),
     PRIMARY KEY (cod_pers),
     CONSTRAINT cuenta_con FOREIGN KEY (fk_miem) REFERENCES Miembro (rif_miem)
 );
@@ -258,7 +258,7 @@ CREATE TABLE Compra (
     base_imponible_comp numeric(8, 2) NOT NULL,
     total_comp numeric(8, 2) NOT NULL,
     fk_tien integer,
-    fk_miem integer,
+    fk_miem varchar(20),
     PRIMARY KEY (cod_comp),
     CONSTRAINT registra FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien),
     CONSTRAINT realiza FOREIGN KEY (fk_miem) REFERENCES Miembro (rif_miem)
@@ -268,7 +268,7 @@ CREATE TABLE CERV_PRES (
     fk_cerv integer,
     fk_pres integer,
     precio_pres_cerv numeric(8, 2) NOT NULL,
-    fk_miem integer NOT NULL,
+    fk_miem varchar(20) NOT NULL,
     PRIMARY KEY (fk_cerv, fk_pres),
     CONSTRAINT empaqueta FOREIGN KEY (fk_cerv) REFERENCES Cerveza (cod_cerv),
     CONSTRAINT empaquetada FOREIGN KEY (fk_pres) REFERENCES Presentacion (cod_pres),
@@ -288,7 +288,7 @@ CREATE TABLE Detalle_Compra (
 );
 
 CREATE TABLE Cliente (
-    rif_clie integer,
+    rif_clie varchar(20),
     direccion_fiscal_clie text NOT NULL,
     direccion_fisica_clie text NOT NULL,
     fk_luga_1 integer NOT NULL,
@@ -317,8 +317,8 @@ CREATE TABLE Venta (
     base_imponible_vent numeric(8, 2) NOT NULL,
     total_vent numeric(8, 2) NOT NULL,
     online boolean,
-    fk_clie integer,
-    fk_miem integer,
+    fk_clie varchar(20),
+    fk_miem varchar(20),
     fk_even integer,
     fk_tien integer,
     fk_cuot integer,
@@ -340,8 +340,8 @@ CREATE TABLE Usuario (
     username_usua varchar(40) NOT NULL,
     fk_rol integer NOT NULL,
     fk_empl integer,
-    fk_miem integer,
-    fk_clie integer,
+    fk_miem varchar(20),
+    fk_clie varchar(20),
     PRIMARY KEY (cod_usua),
     CONSTRAINT ejecuta FOREIGN KEY (fk_rol) REFERENCES Rol (cod_rol),
     CONSTRAINT transformado FOREIGN KEY (fk_empl) REFERENCES Empleado (cod_empl),
@@ -448,9 +448,9 @@ CREATE TABLE Telefono (
     cod_tele serial,
     cod_area_tele integer NOT NULL,
     num_tele integer NOT NULL,
-    fk_clie integer UNIQUE,
+    fk_clie varchar(20) UNIQUE,
     fk_pers integer UNIQUE,
-    fk_miem integer,
+    fk_miem varchar(20),
     PRIMARY KEY (cod_tele),
     CONSTRAINT asocia FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
     CONSTRAINT tiene FOREIGN KEY (fk_pers) REFERENCES Contacto (cod_pers),
@@ -462,10 +462,10 @@ CREATE TABLE Correo (
     cod_corr serial,
     prefijo_corr varchar(40) NOT NULL,
     dominio_corr varchar(40) NOT NULL,
-    fk_clie integer UNIQUE,
+    fk_clie varchar(20) UNIQUE,
     fk_empl integer UNIQUE,
     fk_pers integer UNIQUE,
-    fk_miem integer,
+    fk_miem varchar(20),
     PRIMARY KEY (cod_corr),
     CONSTRAINT relaciona FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
     CONSTRAINT identifica FOREIGN KEY (fk_empl) REFERENCES Empleado (cod_empl),
@@ -487,8 +487,8 @@ CREATE TABLE Registro_Evento (
     cod_regi_even serial,
     fk_even integer NOT NULL,
     fk_juez integer,
-    fk_clie integer,
-    fk_miem integer,
+    fk_clie varchar(20),
+    fk_miem varchar(20),
     fecha_hora_regi_even timestamp NOT NULL,
     PRIMARY KEY (cod_regi_even, fk_even),
     CONSTRAINT genera FOREIGN KEY (fk_even) REFERENCES Evento (cod_even),
@@ -599,7 +599,7 @@ CREATE TABLE ESTA_VENT (
 
 CREATE TABLE PUNT_CLIE (
     cod_punt_clie serial,
-    fk_clie integer,
+    fk_clie varchar(20),
     fk_meto_pago integer,
     fk_tasa integer NOT NULL,
     fk_vent integer NOT NULL UNIQUE,
