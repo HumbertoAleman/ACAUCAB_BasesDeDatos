@@ -153,6 +153,8 @@ CALL insert_tipo_cerveza ('Pilsener', 'Ale');
 
 CALL insert_tipo_cerveza ('American Amber Ale', 'Ale');
 
+CALL insert_tipo_cerveza ('American Pale Ale', 'American Amber Ale');
+
 CALL insert_tipo_cerveza ('American IPA', 'Indian Pale Ale');
 
 CALL insert_tipo_cerveza ('Belgian Dubbel', 'Belga');
@@ -479,7 +481,7 @@ CALL relate_cara ('American IPA', 'Graduacion', '5 ~ 7.5 grados');
 
 -- American Pale Ale
 -- NOTE: Aqui tambien
-CALL relate_cara ('American Pale Ale', 'Ester', 'De Nulo a Moderado');
+CALL relate_ingr ('American Pale Ale', 'Ester', 'De Nulo a Moderado');
 
 CALL relate_cara ('American Pale Ale', 'Aroma', 'A Lupulo, Moderado o Fuerte, Citrico, A Malta, bajo o moderado');
 
@@ -506,9 +508,9 @@ CALL relate_ingr ('Belgian Dubbel', 'Levadura Belga', 'Sin Especificar');
 
 CALL relate_ingr ('Belgian Dubbel', 'Agua', 'Sin Especificar');
 
-CALL relate_ingr ('Belgian Dubbel', 'Malta Pils', 'Sin Especificar');
+CALL relate_ingr ('Belgian Dubbel', 'Malta Pils Belga', 'Sin Especificar');
 
-CALL relate_ingr ('Belgian Dubbel', 'Malta Pale', 'Sin Especificar');
+CALL relate_ingr ('Belgian Dubbel', 'Malta Pale Ale', 'Sin Especificar');
 
 CALL relate_ingr ('Belgian Dubbel', 'CaraVienna', 'Sin Especificar');
 
@@ -538,8 +540,75 @@ CALL relate_cara ('Belgian Dubbel', 'Carbonatacion', 'Media-Alta');
 
 CALL relate_cara ('Belgian Dubbel', 'Graduacion', '6.5% ~ 7%');
 
--- NOTE: Te quedaste en Belgian Golden Strong Ale
+-- Belgian Golden Strong Ale
+CALL relate_ingr ('Belgian Golden Strong Ale', 'Levadura Belga', 'Sin Especificar');
 
+CALL relate_ingr ('Belgian Golden Strong Ale', 'Styrian Goldings', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Golden Strong Ale', 'Malta Pils Belga', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Golden Strong Ale', 'Agua', 'Sin Especificar');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Color', 'Amarillo a dorado medio');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Turbidez', 'Buena claridad');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Color de Espuma', 'Blanca');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Retencion de Espuma', 'Densa, masiva, persistente');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Sabor', 'Combinación de sabores frutados (peras, naranjas, manzanas), especiados (pimienta) y alcohólicos, con un suave carácter a malta');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Regusto', 'Leve a moderadamente amargo');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Textura', 'Suave pero evidente tibieza por alcohol; jamás caliente o solventada');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Cuerpo', 'Liviano a medio');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Carbonatacion', 'Altamente carbonatada');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Acabado', 'Seco');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Amargor (IBUs)', 'Medio a alto');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Aroma', 'Complejo, con aroma a ésteres frutados, moderado a especias, y bajos a moderados aromas a alcohol y lúpulo');
+
+-- Belgian Specialty Ale
+CALL relate_ingr ('Belgian Specialty Ale', 'Levadura', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Ester', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Fenol', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Lupulo', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Malta', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Malta de Trigo', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Sugar Candy', 'Puede incluirse');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Miel', 'Puede incluirse');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Agua', 'Sin Especifica');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Color', 'Varía considerablemente de dorado pálido a muy oscuro');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Turbidez', 'Puede ser desde turbia hasta cristalina');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Retencion de Espuma', 'Generalmente buena');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Sabor', 'Se encuentran una gran variedad de sabores, con maltosidad de ligera a algo sabrosa y un sabor y amargor del lúpulo de bajo a alto');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Textura', 'Puede haber una sensación de "fruncimiento de boca" debido a la acidez');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Cuerpo', 'Algunas están bien atenuadas, por lo que tendrán un cuerpo más liviano, mientras que otras son espesas y densas');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Carbonatacion', 'Usualmente de moderada a alta');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Aroma', 'Variable, con distintas cantidades de ésteres frutados, fenoles especiados, aromas de levadura, y puede incluir aromas de adiciones de especias');
+
+-- NOTE: Te quedaste en Belgian Golden Strong Ale
 -- Dame los tipos de cervezas, y a que supertipo pertenecen
 SELECT
     Cat.nombre_tipo_cerv,
