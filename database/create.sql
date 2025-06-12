@@ -79,7 +79,7 @@ CREATE TABLE Lugar_Tienda (
 
 CREATE TABLE Tipo_Evento (
     cod_tipo_even serial,
-    nombre_tipo_even varchar(40) NOT NULL,
+    nombre_tipo_even varchar(60) NOT NULL,
     PRIMARY KEY (cod_tipo_even)
 );
 
