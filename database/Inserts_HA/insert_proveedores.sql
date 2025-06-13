@@ -13,6 +13,8 @@ BEGIN
 END;
 $$;
 
+--AGREGAR FUNCIÓN QUE GENERE UN REGISTRO DE UN TELÉFONO AL INSERTAR UN NUEVO REGISTRO EN LA TABLA
+
 -- Generated Using https://www.coderstool.com/sql-test-data-generator
 CREATE OR REPLACE PROCEDURE add_miembro_random (rif text, razon_social text, denom_comercial text, direccion_fiscal text, pag_web text)
 LANGUAGE plpgsql

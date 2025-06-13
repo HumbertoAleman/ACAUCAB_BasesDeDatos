@@ -7,6 +7,8 @@ BEGIN
 END
 $$
 
+--AGREGAR FUNCIÓN QUE GENERE UN REGISTRO DE UN TELÉFONO AL INSERTAR UN NUEVO REGISTRO EN LA TABLA
+
 -- Obtener una parroquia
 CREATE OR REPLACE PROCEDURE get_parroquia (out id_parroquia INT, in nom_parroquia varchar(40), in nom_estado varchar(40))
 LANGUAGE plpgsql
