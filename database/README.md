@@ -13,7 +13,7 @@
 - [ ] Cargo
 - [x] Cerveza
 - [ ] Cheque
-- [ ] Cliente
+- [x] Cliente
 - [ ] Compra
 - [x] Contacto
 - [ ] Correo
