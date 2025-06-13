@@ -3,7 +3,7 @@ INSERT INTO Rol VALUES (200, 'Cliente Natural', 'Persona Natural, compra cerveza
 INSERT INTO Rol VALUES (201, 'Cliente Juridico', 'Persona Juridica, puede comprar cervezas, usualmente en gran cantidad');
 INSERT INTO Rol VALUES (300, 'Empleado Regular', 'Empleado del mas bajo nivel');
 INSERT INTO Rol VALUES (301, 'Empleado Ventas en Linea', 'Empleado encargado de manejar las ventas en linea');
-INSERT INTO Rol VALUES (302, 'Empleado Despacho', 'Empleado encargado de manejar y gestionar inventario');
+INSERT INTO Rol VALUES (302, 'Empleado Despacho', 'Empleado encargado de manejar y gestionar inventario y pasillo');
 INSERT INTO Rol VALUES (303, 'Empleado Entrega', 'Empleado encargado de la logistica de entrega de cervezas');
 INSERT INTO Rol VALUES (304, 'Empleado Compras', 'Empleado encargado de la logistica de compras y ordenes de reposicion');
 INSERT INTO Rol VALUES (400, 'Empleado Administrador', 'Empleado encargado de administrar otros empleados');
