@@ -47,7 +47,7 @@ BEGIN
 END
 $$
 
--- Agregados Clientes Naturales
+-- Agregar Clientes Naturales
 CALL add_cliente_natural('J402357691', '22 Briar Crest Way', '823 Fair Oaks Parkway', 'Cam', 'Aharon', 'Biddlestone', 'Ellings', 50828613);
 CALL add_cliente_natural('J314865203', '26961 Prairieview Lane', '82 Arrowood Crossing', 'Christiano', 'Janenna', 'Galego', 'Carayol', 73611427);
 CALL add_cliente_natural('J487265390', '9 Raven Avenue', '686 Bobwhite Point', 'Nancey', 'Rosabel', 'Hurt', 'Southerill', 97572920);
@@ -68,3 +68,25 @@ CALL add_cliente_natural('J329175086', '369 Rowland Crossing', '6825 Duke Point'
 CALL add_cliente_natural('J412638075', '4695 Eagle Crest Street', '4 Northfield Hill', 'Tedra', 'Ben', 'MacMillan', 'Pavyer', 91952089);
 CALL add_cliente_natural('J354708962', '16930 Pearson Parkway', '76613 Merry Parkway', 'Cecelia', 'Theobald', 'Clemoes', 'Chasle', 4507000);
 CALL add_cliente_natural('J498261375', '016 Debs Alley', '17767 Pearson Court', 'Roderic', 'Geri', 'Veal', 'Bradfield', 15685628);
+
+-- Agregar Clientes Jurídicos
+CALL add_cliente_juridico('J402571893', '70 Oriole Point', '3 Bashford Drive', 'West, Hodkiewicz and Cronin', 'Hudson Inc', 40888.36, 'https://hudsoninc.com');
+CALL add_cliente_juridico('J310958472', '8 Jenifer Point', '17642 Clove Pass', 'Emmerich-Botsford', 'Fritsch-Morissette', 22701.15, 'https://fritsch-morissette.com');
+CALL add_cliente_juridico('J437025819', '5075 Spaight Point', '12 Glendale Court', 'Lind, Bashirian and Ratke', 'Reinger and Sons', 49454.82, 'https://reingerandsons.com');
+CALL add_cliente_juridico('J324510987', '9 Bellgrove Drive', '4 Fieldstone Trail', 'Baumbach, Hackett and Murray', 'Heidenreich Group', 34814.19, 'https://heidenreichgroup.com');
+CALL add_cliente_juridico('J479368251', '55968 Sloan Pass', '9724 Hovde Avenue', 'Wilkinson-Lang', 'Herzog-Schuppe', 10656.13, 'https://herzog-schuppe.com');
+CALL add_cliente_juridico('J395720618', '823 Buhler Street', '579 Hollow Ridge Hill', 'Koepp and Sons', 'Reilly, Koss and Rogahn', 22512.14, 'https://reillykossandrogahn.com');
+CALL add_cliente_juridico('J480216739', '0453 Bobwhite Plaza', '156 Surrey Terrace', 'Conroy-McLaughlin', 'Toy and Sons', 14469.88, 'https://toyandsons.com');
+CALL add_cliente_juridico('J321759048', '257 Doe Crossing Park', '9 Arapahoe Hill', 'Anderson Group', 'Franecki, Kuhlman and Orn', 15964.06, 'https://franeckikuhlmanandorn.com');
+CALL add_cliente_juridico('J412695038', '46 John Wall Drive', '9061 Longview Plaza', 'Braun-Koepp', 'Turcotte Group', 47698.22, 'https://turcottegroup.com');
+CALL add_cliente_juridico('J375284609', '3429 Veith Crossing', '83704 La Follette Road', 'O''Hara LLC', 'Davis-Bogisich', 50133.53, 'https://davis-bogisich.com');
+CALL add_cliente_juridico('J495083217', '44 Veith Street', '68419 Maywood Drive', 'Boehm, Jacobs and Wintheiser', 'Spinka, Cartwright and White', 31396.24, 'https://spinkacartwrightandwhite.com');
+CALL add_cliente_juridico('J402867531', '8987 Gale Road', '0 Scofield Park', 'Goldner-Harvey', 'Aufderhar-Hahn', 53157.93, 'https://aufderhar-hahn.com');
+CALL add_cliente_juridico('J319247685', '4695 Eastlawn Hill', '181 High Crossing Circle', 'Schiller Group', 'Grant, Hermann and Bergstrom', 15622.08, 'https://granthermannandbergstrom.com');
+CALL add_cliente_juridico('J438501296', '134 Arizona Terrace', '5 Waubesa Point', 'Armstrong, Johnson and Aufderhar', 'Schumm, Kemmer and Boehm', 43092.48, 'https://schummkemmerandboehm.com');
+CALL add_cliente_juridico('J325861074', '121 Pennsylvania Way', '03002 High Crossing Circle', 'Dickinson, Harvey and Reynolds', 'Casper-Reichert', 56565.97, 'https://casper-reichert.com');
+CALL add_cliente_juridico('J479302518', '9 Mccormick Plaza', '058 Carey Pass', 'Wolff, Bailey and Hermann', 'Balistreri Group', 36211.36, 'https://balistrerigroup.com');
+CALL add_cliente_juridico('J398571462', '1118 Butterfield Drive', '3106 Fisk Crossing', 'O''Reilly-Hartmann', 'Lynch Inc', 20195.17, 'https://lynchinc.com');
+CALL add_cliente_juridico('J412786053', '777 Sloan Street', '911 Briar Crest Parkway', 'Doyle Group', 'Shanahan, Stanton and Lemke', 55376.91, 'https://shanahanstantonandlemke.com');
+CALL add_cliente_juridico('J350917246', '352 Pierstorff Alley', '6 Kinsman Terrace', 'Schmidt Inc', 'Wunsch LLC', 23240.90, 'https://wunschllc.com');
+CALL add_cliente_juridico('J487520139', '95 Mccormick Junction', '599 Welch Park', 'Stanton Group', 'Graham, Corkery and Greenfelder', 58473.49, 'https://grahamcorkeryandgreenfelder.com');
