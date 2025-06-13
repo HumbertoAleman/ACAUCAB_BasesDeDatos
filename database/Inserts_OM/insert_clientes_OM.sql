@@ -4,7 +4,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     SELECT cod_luga into id_parroquia FROM Lugar WHERE tipo_luga = 'Parroquia' ORDER BY RANDOM() LIMIT 1;
-END
+END;
 $$
 
 --AGREGAR FUNCIÓN QUE GENERE UN REGISTRO DE UN TELÉFONO AL INSERTAR UN NUEVO REGISTRO EN LA TABLA
@@ -15,7 +15,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     SELECT l1.cod_luga INTO id_parroquia FROM Lugar l1, Lugar l2, Lugar l3 WHERE  l1.fk_luga = l2.cod_luga AND l2.fk_luga = l3.cod_luga AND l3.nombre_luga = nom_estado AND l1.tipo_luga = 'Parroquia' AND l1.nombre_luga = nom_parroquia;
-END
+END;
 $$
 
 -- Cliente Natural
@@ -36,7 +36,7 @@ BEGIN
 
     INSERT INTO Usuario (contra_usua, username_usua, fk_rol, fk_clie)
     VALUES ('admin', p_nom ||' '|| p_ape, 200, id_clie);
-END
+END;
 $$
 -- Random
 CREATE OR REPLACE PROCEDURE add_cliente_natural_random (rif varchar(20), fiscal text, fisica text, p_nom varchar(40), s_nom varchar(40), p_ape varchar(40), s_ape varchar(40), ci integer )
@@ -55,7 +55,7 @@ BEGIN
 
     INSERT INTO Usuario (contra_usua, username_usua, fk_rol, fk_clie)
     VALUES ('admin', p_nom ||' '|| p_ape, 200, id_clie);
-END
+END;
 $$
 
 -- Cliente Jurídico
@@ -76,7 +76,7 @@ BEGIN
 
     INSERT INTO Usuario (contra_usua, username_usua, fk_rol, fk_clie)
     VALUES ('admin', razon , 201, id_clie);
-END
+END;
 $$
 -- Random
 CREATE OR REPLACE PROCEDURE add_cliente_juridico_random (rif varchar(20), fiscal text, fisica text, razon varchar(40), denom varchar(40), capital numeric(8, 2), pag text)
@@ -95,7 +95,7 @@ BEGIN
 
     INSERT INTO Usuario (contra_usua, username_usua, fk_rol, fk_clie)
     VALUES ('admin', razon , 201, id_clie);
-END
+END;
 $$
 
 -- Agregar Clientes Naturales

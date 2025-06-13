@@ -4,7 +4,7 @@ AS $$
 BEGIN
     INSERT INTO Telefono (cod_area-tele, num_tele, fk_clie, fk_pers, fk_miem)
     VALUES (cod_area, numero, cliente, contacto, miembro);
-END
+END;
 $$
 
 -- Obtener Cliente
@@ -13,7 +13,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN SELECT rif_clie FROM Cliente ORDER BY RANDOM() LIMIT 1;
-END
+END;
 $$
 
 -- Obtener Miembro
@@ -30,8 +30,8 @@ CREATE OR REPLACE FUNCTION obtener_contacto ()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    RETURN SELECT cod_pers FROM Contacto ORDER BY RANDOM() LIMIT 1
-END
+    RETURN SELECT cod_pers FROM Contacto ORDER BY RANDOM() LIMIT 1;
+END;
 $$
 
 DO $$
@@ -60,5 +60,5 @@ BEGIN
     CALL add_tlf(0416, 6789012, NULL, NULL, miem);
     clie := obtener_cliente();
     CALL add_tlf(0426, 7890123, clie, NULL, NULL);
-END
+END;
 $$;

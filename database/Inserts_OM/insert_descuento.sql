@@ -4,7 +4,7 @@ AS $$
 BEGIN
     INSERT INTO Descuento (descripcion_desc, fecha_ini_desc, fecha_fin_desc)
     VALUES (descripcion, fecha_ini, fecha_fin);
-END
+END;
 $$
 
 CALL add_descuento ('Descuento de Navidad', '2022-12-01', '2023-01-01');
