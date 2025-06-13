@@ -32,3 +32,16 @@ BEGIN
     END;
 END;
 $$
+
+-- DE SER NECESARIO, SI BIEN ES RANDOM PODEMOS HACER UNA VALIDACIÓN PARA QUE SOLO ESCOJA A LOS QUE YA TIENEN UN NUM DE TLF
+
+CALL add_correo_random('juan.perez', '@gmail.com', 1);
+CALL add_correo_random('maria.garcia', '@hotmail.com', 2);
+CALL add_correo_random('carlos.fernandez', '@yahoo.com', 3);
+CALL add_correo_random('ana.lopez', '@outlook.com', 4);
+CALL add_correo_random('luis.martinez', '@protonmail.com', 1);
+CALL add_correo_random('sofia.gomez', '@icloud.com', 2);
+CALL add_correo_random('pedro.sanchez', '@zoho.com', 3);
+CALL add_correo_random('laura.ruiz', '@mail.com', 4);
+CALL add_correo_random('jorge.diaz', '@gmx.com', 1);
+CALL add_correo_random('valentina.torres', '@yandex.com', 2);

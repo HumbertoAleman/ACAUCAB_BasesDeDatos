@@ -16,7 +16,7 @@
 - [x] Cliente
 - [ ] Compra
 - [x] Contacto
-- [ ] Correo
+- [x] Correo
 - [ ] Cuota
 - [ ] DESC_CERV
 - [ ] Departamento
