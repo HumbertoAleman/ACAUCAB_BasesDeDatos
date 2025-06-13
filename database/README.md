@@ -56,7 +56,7 @@
 - [x] TIPO_CARA
 - [ ] Tarjeta
 - [ ] Tasa
-- [ ] Telefono
+- [x] Telefono
 - [ ] Tienda
 - [x] Tipo_Cerveza
 - [x] Tipo_Evento
