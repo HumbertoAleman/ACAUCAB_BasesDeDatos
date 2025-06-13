@@ -31,7 +31,7 @@
 - [ ] ESTA_VENT
 - [ ] Efectivo
 - [x] Empleado
-- [ ] Estatus
+- [x] Estatus
 - [ ] Evento
 - [ ] Horario
 - [x] Ingrediente
