@@ -20,7 +20,7 @@
 - [ ] Cuota
 - [ ] DESC_CERV
 - [ ] Departamento
-- [ ] Descuento
+- [x] Descuento
 - [ ] Detalle_Compra
 - [ ] Detalle_Venta
 - [ ] EMPL_BENE
