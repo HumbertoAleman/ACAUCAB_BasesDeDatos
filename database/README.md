@@ -57,7 +57,7 @@
 - [ ] Tarjeta
 - [ ] Tasa
 - [x] Telefono
-- [ ] Tienda
+- [x] Tienda
 - [x] Tipo_Cerveza
 - [x] Tipo_Evento
 - [x] Usuario
