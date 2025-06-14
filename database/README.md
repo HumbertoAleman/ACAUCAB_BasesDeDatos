@@ -10,7 +10,7 @@
 - [x] CERV_CARA
 - [x] CERV_PRES
 - [x] Caracteristica
-- [ ] Cargo
+- [x] Cargo
 - [x] Cerveza
 - [ ] Cheque
 - [x] Cliente
