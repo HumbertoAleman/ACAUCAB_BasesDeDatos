@@ -85,7 +85,7 @@ END;
 $$
 
 -- Agregar Efectivo
-CREATE OR REPLACE PROCEDURE add_efectivo (denominacion char)
+CREATE OR REPLACE PROCEDURE add_efectivo (denominacion varchar(10))
 LANGUAGE plpgsql
 AS $$
 DECLARE
