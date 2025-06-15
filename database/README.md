@@ -54,7 +54,7 @@
 - [ ] Registro_Evento
 - [x] Rol
 - [x] TIPO_CARA
-- [ ] Tarjeta
+- [x] Tarjeta
 - [ ] Tasa
 - [x] Telefono
 - [x] Tienda

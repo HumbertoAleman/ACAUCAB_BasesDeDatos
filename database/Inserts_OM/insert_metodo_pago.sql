@@ -55,7 +55,7 @@ $$
 
 -- Agregar Cheque
 -- Con banco random
-CREATE OR REPLACE PROCEDURE add_cheque (numero integer, numero_cuenta integer)
+CREATE OR REPLACE PROCEDURE add_cheque_random (numero integer, numero_cuenta integer)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -69,7 +69,7 @@ BEGIN
 END;
 $$
 
--- Banco específico
+-- Banco específico (Store procedure)
 CREATE OR REPLACE PROCEDURE add_cheque (numero integer, numero_cuenta integer, nombre_banco varchar(40))
 LANGUAGE plpgsql
 AS $$
@@ -96,3 +96,14 @@ BEGIN
     VALUES (fk_metodo, denominacion);
 END;
 $$
+
+CALL add_tarjeta(4123456789012345, '2027-05-31', 123, 'Juan Perez', true);
+CALL add_tarjeta(4169876543210987, '2026-11-15', 456, 'Maria Gomez', false);
+CALL add_tarjeta(4241234567890123, '2028-03-20', 789, 'Carlos Ruiz', true);
+CALL add_tarjeta(4262345678901234, '2025-07-10', 321, 'Ana Torres', false);
+CALL add_tarjeta(4125678901234567, '2029-01-01', 654, 'Luis Fernandez', true);
+CALL add_tarjeta(4143456789012345, '2026-09-12', 987, 'Sofia Martinez', false);
+CALL add_tarjeta(4164567890123456, '2027-12-25', 159, 'Pedro Alvarez', true);
+CALL add_tarjeta(4245678901234567, '2028-06-18', 753, 'Lucia Romero', false);
+CALL add_tarjeta(4266789012345678, '2025-04-05', 852, 'Miguel Herrera', true);
+CALL add_tarjeta(4147890123456789, '2029-08-22', 951, 'Valentina Rivas', false);
