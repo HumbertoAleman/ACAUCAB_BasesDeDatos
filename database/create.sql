@@ -427,7 +427,7 @@ CREATE TABLE Cheque (
 
 CREATE TABLE Efectivo (
     fk_meto_pago integer,
-    denominacion_efec char NOT NULL,
+    denominacion_efec varchar(10) NOT NULL,
     PRIMARY KEY (fk_meto_pago),
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago)
 );
