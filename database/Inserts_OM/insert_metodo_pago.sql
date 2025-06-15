@@ -118,3 +118,14 @@ CALL add_cheque(10061290000000000007, 20064620000000000007);
 CALL add_cheque(10071300000000000008, 20074630000000000008);
 CALL add_cheque(10081310000000000009, 20084640000000000009);
 CALL add_cheque(10091320000000000010, 20094650000000000010);
+
+CALL add_efectivo ('USD');
+CALL add_efectivo ('EUR');
+CALL add_efectivo ('GBP');
+CALL add_efectivo ('JPY');
+CALL add_efectivo ('CNY');
+CALL add_efectivo ('KRW');
+CALL add_efectivo ('INR');
+CALL add_efectivo ('BRL');
+CALL add_efectivo ('MXN');
+CALL add_efectivo ('VES');

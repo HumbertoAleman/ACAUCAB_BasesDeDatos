@@ -29,7 +29,7 @@
 - [ ] ESTA_COMP
 - [ ] ESTA_EVEN
 - [ ] ESTA_VENT
-- [ ] Efectivo
+- [x] Efectivo
 - [x] Empleado
 - [x] Estatus
 - [ ] Evento
@@ -41,7 +41,7 @@
 - [x] Juez
 - [x] Lugar (Geografia de Venezuela Completa)
 - [ ] Lugar_Tienda
-- [ ] Metodo_Pago
+- [x] Metodo_Pago
 - [x] Miembro
 - [ ] PRIV_ROL
 - [ ] PUNT_CLIE
