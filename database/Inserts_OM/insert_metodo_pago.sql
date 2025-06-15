@@ -28,7 +28,7 @@ END;
 $$
 
 -- Agregar Tarjeta
-CREATE OR REPLACE PROCEDURE add_tarjeta (numero integer, fecha_venci date, cvv integer, nombre_titu varchar(40), credito boolean)
+CREATE OR REPLACE PROCEDURE add_tarjeta (numero numeric (21,0), fecha_venci date, cvv integer, nombre_titu varchar(40), credito boolean)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -55,7 +55,7 @@ $$
 
 -- Agregar Cheque
 -- Con banco random
-CREATE OR REPLACE PROCEDURE add_cheque_random (numero integer, numero_cuenta integer)
+CREATE OR REPLACE PROCEDURE add_cheque_random (numero numeric (21,0), numero_cuenta numeric(21,0))
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -70,7 +70,7 @@ END;
 $$
 
 -- Banco específico (Store procedure)
-CREATE OR REPLACE PROCEDURE add_cheque (numero integer, numero_cuenta integer, nombre_banco varchar(40))
+CREATE OR REPLACE PROCEDURE add_cheque (numero numeric (21,0), numero_cuenta numeric(21,0), nombre_banco varchar(40))
 LANGUAGE plpgsql
 AS $$
 DECLARE
