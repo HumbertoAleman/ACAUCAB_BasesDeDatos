@@ -12,7 +12,7 @@
 - [x] Caracteristica
 - [x] Cargo
 - [x] Cerveza
-- [ ] Cheque
+- [x] Cheque
 - [x] Cliente
 - [ ] Compra
 - [x] Contacto
