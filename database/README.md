@@ -33,7 +33,7 @@
 - [x] Empleado
 - [x] Estatus
 - [ ] Evento
-- [ ] Horario
+- [x] Horario
 - [x] Ingrediente
 - [ ] Instruccion
 - [ ] Inventario_Evento
