@@ -400,7 +400,7 @@ CREATE TABLE Metodo_Pago (
 
 CREATE TABLE Tarjeta (
     fk_meto_pago integer,
-    numero_tarj integer NOT NULL,
+    numero_tarj numeric(21,0) NOT NULL,
     fecha_venci_tarj date NOT NULL,
     cvv_tarj integer NOT NULL,
     nombre_titu_tarj varchar(40) NOT NULL,
@@ -417,8 +417,8 @@ CREATE TABLE Punto_Canjeo (
 
 CREATE TABLE Cheque (
     fk_meto_pago integer,
-    numero_cheque integer NOT NULL,
-    numero_cuenta_cheque integer NOT NULL,
+    numero_cheque numeric(21,0) NOT NULL,
+    numero_cuenta_cheque numeric(21,0) NOT NULL,
     fk_banc integer NOT NULL,
     PRIMARY KEY (fk_meto_pago),
     FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago),
