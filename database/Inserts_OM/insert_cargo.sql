@@ -17,3 +17,4 @@ CALL add_cargo('Coordinador de Eventos');
 CALL add_cargo('Gestor de Inventario');
 CALL add_cargo('Especialista de Reportes');
 CALL add_cargo('Empleado');
+CALL add_cargo('Vigilante');
