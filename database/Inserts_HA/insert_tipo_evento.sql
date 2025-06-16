@@ -7,25 +7,25 @@ INSERT INTO Tipo_Evento (nombre_tipo_even)
     VALUES ('Recorrido por cerveceria');
 
 INSERT INTO Tipo_Evento (nombre_tipo_even)
-    VALUES ('Festival de cerveza');
+    VALUES ('Festival de Cervezas');
 
 INSERT INTO Tipo_Evento (nombre_tipo_even)
-    VALUES ('Cena de maridaje');
+    VALUES ('Cena de Maridaje');
 
 INSERT INTO Tipo_Evento (nombre_tipo_even)
-    VALUES ('Taller de elaboración de cerveza');
+    VALUES ('Taller de Elaboracion de Cerveza');
 
 INSERT INTO Tipo_Evento (nombre_tipo_even)
-    VALUES ('Fiesta de lanzamiento de cervezas de temporada');
+    VALUES ('Fiesta de Lanzamiento de Cervezas de Temporada');
 
 INSERT INTO Tipo_Evento (nombre_tipo_even)
-    VALUES ('Noche de música en vivo');
+    VALUES ('Noche de Musica en Vivo');
 
 INSERT INTO Tipo_Evento (nombre_tipo_even)
-    VALUES ('Noche de trivia');
+    VALUES ('Noche de Trivia');
 
 INSERT INTO Tipo_Evento (nombre_tipo_even)
-    VALUES ('Evento de cerveza y arte');
+    VALUES ('Evento de Cerveza y Arte');
 
 INSERT INTO Tipo_Evento (nombre_tipo_even)
-    VALUES ('Evento de networking para cerveceros');
+    VALUES ('Evento de Networking Para Cerveceros');

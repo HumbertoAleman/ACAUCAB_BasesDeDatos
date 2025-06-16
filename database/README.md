@@ -27,12 +27,12 @@
 - [ ] EMPL_CARG
 - [ ] EMPL_HORA
 - [ ] ESTA_COMP
-- [ ] ESTA_EVEN
+- [x] ESTA_EVEN
 - [ ] ESTA_VENT
 - [x] Efectivo
 - [x] Empleado
 - [x] Estatus
-- [ ] Evento
+- [x] Evento
 - [x] Horario
 - [x] Ingrediente
 - [ ] Instruccion
