@@ -55,7 +55,7 @@
 - [x] Rol
 - [x] TIPO_CARA
 - [x] Tarjeta
-- [ ] Tasa
+- [x] Tasa
 - [x] Telefono
 - [x] Tienda
 - [x] Tipo_Cerveza
