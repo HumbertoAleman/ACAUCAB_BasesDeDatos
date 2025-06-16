@@ -85,7 +85,7 @@ CREATE TABLE Tipo_Evento (
 
 CREATE TABLE Evento (
     cod_even serial,
-    nombre_even varchar(40) NOT NULL,
+    nombre_even varchar(255) NOT NULL,
     fecha_hora_ini_even timestamp NOT NULL,
     fecha_hora_fin_even timestamp NOT NULL,
     direccion_even text NOT NULL,
