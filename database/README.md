@@ -40,7 +40,7 @@
 - [ ] Inventario_Tienda
 - [x] Juez
 - [x] Lugar (Geografia de Venezuela Completa)
-- [ ] Lugar_Tienda
+- [x] Lugar_Tienda
 - [x] Metodo_Pago
 - [x] Miembro
 - [ ] PRIV_ROL

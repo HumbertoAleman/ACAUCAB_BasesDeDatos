@@ -23,7 +23,7 @@ CREATE OR REPLACE PROCEDURE add_tienda (nombre varchar(40), fecha date, direccio
     AS $$
 BEGIN
     INSERT INTO Tienda (nombre_tien, fecha_apertura_tien, direccion_tien, fk_luga)
-        VALUES (nombre, fecha, direccion, get_parroquia(nom_parroquia));
+        VALUES (nombre, fecha, direccion, get_parroquia (nom_parroquia));
 END
 $$
 LANGUAGE plpgsql;
@@ -47,3 +47,15 @@ CALL add_tienda ('ACAUCAB-Santa Barbara', '2025-08-30', 'Calle Bolivar, Santa Ba
 CALL add_tienda ('ACAUCAB-La Vega', '2026-09-14', 'Calle La Vega, Caracas 1021', 'La Vega', 'Distrito Capital');
 
 CALL add_tienda ('ACAUCAB-El Junko', '2027-10-03', 'Carretera El Junko, El Junko 1204', 'El Junko', 'La Guaira');
+
+INSERT INTO Lugar_Tienda (nombre_luga_tien, tipo_luga_tien, fk_luga_tien)
+    VALUES ('Almacen Principal', 'Almacen', NULL),
+    ('Pasillo 1', 'Pasillo', 1),
+    ('Pasillo 2', 'Pasillo', 1),
+    ('Anaquel A1', 'Anaquel', 2),
+    ('Anaquel A2', 'Anaquel', 2),
+    ('Pasillo 3', 'Pasillo', 1),
+    ('Anaquel B1', 'Anaquel', 3),
+    ('Almacen Secundario', 'Almacen', NULL),
+    ('Pasillo 4', 'Pasillo', 8),
+    ('Anaquel C1', 'Anaquel', 9);

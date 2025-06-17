@@ -355,10 +355,10 @@ CREATE TABLE Inventario_Tienda (
     fk_cerv_pres_1 integer,
     fk_cerv_pres_2 integer,
     fk_tien integer,
-    fk_luga_tien integer NOT NULL,
+    fk_luga_tien integer,
     cant_pres integer NOT NULL,
     precio_actual_pres numeric(8, 2) NOT NULL,
-    PRIMARY KEY (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien),
+    PRIMARY KEY (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, fk_luga_tien),
     CONSTRAINT conformado FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres),
     CONSTRAINT posicionado FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien),
     CONSTRAINT engloba FOREIGN KEY (fk_luga_tien) REFERENCES Lugar_Tienda (cod_luga_tien)
@@ -383,12 +383,13 @@ CREATE TABLE Detalle_Venta (
     fk_inve_tien_1 integer,
     fk_inve_tien_2 integer,
     fk_inve_tien_3 integer,
+    fk_inve_tien_4 integer,
     fk_inve_even_1 integer,
     fk_inve_even_2 integer,
     fk_inve_even_3 integer,
     CONSTRAINT incluye FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent),
     CONSTRAINT sustrae FOREIGN KEY (fk_inve_even_1, fk_inve_even_2, fk_inve_even_3) REFERENCES Inventario_Evento (fk_cerv_pres_1, fk_cerv_pres_2, fk_even),
-    CONSTRAINT vincula FOREIGN KEY (fk_inve_tien_1, fk_inve_tien_2, fk_inve_tien_3) REFERENCES Inventario_Tienda (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien),
+    CONSTRAINT vincula FOREIGN KEY (fk_inve_tien_1, fk_inve_tien_2, fk_inve_tien_3, fk_inve_tien_4) REFERENCES Inventario_Tienda (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, fk_luga_tien),
     -- Arco Inventario_Tienda - Inventario_Evento
     CHECK (((fk_inve_tien_1 IS NOT NULL AND fk_inve_tien_2 IS NOT NULL AND fk_inve_tien_3 IS NOT NULL) AND (fk_inve_even_1 IS NULL AND fk_inve_even_2 IS NULL AND fk_inve_even_3 IS NULL)) OR ((fk_inve_tien_1 IS NULL AND fk_inve_tien_2 IS NULL AND fk_inve_tien_3 IS NULL) AND (fk_inve_even_1 IS NOT NULL AND fk_inve_even_2 IS NOT NULL AND fk_inve_even_3 IS NOT NULL)))
 );
