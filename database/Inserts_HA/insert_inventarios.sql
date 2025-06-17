@@ -31,32 +31,25 @@ DECLARE
     c_v CERV_PRES%ROWTYPE;
     l_t integer;
 BEGIN
-    FOR x IN (
+    FOR c_v IN (
         SELECT
-            cod_tien
+            *
         FROM
-            Tienda)
-        LOOP
-            FOR c_v IN (
-                SELECT
-                    *
-                FROM
-                    CERV_PRES
-                ORDER BY
-                    RANDOM()
-                LIMIT 5)
+            CERV_PRES
+        ORDER BY
+            RANDOM()
+        LIMIT 5)
+    LOOP
+        FOR l_t IN (
+            SELECT
+                cod_luga_tien
+            FROM
+                Lugar_Tienda)
             LOOP
-                FOR l_t IN (
-                    SELECT
-                        cod_luga_tien
-                    FROM
-                        Lugar_Tienda)
-                    LOOP
-                        INSERT INTO Inventario_Tienda (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, cant_pres, precio_actual_pres, fk_luga_tien)
-                            VALUES (c_v.fk_cerv, c_v.fk_pres, x, 100, 9.99, l_t);
-                    END LOOP;
+                INSERT INTO Inventario_Tienda (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, cant_pres, precio_actual_pres, fk_luga_tien)
+                    VALUES (c_v.fk_cerv, c_v.fk_pres, 1, 100, 9.99, l_t);
             END LOOP;
-        END LOOP;
+    END LOOP;
 END;
 $$
 LANGUAGE plpgsql;
