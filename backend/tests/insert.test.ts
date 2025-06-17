@@ -26,6 +26,7 @@ test("Insert", async () => {
 	}).then(async res => {
 		const r: any = JSON.parse(await res.text())[0]
 		expect(r).toBeDefined()
+		expect(r).toBeObject()
 		for (const val in r)
 			expect(r[val] ?? undefined).toBe(case_natural.info[val])
 	}).catch(_ => {
