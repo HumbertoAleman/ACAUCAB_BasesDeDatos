@@ -43,11 +43,3 @@ CALL add_empleado(46565698, 'Vashti Mathias', 'Conchita Wentz', 'Sadler', 'Carpe
 CALL add_empleado(42233317, 'Bula Duff', 'Norbert Solomon', 'Amaral', 'Wooley', 55.88);
 
 CALL add_empleado(40959596, 'Jewel Walston', 'Elene Downey', 'Bray', 'Penn', 18.01);
-
-
-SELECT
-    *
-FROM
-    Usuario
-WHERE
-	fk_rol = 300;
