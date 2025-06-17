@@ -71,7 +71,7 @@ CREATE TABLE Tienda (
 CREATE TABLE Lugar_Tienda (
     cod_luga_tien serial,
     nombre_luga_tien varchar(40) NOT NULL,
-    tipo_luga_tien varchar(40) NOT NULL,
+    tipo_luga_tien varchar(40) NOT NULL CHECK (tipo_luga_tien IN ('Almacen', 'Pasillo', 'Anaquel')),
     fk_luga_tien integer,
     PRIMARY KEY (cod_luga_tien),
     CONSTRAINT localizado FOREIGN KEY (fk_luga_tien) REFERENCES Lugar_Tienda (cod_luga_tien)
