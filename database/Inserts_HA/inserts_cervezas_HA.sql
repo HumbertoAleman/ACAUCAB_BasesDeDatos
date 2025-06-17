@@ -131,6 +131,17 @@ END;
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE PROCEDURE add_inst (text, text)
+    AS $$
+DECLARE
+    x integer;
+BEGIN
+    INSERT INTO Instruccion (nombre_inst, fk_rece)
+        VALUES ($2, get_rece_by_type ($1));
+END;
+$$
+LANGUAGE plpgsql;
+
 DELETE FROM TIPO_CARA;
 
 DELETE FROM RECE_INGR;
@@ -797,3 +808,24 @@ CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Color', 'Ambar');
 CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Aroma', 'Intenso a Caramelo');
 
 CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Carbonatacion', 'Media a Alta');
+
+-- Instrucciones
+CALL add_inst ('American Amber Ale', 'Maceración de toda la malta durante 1 hora a 66 grados');
+
+CALL add_inst ('American Amber Ale', 'Realizar el sparging a 76 grados');
+
+CALL add_inst ('American Amber Ale', 'Ebullición de una hora, siguiendo los tiempos de adición del lúpulo indicados');
+
+CALL add_inst ('American Amber Ale', 'Fermentar a 18-20 grados');
+
+CALL add_inst ('American Amber Ale', 'Maduración en botella o en barril durante 4 semanas');
+
+CALL add_inst ('Belgian Dubbel', 'Reúne los ingredientes necesarios, incluyendo maltas Pilsner, Munich, Caramelo, de trigo, lúpulos nobles como Saaz o Hallertau, levadura belga y agua de buena calidad.');
+
+CALL add_inst ('Belgian Dubbel', 'Calienta el agua a aproximadamente 66-68 °C, añade las maltas molidas y mantén esta temperatura durante 60 minutos para la conversión de almidones en azúcares fermentables.');
+
+CALL add_inst ('Belgian Dubbel', 'Separa el mosto después de la maceración y llévalo a ebullición durante 60 minutos, añadiendo lúpulo al inicio para amargor y en los últimos 15 minutos para aroma.');
+
+CALL add_inst ('Belgian Dubbel', 'Enfría rápidamente el mosto a unos 20-22 °C, transfiérelo a un fermentador y añade la levadura, sellando el fermentador con un airlock.');
+
+CALL add_inst ('Belgian Dubbel', 'Deja fermentar durante 1-2 semanas a temperatura controlada, embotella la cerveza con un poco de azúcar para carbonatación y deja madurar en botella durante al menos 2-4 semanas antes de disfrutar.');

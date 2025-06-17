@@ -35,7 +35,7 @@
 - [x] Evento
 - [x] Horario
 - [x] Ingrediente
-- [ ] Instruccion
+- [x] Instruccion
 - [x] Inventario_Evento
 - [x] Inventario_Tienda
 - [x] Juez
