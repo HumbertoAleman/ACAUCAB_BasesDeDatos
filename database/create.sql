@@ -541,7 +541,7 @@ CREATE TABLE EMPL_BENE (
 CREATE TABLE CERV_CARA (
     fk_cerv integer,
     fk_cara integer,
-    valor_cara varchar(40) NOT NULL,
+    valor_cara text NOT NULL,
     PRIMARY KEY (fk_cerv, fk_cara),
     CONSTRAINT caracteriza FOREIGN KEY (fk_cara) REFERENCES Caracteristica (cod_cara),
     CONSTRAINT caracterizada FOREIGN KEY (fk_cerv) REFERENCES Cerveza (cod_cerv)
@@ -550,7 +550,7 @@ CREATE TABLE CERV_CARA (
 CREATE TABLE TIPO_CARA (
     fk_tipo_cerv integer,
     fk_cara integer,
-    valor_cara varchar(50) NOT NULL,
+    valor_cara text NOT NULL,
     PRIMARY KEY (fk_tipo_cerv, fk_cara),
     CONSTRAINT estiliza FOREIGN KEY (fk_cara) REFERENCES Caracteristica (cod_cara),
     CONSTRAINT estilizada FOREIGN KEY (fk_tipo_cerv) REFERENCES Tipo_Cerveza (cod_tipo_cerv)
