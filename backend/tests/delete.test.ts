@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
+import type { StringIndexable } from "../src/types/StringIndexable";
 
-const client = {
+const client: StringIndexable = {
 	table: "Cliente",
 	info: {
 		tipo_clie: "Natural",
@@ -17,7 +18,7 @@ const client = {
 	}
 }
 
-const delete_test = {
+const delete_test: StringIndexable = {
 	table: "Cliente",
 	primaryKeyName: "rif_clie",
 	primaryKey: "'30142718'",
