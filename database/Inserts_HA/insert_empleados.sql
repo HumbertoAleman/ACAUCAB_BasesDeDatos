@@ -24,22 +24,22 @@ DELETE FROM Empleado;
 INSERT INTO Rol
     VALUES (300, 'Empleado', 'Empleado regular de ACAUCAB');
 
-CALL add_empleado(31279920, 'Serita Whittington', 'Jewel Christiansen', 'Herrick', 'Blevins', 73.02);
+CALL add_empleado(31279920, 'Serita', 'Jewel', 'Herrick', 'Blevins', 73.02);
 
-CALL add_empleado(48422996, 'Thora Beck', 'Candra Blackburn', 'Ferrer', 'Pina', 46.97);
+CALL add_empleado(48422996, 'Thora', 'Candra', 'Ferrer', 'Pina', 46.97);
 
-CALL add_empleado(2428796, 'Barney Ruth', 'Merlin Zaragoza', 'Atchison', 'Hooker', 18.39);
+CALL add_empleado(2428796, 'Barney', 'Merlin', 'Atchison', 'Hooker', 18.39);
 
-CALL add_empleado(26806759, 'Stacey Allan', 'Eura Addison', 'Seeley', 'Thomsen', 85.59);
+CALL add_empleado(26806759, 'Stacey', 'Eura', 'Seeley', 'Thomsen', 85.59);
 
-CALL add_empleado(4221028, 'Kati Felton', 'Serafina Sommer-Rey', 'Valencia', 'Guillory', 53.06);
+CALL add_empleado(4221028, 'Kati', 'Serafina', 'Valencia', 'Guillory', 53.06);
 
-CALL add_empleado(1418738, 'Loni Fain', 'Hershel Runyon', 'Stubblefield', 'Ahmad-Alley', 20.58);
+CALL add_empleado(1418738, 'Loni', 'Hershel', 'Stubblefield', 'Ahmad-Alley', 20.58);
 
-CALL add_empleado(518945, 'Loree Walston', 'Alpha Kong', 'Sparks', 'Sell', 62.83);
+CALL add_empleado(518945, 'Loree', 'Alpha', 'Sparks', 'Sell', 62.83);
 
-CALL add_empleado(46565698, 'Vashti Mathias', 'Conchita Wentz', 'Sadler', 'Carpenter', 67.6);
+CALL add_empleado(46565698, 'Vashti', 'Conchita', 'Sadler', 'Carpenter', 67.6);
 
-CALL add_empleado(42233317, 'Bula Duff', 'Norbert Solomon', 'Amaral', 'Wooley', 55.88);
+CALL add_empleado(42233317, 'Bula', 'Norbert', 'Amaral', 'Wooley', 55.88);
 
-CALL add_empleado(40959596, 'Jewel Walston', 'Elene Downey', 'Bray', 'Penn', 18.01);
+CALL add_empleado(40959596, 'Jewel', 'Elene', 'Bray', 'Penn', 18.01);
