@@ -61,7 +61,7 @@
 - [x] Tipo_Cerveza
 - [x] Tipo_Evento
 - [x] Usuario
-- [ ] Vacacion
+- [x] Vacacion
 - [ ] Venta
 
 Se puede correr la siguiente query para revisar las cantidades:

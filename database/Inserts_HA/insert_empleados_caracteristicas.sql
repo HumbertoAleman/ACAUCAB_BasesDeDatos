@@ -37,4 +37,27 @@ END
 $$
 LANGUAGE plpgsql;
 
-CALL give_benefits ()
+CREATE OR REPLACE PROCEDURE create_vacaciones ()
+    AS $$
+DECLARE
+    e_c EMPL_CARG%ROWTYPE;
+BEGIN
+    FOR e_c IN (
+        SELECT
+            fk_empl,
+            fk_carg
+        FROM
+            EMPL_CARG)
+        LOOP
+            INSERT INTO Vacacion (fecha_ini_vaca, fecha_fin_vaca, pagada, fk_empl_carg_1, fk_empl_carg_2)
+                VALUES ('2024-12-12', '2025-01-01', FALSE, e_c.fk_empl, e_c.fk_carg);
+        END LOOP;
+END
+$$
+LANGUAGE plpgsql;
+
+-- Call the procedure to generate the entries
+CALL give_benefits ();
+
+CALL create_vacaciones ();
+
