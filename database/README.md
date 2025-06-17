@@ -6,7 +6,7 @@
 
 - [ ] Asistencia
 - [x] Banco
-- [ ] Beneficio
+- [x] Beneficio
 - [x] CERV_CARA
 - [x] CERV_PRES
 - [x] Caracteristica
@@ -23,7 +23,7 @@
 - [x] Descuento
 - [ ] Detalle_Compra
 - [ ] Detalle_Venta
-- [ ] EMPL_BENE
+- [x] EMPL_BENE
 - [x] EMPL_CARG
 - [ ] EMPL_HORA
 - [ ] ESTA_COMP
