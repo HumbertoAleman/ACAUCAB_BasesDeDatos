@@ -151,6 +151,7 @@ CREATE TABLE Beneficio (
 CREATE TABLE Departamento (
     cod_depa serial,
     fk_tien integer,
+    nombre_depa varchar(40) NOT NULL,
     PRIMARY KEY (cod_depa, fk_tien),
     CONSTRAINT formada FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien)
 );
