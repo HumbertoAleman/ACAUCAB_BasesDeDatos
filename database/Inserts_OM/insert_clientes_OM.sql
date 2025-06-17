@@ -40,11 +40,14 @@ $$
 LANGUAGE plpgsql;
 
 -- Obtener una parroquia
-CREATE OR REPLACE PROCEDURE get_parroquia (out id_parroquia int, IN nom_parroquia varchar(40), IN nom_estado varchar(40))
+CREATE OR REPLACE FUNCTION get_parroquia (nom_parroquia varchar(40), nom_estado varchar(40))
+    RETURNS integer
     AS $$
+DECLARE
+    id_parroquia integer;
 BEGIN
     SELECT
-        l1.cod_luga INTO id_parroquia
+        l1.cod_luga
     FROM
         Lugar l1,
         Lugar l2,
@@ -54,7 +57,9 @@ BEGIN
         AND l2.fk_luga = l3.cod_luga
         AND l3.nombre_luga = nom_estado
         AND l1.tipo_luga = 'Parroquia'
-        AND l1.nombre_luga = nom_parroquia;
+        AND l1.nombre_luga = nom_parroquia
+    LIMIT 1 INTO id_parroquia;
+    RETURN id_parroquia;
 END
 $$
 LANGUAGE plpgsql;
@@ -66,13 +71,9 @@ CREATE OR REPLACE PROCEDURE add_cliente_natural (rif varchar(20), fiscal text, f
     AS $$
 DECLARE
     id_clie varchar(20);
-    luga1 integer;
-    luga2 integer;
 BEGIN
-    CALL get_parroquia (luga1, parroquia_fiscal, estado_fiscal);
-    CALL get_parroquia (luga2, parroquia_fisica, estado_fisica);
     INSERT INTO Cliente (rif_clie, direccion_fiscal_clie, direccion_fisica_clie, fk_luga_1, fk_luga_2, tipo_clie, primer_nom_natu, segundo_nom_natu, primer_ape_natu, segundo_ape_natu, ci_natu)
-        VALUES (rif, fiscal, fisica, luga1, luga2, 'Natural', p_nom, s_nom, p_ape, s_ape, ci)
+        VALUES (rif, fiscal, fisica, get_parroquia (parroquia_fiscal, estado_fiscal), get_parroquia (parroquia_fisica, estado_fisica), 'Natural', p_nom, s_nom, p_ape, s_ape, ci)
     RETURNING
         rif_clie INTO id_clie;
     CALL add_tlf (cod_area, numero, id_clie, NULL, NULL);
@@ -107,13 +108,9 @@ CREATE OR REPLACE PROCEDURE add_cliente_juridico (rif varchar(20), fiscal text, 
     AS $$
 DECLARE
     id_clie varchar(20);
-    luga1 integer;
-    luga2 integer;
 BEGIN
-    CALL get_parroquia (luga1, parroquia_fiscal, estado_fiscal);
-    CALL get_parroquia (luga2, parroquia_fisica, estado_fisica);
     INSERT INTO Cliente (rif_clie, direccion_fiscal_clie, direccion_fisica_clie, fk_luga_1, fk_luga_2, tipo_clie, razon_social_juri, denom_comercial_juri, capital_juri, pag_web_juri)
-        VALUES (rif, fiscal, fisica, luga1, luga2, 'Juridico', razon, denom, capital, pag)
+        VALUES (rif, fiscal, fisica, get_parroquia (parroquia_fiscal, estado_fiscal), get_parroquia (parroquia_fisica, estado_fisica), 'Juridico', razon, denom, capital, pag)
     RETURNING
         rif_clie INTO id_clie;
     CALL add_tlf (cod_area, numero, id_clie, NULL, NULL);
