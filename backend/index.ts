@@ -1,6 +1,7 @@
 import { quickDelete } from "./src/delete";
 import { quickInsert } from "./src/insert";
 import getRol from "./src/query_rol";
+import getUsuario from "./src/query_usuario";
 
 Bun.serve({
 	routes: {
@@ -9,8 +10,7 @@ Bun.serve({
 			POST: quickInsert,
 			DELETE: quickDelete,
 		},
-		"/rol": {
-			GET: getRol,
-		}
+		"/rol": { GET: getRol, },
+		"/usuario": { GET: getUsuario, }
 	}
 })
