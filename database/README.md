@@ -19,7 +19,7 @@
 - [x] Correo
 - [ ] Cuota
 - [ ] DESC_CERV
-- [ ] Departamento
+- [x] Departamento
 - [x] Descuento
 - [ ] Detalle_Compra
 - [ ] Detalle_Venta
