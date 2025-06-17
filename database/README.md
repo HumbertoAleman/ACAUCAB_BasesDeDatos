@@ -37,7 +37,7 @@
 - [x] Ingrediente
 - [ ] Instruccion
 - [x] Inventario_Evento
-- [ ] Inventario_Tienda
+- [x] Inventario_Tienda
 - [x] Juez
 - [x] Lugar (Geografia de Venezuela Completa)
 - [x] Lugar_Tienda
