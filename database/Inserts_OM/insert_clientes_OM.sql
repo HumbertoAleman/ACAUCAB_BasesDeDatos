@@ -40,7 +40,7 @@ $$
 LANGUAGE plpgsql;
 
 -- Obtener una parroquia
-CREATE OR REPLACE FUNCTION get_parroquia (nom_parroquia varchar(40), nom_estado varchar(40))
+CREATE OR REPLACE FUNCTION get_parroquia_from_estado (nom_parroquia varchar(40), nom_estado varchar(40))
     RETURNS integer
     AS $$
 DECLARE
@@ -73,7 +73,7 @@ DECLARE
     id_clie varchar(20);
 BEGIN
     INSERT INTO Cliente (rif_clie, direccion_fiscal_clie, direccion_fisica_clie, fk_luga_1, fk_luga_2, tipo_clie, primer_nom_natu, segundo_nom_natu, primer_ape_natu, segundo_ape_natu, ci_natu)
-        VALUES (rif, fiscal, fisica, get_parroquia (parroquia_fiscal, estado_fiscal), get_parroquia (parroquia_fisica, estado_fisica), 'Natural', p_nom, s_nom, p_ape, s_ape, ci)
+        VALUES (rif, fiscal, fisica, get_parroquia_from_estado (parroquia_fiscal, estado_fiscal), get_parroquia_from_estado (parroquia_fisica, estado_fisica), 'Natural', p_nom, s_nom, p_ape, s_ape, ci)
     RETURNING
         rif_clie INTO id_clie;
     CALL add_tlf (cod_area, numero, id_clie, NULL, NULL);
@@ -110,7 +110,7 @@ DECLARE
     id_clie varchar(20);
 BEGIN
     INSERT INTO Cliente (rif_clie, direccion_fiscal_clie, direccion_fisica_clie, fk_luga_1, fk_luga_2, tipo_clie, razon_social_juri, denom_comercial_juri, capital_juri, pag_web_juri)
-        VALUES (rif, fiscal, fisica, get_parroquia (parroquia_fiscal, estado_fiscal), get_parroquia (parroquia_fisica, estado_fisica), 'Juridico', razon, denom, capital, pag)
+        VALUES (rif, fiscal, fisica, get_parroquia_from_estado (parroquia_fiscal, estado_fiscal), get_parroquia_from_estado (parroquia_fisica, estado_fisica), 'Juridico', razon, denom, capital, pag)
     RETURNING
         rif_clie INTO id_clie;
     CALL add_tlf (cod_area, numero, id_clie, NULL, NULL);
