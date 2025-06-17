@@ -1,7 +1,9 @@
 import { sql } from "bun";
 import { expect, test } from "bun:test";
 
-const case_natural = {
+type StringIndexable = { [key: string | symbol]: any }
+
+const case_natural: StringIndexable = {
 	table: "Cliente",
 	info: {
 		tipo_clie: "Natural",
