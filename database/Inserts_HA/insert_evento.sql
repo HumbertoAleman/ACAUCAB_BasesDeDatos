@@ -1,3 +1,20 @@
+CREATE OR REPLACE FUNCTION get_esta_even (text)
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        cod_esta
+    FROM
+        Estatus
+    WHERE
+        nombre_esta LIKE $1 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION get_tipo_even (text)
     RETURNS integer
     AS $$
@@ -20,7 +37,7 @@ CREATE OR REPLACE FUNCTION insert_into_esta_even ()
     AS $$
 BEGIN
     INSERT INTO ESTA_EVEN (fk_esta, fk_even, fecha_ini)
-        VALUES (200, NEW.cod_even, NOW());
+        VALUES (get_esta_even ('Pendiente'), NEW.cod_even, NOW());
     RETURN NEW;
 END;
 $$
@@ -30,13 +47,6 @@ CREATE OR REPLACE TRIGGER after_insert_evento
     AFTER INSERT ON Evento
     FOR EACH ROW
     EXECUTE FUNCTION insert_into_esta_even ();
-
-INSERT INTO Estatus (cod_esta, nombre_esta, descripcion_esta)
-    VALUES (200, 'Planificado', 'El evento está programado pero aún no se ha ejecutado. Se confirman detalles como la fecha, la hora y la ubicación.'),
-    (201, 'En Curso', 'El evento está teniendo lugar actualmente. Los participantes están activamente involucrados en las actividades del evento.'),
-    (202, 'Completado', 'El evento ha concluido. Todas las actividades han finalizado y pueden ser necesarias acciones de seguimiento.'),
-    (203, 'Pospuesto', 'El evento ha sido retrasado a una fecha posterior. Puede ser necesario comunicar la nueva fecha y hora.'),
-    (204, 'Cancelado', 'El evento ha sido cancelado y no tendrá lugar. Puede ser necesario enviar notificaciones a los participantes.');
 
 INSERT INTO Evento (nombre_even, fecha_hora_ini_even, fecha_hora_fin_even, direccion_even, capacidad_even, descripcion_even, precio_entrada_even, cant_entradas_evento, fk_tipo_even, fk_luga)
     VALUES ('Sabor y Espuma: Cata de Cervezas Artesanales', '2025-06-20 18:00:00', '2025-06-20 21:00:00', 'Av. Francisco de Miranda, Edificio Centro Plaza, Local 5', 50, 'Disfruta de una experiencia sensorial única mientras degustas una selección de cervezas artesanales, guiado por expertos que compartirán sus secretos y maridajes ideales', 20, 50, get_tipo_even ('Cata de cervezas'), get_parroquia_random ()),
