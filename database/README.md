@@ -25,7 +25,7 @@
 - [ ] Detalle_Venta
 - [x] EMPL_BENE
 - [x] EMPL_CARG
-- [ ] EMPL_HORA
+- [x] EMPL_HORA
 - [ ] ESTA_COMP
 - [x] ESTA_EVEN
 - [ ] ESTA_VENT

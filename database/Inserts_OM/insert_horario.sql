@@ -7,6 +7,31 @@ END
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE PROCEDURE insert_empl_hora ()
+    AS $$
+DECLARE
+    rec_horario RECORD;
+    rec_empl_carg RECORD;
+BEGIN
+    FOR rec_horario IN
+    SELECT
+        *
+    FROM
+        Horario
+    LIMIT 7 LOOP
+        FOR rec_empl_carg IN
+        SELECT
+            *
+        FROM
+            EMPL_CARG LOOP
+                INSERT INTO EMPL_HORA (fk_hora, fk_empl_carg_1, fk_empl_carg_2)
+                    VALUES (rec_horario.cod_hora, rec_empl_carg.fk_empl, rec_empl_carg.fk_carg);
+            END LOOP;
+    END LOOP;
+END
+$$
+LANGUAGE plpgsql;
+
 CALL add_horario ('08:00', '16:00', 'Lunes');
 
 CALL add_horario ('09:00', '17:00', 'Martes');
@@ -26,3 +51,5 @@ CALL add_horario ('14:00', '22:00', 'Lunes');
 CALL add_horario ('16:00', '00:00', 'Viernes');
 
 CALL add_horario ('18:00', '02:00', 'Sabado');
+
+CALL insert_empl_hora ();
