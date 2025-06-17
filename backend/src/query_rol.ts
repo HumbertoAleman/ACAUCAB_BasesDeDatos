@@ -1,7 +1,7 @@
 import { sql } from "bun";
 import Logger from "./logger/logger.ts";
 
-export default async function getRol(req: Bun.BunRequest): Promise<Response> {
+export default async function getRol(_: Bun.BunRequest): Promise<Response> {
 	try {
 		Logger.debug(`Querying for all Roles`);
 		const res = await sql`SELECT nombre_rol FROM Rol`;
