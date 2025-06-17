@@ -4,7 +4,7 @@ AS $$
 DECLARE
     x text;
     y text;
-	perms varchar(10)[] = ARRAY ['create', 'read', 'update', 'delete'];
+    perms varchar(10)[] = ARRAY['create', 'read', 'update', 'delete'];
 BEGIN
     FOR x IN (
         SELECT
@@ -20,11 +20,25 @@ BEGIN
 END
 $$;
 
+CREATE OR REPLACE PROCEDURE admin_privileges ()
+    AS $$
+DECLARE
+    x integer;
+BEGIN
+    FOR x IN (
+        SELECT
+            cod_priv
+        FROM
+            Privilegio)
+        LOOP
+            INSERT INTO PRIV_ROL (fk_rol, fk_priv)
+                VALUES (500, x);
+        END LOOP;
+END
+$$
+LANGUAGE plpgsql;
+
 DELETE FROM Privilegio;
 
 CALL privileges ();
-
-SELECT
-    *
-FROM
-    Privilegio;
+CALL admin_privileges ();

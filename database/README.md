@@ -43,7 +43,7 @@
 - [x] Lugar_Tienda
 - [x] Metodo_Pago
 - [x] Miembro
-- [ ] PRIV_ROL
+- [x] PRIV_ROL
 - [ ] PUNT_CLIE
 - [ ] Pago
 - [x] Presentacion
