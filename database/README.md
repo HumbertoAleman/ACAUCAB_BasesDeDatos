@@ -22,7 +22,7 @@
 - [x] Departamento
 - [x] Descuento
 - [ ] Detalle_Compra
-- [ ] Detalle_Venta
+- [x] Detalle_Venta
 - [x] EMPL_BENE
 - [x] EMPL_CARG
 - [x] EMPL_HORA
@@ -44,11 +44,11 @@
 - [x] Metodo_Pago
 - [x] Miembro
 - [x] PRIV_ROL
-- [ ] PUNT_CLIE
-- [ ] Pago
+- [x] PUNT_CLIE
+- [x] Pago
 - [x] Presentacion
 - [x] Privilegio
-- [ ] Punto_Canjeo
+- [x] Punto_Canjeo
 - [x] RECE_INGR
 - [x] Receta
 - [ ] Registro_Evento
@@ -62,7 +62,7 @@
 - [x] Tipo_Evento
 - [x] Usuario
 - [x] Vacacion
-- [ ] Venta
+- [x] Venta
 
 Se puede correr la siguiente query para revisar las cantidades:
 
