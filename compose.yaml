@@ -3,7 +3,7 @@ services:
   # Database service
   db:
     image: postgres:alpine
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: acaucab_test
       POSTGRES_PASSWORD: admin
@@ -15,7 +15,7 @@ services:
   # Database user interface
   pgadmin:
     image: dpage/pgadmin4
-    restart: always
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
@@ -25,7 +25,7 @@ services:
   # Frontend
   react:
     image: oven/bun
-    restart: always
+    restart: unless-stopped
     volumes:                    # 1. Create a virtual volume 
       - type: bind              # and bind it to the real folder
         source: ./frontend      # 2. Bind ./frontend
@@ -39,7 +39,7 @@ services:
   # Backend
   backend:
     image: oven/bun
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_URL: postgres://postgres:admin@db:5432/acaucab_test
     volumes:                   # 1. Create a virtual volume 
