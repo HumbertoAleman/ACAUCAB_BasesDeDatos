@@ -14,19 +14,19 @@
 - [x] Cerveza
 - [x] Cheque
 - [x] Cliente
-- [ ] Compra
+- [x] Compra
 - [x] Contacto
 - [x] Correo
-- [ ] Cuota
-- [ ] DESC_CERV
+- [x] Cuota
+- [x] DESC_CERV
 - [x] Departamento
 - [x] Descuento
-- [ ] Detalle_Compra
+- [x] Detalle_Compra
 - [x] Detalle_Venta
 - [x] EMPL_BENE
 - [x] EMPL_CARG
 - [x] EMPL_HORA
-- [ ] ESTA_COMP
+- [x] ESTA_COMP
 - [x] ESTA_EVEN
 - [x] ESTA_VENT
 - [x] Efectivo
@@ -51,7 +51,7 @@
 - [x] Punto_Canjeo
 - [x] RECE_INGR
 - [x] Receta
-- [ ] Registro_Evento
+- [x] Registro_Evento
 - [x] Rol
 - [x] TIPO_CARA
 - [x] Tarjeta
