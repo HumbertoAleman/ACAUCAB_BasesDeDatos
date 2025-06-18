@@ -15,6 +15,7 @@ import {
 import { Dashboard, ShoppingCart, Inventory, Assessment, People, Settings } from "@mui/icons-material"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
+import { getAccessibleRoutes } from "../../config/routes"
 
 const drawerWidth = 280
 
@@ -23,21 +24,15 @@ interface SidebarProps {
   onClose: () => void
 }
 
-interface MenuItem {
-  text: string
-  icon: React.ReactNode
-  path: string
-  permission?: string
+// Mapeo de iconos para las rutas
+const routeIcons: Record<string, React.ReactNode> = {
+  "/dashboard": <Dashboard />,
+  "/ventas": <ShoppingCart />,
+  "/inventario": <Inventory />,
+  "/reportes": <Assessment />,
+  "/usuarios": <People />,
+  "/configuracion": <Settings />,
 }
-
-const menuItems: MenuItem[] = [
-  { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
-  { text: "Ventas", icon: <ShoppingCart />, path: "/ventas", permission: "ventas" },
-  { text: "Inventario", icon: <Inventory />, path: "/inventario", permission: "inventario" },
-  { text: "Reportes", icon: <Assessment />, path: "/reportes", permission: "reportes" },
-  { text: "Usuarios", icon: <People />, path: "/usuarios", permission: "usuarios" },
-  { text: "Configuración", icon: <Settings />, path: "/configuracion" },
-]
 
 export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const navigate = useNavigate()
@@ -49,10 +44,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     onClose()
   }
 
-  const filteredMenuItems = menuItems.filter((item) => {
-    if (!item.permission) return true
-    return hasPermission(item.permission)
-  })
+  // Obtener rutas accesibles según los permisos del usuario
+  const accessibleRoutes = getAccessibleRoutes(hasPermission)
 
   return (
     <Drawer
@@ -80,11 +73,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       <Divider />
 
       <List>
-        {filteredMenuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
+        {accessibleRoutes.map((route) => (
+          <ListItem key={route.path} disablePadding>
             <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => handleNavigation(item.path)}
+              selected={location.pathname === route.path}
+              onClick={() => handleNavigation(route.path)}
               sx={{
                 "&.Mui-selected": {
                   backgroundColor: "#E8F5E8",
@@ -94,12 +87,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 },
               }}
             >
-              <ListItemIcon sx={{ color: location.pathname === item.path ? "#2E7D32" : "inherit" }}>
-                {item.icon}
+              <ListItemIcon sx={{ color: location.pathname === route.path ? "#2E7D32" : "inherit" }}>
+                {routeIcons[route.path] || <Settings />}
               </ListItemIcon>
               <ListItemText
-                primary={item.text}
-                sx={{ color: location.pathname === item.path ? "#2E7D32" : "inherit" }}
+                primary={route.title}
+                secondary={route.description}
+                sx={{ 
+                  color: location.pathname === route.path ? "#2E7D32" : "inherit",
+                  "& .MuiListItemText-secondary": {
+                    fontSize: "0.75rem",
+                    opacity: 0.7,
+                  }
+                }}
               />
             </ListItemButton>
           </ListItem>

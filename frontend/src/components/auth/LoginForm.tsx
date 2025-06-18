@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useAuth } from "../../contexts/AuthContext"
+import { useLocation, Navigate } from "react-router-dom"
 
 const loginSchema = z.object({
   username: z.string().min(1, "El usuario es requerido"),
@@ -17,8 +18,15 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export const LoginForm: React.FC = () => {
-  const { login, isLoading } = useAuth()
+  const { user, login, isLoading } = useAuth()
   const [error, setError] = useState<string>("")
+  const location = useLocation()
+
+  // Si ya está autenticado, redirigir al dashboard o a la página original
+  if (user) {
+    const from = (location.state as any)?.from?.pathname || "/dashboard"
+    return <Navigate to={from} replace />
+  }
 
   const {
     register,
@@ -32,8 +40,10 @@ export const LoginForm: React.FC = () => {
     try {
       setError("")
       await login(data)
+      // La redirección se maneja automáticamente en el AuthContext
     } catch (err) {
-      setError("Credenciales inválidas. Por favor, intente nuevamente.")
+      const errorMessage = err instanceof Error ? err.message : "Error de conexión. Verifique su conexión a internet."
+      setError(errorMessage)
     }
   }
 
@@ -112,13 +122,9 @@ export const LoginForm: React.FC = () => {
 
             <Box sx={{ mt: 2, p: 2, backgroundColor: "#f5f5f5", borderRadius: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                <strong>Usuarios de prueba:</strong>
+                <strong>Nota:</strong> Ingrese sus credenciales del sistema ACAUCAB.
                 <br />
-                Admin: admin / admin123
-                <br />
-                Vendedor: vendedor / vend123
-                <br />
-                Empleado: empleado / emp123
+                Si tiene problemas para acceder, contacte al administrador.
               </Typography>
             </Box>
           </CardContent>
