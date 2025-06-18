@@ -123,7 +123,6 @@ CREATE OR REPLACE FUNCTION add_points_to_clie ()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    RAISE NOTICE 'Adding points to clie for buying! %', NEW.cant_deta_vent;
     UPDATE
         PUNT_CLIE
     SET
@@ -169,7 +168,7 @@ END IF;
     INSERT INTO PUNT_CLIE (fk_clie, fk_tasa, fk_vent, cant_puntos_acum, cant_puntos_canj, fecha_transaccion)
         VALUES (vent.fk_clie, NEW.fk_tasa, NEW.fk_vent, get_most_recent_punt_clie_punt (vent.fk_clie), 0, NEW.fecha_pago);
 END IF;
--- Finally, update the thing to have the correct data
+    -- Finally, update the thing to have the correct data
     UPDATE
         PUNT_CLIE
     SET
@@ -237,7 +236,6 @@ DECLARE
     i integer;
     -- Loop index
 BEGIN
-    RAISE INFO 'Registrando una nueva compra!!!';
     INSERT INTO Venta (fecha_vent, base_imponible_vent, iva_vent, total_vent, online, fk_clie, fk_tien)
         VALUES (p_fecha_vent, 0, 0, 0, p_online, p_fk_clie, p_fk_tien)
     RETURNING
@@ -282,14 +280,9 @@ DECLARE
     entry RECORD;
 BEGIN
     FOR i IN 1..100 LOOP
-        -- Generate random values for the parameters
         v_fecha_vent := CURRENT_DATE - (RANDOM() * 30)::int;
-        -- Random date within the last 30 days
         v_base_imponible_vent := ROUND(RANDOM() * 1000);
-        -- Random value between 0 and 1000
         v_online := (RANDOM() < 0.25);
-        -- Random boolean
-        -- Select a random client from the cliente table
         SELECT
             rif_clie INTO v_fk_clie
         FROM
@@ -297,9 +290,6 @@ BEGIN
         ORDER BY
             RANDOM()
         LIMIT 1;
-        v_d_v_cant_deta_vent := ARRAY[RANDOM() * 10::int + 1]::int[];
-        v_d_v_precio_unitario_vent := ARRAY[RANDOM() * 100]::int[];
-        v_m_p_monto_pago := ARRAY[v_d_v_cant_deta_vent[1] * v_d_v_precio_unitario_vent[1]]::int[];
         SELECT
             cod_meto_pago INTO entry
         FROM
@@ -310,6 +300,7 @@ BEGIN
         v_m_p_fk_meto_pago := '{}';
         v_m_p_fk_meto_pago := array_append(v_m_p_fk_meto_pago, entry.cod_meto_pago);
         SELECT
+            precio_actual_pres,
             fk_cerv_pres_1,
             fk_cerv_pres_2,
             fk_luga_tien INTO entry
@@ -323,9 +314,13 @@ BEGIN
         v_d_v_fk_inve_tien_1 := '{}';
         v_d_v_fk_inve_tien_2 := '{}';
         v_d_v_fk_inve_tien_4 := '{}';
+        v_d_v_precio_unitario_vent := '{}';
         v_d_v_fk_inve_tien_1 := array_append(v_d_v_fk_inve_tien_1, entry.fk_cerv_pres_1);
         v_d_v_fk_inve_tien_2 := array_append(v_d_v_fk_inve_tien_2, entry.fk_cerv_pres_2);
         v_d_v_fk_inve_tien_4 := array_append(v_d_v_fk_inve_tien_4, entry.fk_luga_tien);
+        v_d_v_cant_deta_vent := ARRAY[RANDOM() * 10::int + 1]::int[];
+        v_d_v_precio_unitario_vent := array_append(v_d_v_precio_unitario_vent, entry.precio_actual_pres);
+        v_m_p_monto_pago := ARRAY[v_d_v_cant_deta_vent[1] * v_d_v_precio_unitario_vent[1]]::int[];
         -- Call the venta_en_tienda procedure with the random values
         CALL venta_en_tienda (v_fecha_vent, v_online, v_fk_clie, v_fk_tien, v_m_p_fk_meto_pago, v_m_p_monto_pago, v_d_v_cant_deta_vent, v_d_v_precio_unitario_vent, v_d_v_fk_inve_tien_1, v_d_v_fk_inve_tien_2, v_d_v_fk_inve_tien_4);
     END LOOP;
@@ -335,7 +330,12 @@ LANGUAGE plpgsql;
 
 CALL realizar_ventas_aleatorias ();
 
-select * from punt_clie where fk_clie = 'J314865203';
+SELECT
+    *
+FROM
+    punt_clie
+WHERE
+    fk_clie = 'J314865203';
 
 SELECT
     V.cod_vent AS "Venta",
