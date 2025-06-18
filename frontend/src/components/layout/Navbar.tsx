@@ -1,12 +1,12 @@
 "use client"
 
 import React from "react"
-import { AppBar, Toolbar, Typography, Box, Menu, MenuItem, IconButton, Avatar } from "@mui/material"
-import { ExitToApp } from "@mui/icons-material"
+import { AppBar, Toolbar, Typography, Box, Menu, MenuItem, IconButton, Avatar, Chip } from "@mui/material"
+import { ExitToApp, Person } from "@mui/icons-material"
 import { useAuth } from "../../contexts/AuthContext"
 
 export const Navbar: React.FC = () => {
-  const { user, logout } = useAuth()
+  const { user, role, logout } = useAuth()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -31,10 +31,23 @@ export const Navbar: React.FC = () => {
 
         {user && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Typography variant="body2">
-              {user.username_usua}
-              {/* ({user.rol?.nombre_rol}) */}
-            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {user.username_usua}
+              </Typography>
+              {role && (
+                <Chip
+                  label={role.nombre_rol}
+                  size="small"
+                  sx={{
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                    color: "white",
+                    fontSize: "0.7rem",
+                    height: 20,
+                  }}
+                />
+              )}
+            </Box>
 
             <IconButton
               size="large"
@@ -64,6 +77,17 @@ export const Navbar: React.FC = () => {
               open={Boolean(anchorEl)}
               onClose={handleClose}
             >
+              <MenuItem disabled>
+                <Person sx={{ mr: 1 }} />
+                {user.username_usua}
+              </MenuItem>
+              {role && (
+                <MenuItem disabled>
+                  <Typography variant="caption" color="text.secondary">
+                    {role.nombre_rol}
+                  </Typography>
+                </MenuItem>
+              )}
               <MenuItem onClick={handleLogout}>
                 <ExitToApp sx={{ mr: 1 }} />
                 Cerrar Sesión

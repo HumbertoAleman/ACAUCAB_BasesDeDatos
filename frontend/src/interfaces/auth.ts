@@ -27,12 +27,12 @@ export interface Privilegio {
  */
 export interface Usuario {
   cod_usua: number;
-  contra_usua: string; // Password (should be handled securely on backend)
+  contra_usua?: string; // Password (optional for security - not sent from backend)
   username_usua: string;
   fk_rol: number; // Foreign Key to Rol
   fk_empl?: number | null; // Arc to Empleado
   fk_miem?: string | null; // Arc to Miembro
-  fk_clie?: number | null; // Arc to Cliente
+  fk_clie?: string | null; // Arc to Cliente (changed to string to match DB)
 }
 
 // Interfaces para tablas de relación Muchos a Muchos (M-M) en este dominio
