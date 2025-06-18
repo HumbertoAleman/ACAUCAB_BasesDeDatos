@@ -28,7 +28,7 @@
 - [x] EMPL_HORA
 - [ ] ESTA_COMP
 - [x] ESTA_EVEN
-- [ ] ESTA_VENT
+- [x] ESTA_VENT
 - [x] Efectivo
 - [x] Empleado
 - [x] Estatus
