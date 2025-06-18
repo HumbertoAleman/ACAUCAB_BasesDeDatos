@@ -1,3 +1,20 @@
+CREATE OR REPLACE FUNCTION get_cerv (text)
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        cod_cerv
+    FROM
+        Cerveza
+    WHERE
+        nombre_cerv = $1 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION get_tipo_cerv (text)
     RETURNS integer
     AS $$
@@ -92,6 +109,17 @@ END;
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE PROCEDURE relate_cara_cerv (text, text, text)
+    AS $$
+DECLARE
+    x integer;
+BEGIN
+    INSERT INTO CERV_CARA (fk_cerv, fk_cara, valor_cara)
+        VALUES (get_cerv ($1), get_cara ($2), $3);
+END;
+$$
+LANGUAGE plpgsql;
+
 CREATE OR REPLACE PROCEDURE relate_ingr (text, text, text)
     AS $$
 DECLARE
@@ -99,6 +127,17 @@ DECLARE
 BEGIN
     INSERT INTO RECE_INGR (fk_rece, fk_ingr, cant_ingr)
         VALUES (get_rece_by_type ($1), get_ingr ($2), $3);
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE add_inst (text, text)
+    AS $$
+DECLARE
+    x integer;
+BEGIN
+    INSERT INTO Instruccion (nombre_inst, fk_rece)
+        VALUES ($2, get_rece_by_type ($1));
 END;
 $$
 LANGUAGE plpgsql;
@@ -152,6 +191,8 @@ CALL insert_tipo_cerveza ('Flamenca', 'Belga');
 CALL insert_tipo_cerveza ('Pilsener', 'Ale');
 
 CALL insert_tipo_cerveza ('American Amber Ale', 'Ale');
+
+CALL insert_tipo_cerveza ('American Pale Ale', 'American Amber Ale');
 
 CALL insert_tipo_cerveza ('American IPA', 'Indian Pale Ale');
 
@@ -230,6 +271,19 @@ CALL insert_tipo_cerveza ('Coffee Stout', 'Stout');
 CALL insert_tipo_cerveza ('Chocolate Stout', 'Stout');
 
 CALL insert_tipo_cerveza ('Red IPA', 'Indian Pale Ale');
+
+-- Venezolanas -- NOTE: Potencialmente son Cervezas, no tipo
+CALL insert_tipo_cerveza ('Destilo', 'Ale');
+
+CALL insert_tipo_cerveza ('Dos Leones Latin American Pale Ale', 'American IPA');
+
+CALL insert_tipo_cerveza ('Benitz Pale Ale', 'Pale Ale');
+
+CALL insert_tipo_cerveza ('Cervecería Lago Ángel o Demonio', 'Belgian Golden Strong Ale');
+
+CALL insert_tipo_cerveza ('Barricas Saison Belga', 'Belgian Specialty Ale');
+
+CALL insert_tipo_cerveza ('Aldarra Mantuana', 'Blonde Ale');
 
 INSERT INTO Ingrediente (nombre_ingr)
     VALUES ('Levadura'),
@@ -430,42 +484,348 @@ CALL relate_cara ('Pilsener', 'Sabor', 'Ligero pero Intenso');
 
 CALL relate_cara ('Pilsener', 'Graduacion', 'Medio');
 
--- NOTE: TE QUEDASTE EN AMERICAN AMBER ALE
---
--- Dame los tipos de cervezas, y a que supertipo pertenecen
-SELECT
-    Cat.nombre_tipo_cerv,
-    T.nombre_tipo_cerv
-FROM
-    Tipo_Cerveza AS T,
-    Tipo_Cerveza AS Cat
-WHERE
-    Cat.fk_tipo_cerv = T.cod_tipo_cerv;
+-- American Amber Ale
+CALL relate_ingr ('American Amber Ale', 'Malta Best Malz Pale Ale', '5kg');
 
--- Dame los tipos de cervezas, con los ingredientes que van en sus recetas
-SELECT
-    nombre_tipo_cerv AS "Tipo de Cerveza",
-    nombre_ingr AS "Ingrediente",
-    cant_ingr AS "Cantidad en Receta"
-FROM
-    Tipo_Cerveza AS T,
-    Ingrediente AS I,
-    Receta AS R,
-    RECE_INGR AS R_T
-WHERE
-    T.fk_rece = R.cod_rece
-    AND R.cod_rece = R_T.fk_rece
-    AND I.cod_ingr = R_T.fk_ingr;
+CALL relate_ingr ('American Amber Ale', 'Malta Best Malz Aromatic', '0.5kg');
 
--- Dame los tipos de cervezas con sus caracteristicas
-SELECT
-    nombre_tipo_cerv AS "Tipo de Cerveza",
-    nombre_cara AS "Caracteristica",
-    valor_cara AS "Valor"
-FROM
-    Tipo_Cerveza AS T,
-    Caracteristica AS C,
-    TIPO_CARA AS T_C
-WHERE
-    T.cod_tipo_cerv = T_C.fk_tipo_cerv
-    AND T_C.fk_cara = C.cod_cara;
+CALL relate_ingr ('American Amber Ale', 'Malta Best Malz Caramel Light', '0.4kg');
+
+CALL relate_ingr ('American Amber Ale', 'Lupulo Columbus', '17gr');
+
+CALL relate_ingr ('American Amber Ale', 'Lupulo Cascade', '37gr');
+
+-- NOTE: Deberiamos de verdad agregarle una unique ID a TIPO_CARA para poder agregar
+-- muchos valores a la caracteristica
+CALL relate_cara ('American Amber Ale', 'Aroma', 'Cítrico, Floral, Resinoso, Herbal...');
+
+CALL relate_cara ('American Amber Ale', 'Sabor', 'Dulzura Inicial, seguida de Caramelo');
+
+CALL relate_cara ('American Amber Ale', 'Color', 'Entre Ambar y Marron Cobrizo (10 - 17)');
+
+CALL relate_cara ('American Amber Ale', 'Color de Espuma', 'Blanca');
+
+CALL relate_cara ('American Amber Ale', 'Retencion de Espuma', 'Buena');
+
+CALL relate_cara ('American Amber Ale', 'Amargor (IBUs)', '25 - 40');
+
+CALL relate_cara ('American Amber Ale', 'Cuerpo', 'Medio ~ Alto');
+
+CALL relate_cara ('American Amber Ale', 'Carbonatacion', 'Media ~ Alta');
+
+CALL relate_cara ('American Amber Ale', 'Acabado', 'Suave, Sin Astringencia');
+
+CALL relate_cara ('American Amber Ale', 'Densidad Inicial', '1.045 – 1.060');
+
+CALL relate_cara ('American Amber Ale', 'Densidad Final', '1.010 – 1.015');
+
+CALL relate_cara ('American Amber Ale', 'Graduacion', '4.5% ~ 6.2%');
+
+-- American IPA
+CALL relate_cara ('American IPA', 'Aroma', 'A Lupulo, Floral, hasta Citrico o resinoso');
+
+CALL relate_cara ('American IPA', 'Sabor', 'A Lupulo, Floral, hasta Citrico o resinoso');
+
+-- NOTE: SAbor a malta medio bajo y puede tener maltosidad dulce
+CALL relate_cara ('American IPA', 'Amargor (IBUs)', '40 ~ 60');
+
+CALL relate_cara ('American IPA', 'Graduacion', '5 ~ 7.5 grados');
+
+-- American Pale Ale
+-- NOTE: Aqui tambien
+CALL relate_ingr ('American Pale Ale', 'Ester', 'De Nulo a Moderado');
+
+CALL relate_cara ('American Pale Ale', 'Aroma', 'A Lupulo, Moderado o Fuerte, Citrico, A Malta, bajo o moderado');
+
+CALL relate_cara ('American Pale Ale', 'Color', 'De Palido a Ambar');
+
+CALL relate_cara ('American Pale Ale', 'Color de Espuma', 'De Blanca a Blancuza');
+
+CALL relate_cara ('American Pale Ale', 'Retencion de Espuma', 'Buena');
+
+CALL relate_cara ('American Pale Ale', 'Sabor', 'A Lupulo Moderado, A Malta Moderado, A Caramelo: Ausente');
+
+CALL relate_cara ('American Pale Ale', 'Amargor (IBUs)', 'De Moderado a Alto');
+
+CALL relate_cara ('American Pale Ale', 'Acabado', 'Moderadamente Seco, Suave, Sin Astringencias');
+
+CALL relate_cara ('American Pale Ale', 'Cuerpo', 'Medio-Liviano');
+
+CALL relate_cara ('American Pale Ale', 'Carbonatacion', 'Moderada a Alta');
+
+-- Belgian Dubbel
+CALL relate_ingr ('Belgian Dubbel', 'Styrian Goldings', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Levadura Belga', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Agua', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Malta Pils Belga', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Malta Pale Ale', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'CaraVienna', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'CaraMunich', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Dubbel', 'Ester', 'Moderados');
+
+CALL relate_ingr ('Belgian Dubbel', 'Fenol', 'Sin Especificar');
+
+CALL relate_cara ('Belgian Dubbel', 'Aroma', 'Dulzor, Notas de Chocolate, Caramelo, Tostado');
+
+CALL relate_cara ('Belgian Dubbel', 'Color', 'Ambar Oscuro a Cobre');
+
+CALL relate_cara ('Belgian Dubbel', 'Color de Espuma', 'Blancuzca');
+
+CALL relate_cara ('Belgian Dubbel', 'Retencion de Espuma', 'Cremosa, Persiste');
+
+CALL relate_cara ('Belgian Dubbel', 'Sabor', 'Dulzor de Malta, A Pasas, Frutas Secas');
+
+CALL relate_cara ('Belgian Dubbel', 'Amargor (IBUs)', 'Medio-Bajo');
+
+CALL relate_cara ('Belgian Dubbel', 'Acabado', 'Moderadamente Seco');
+
+CALL relate_cara ('Belgian Dubbel', 'Cuerpo', 'Medio-Pleno');
+
+CALL relate_cara ('Belgian Dubbel', 'Carbonatacion', 'Media-Alta');
+
+CALL relate_cara ('Belgian Dubbel', 'Graduacion', '6.5% ~ 7%');
+
+-- Belgian Golden Strong Ale
+CALL relate_ingr ('Belgian Golden Strong Ale', 'Levadura Belga', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Golden Strong Ale', 'Styrian Goldings', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Golden Strong Ale', 'Malta Pils Belga', 'Sin Especificar');
+
+CALL relate_ingr ('Belgian Golden Strong Ale', 'Agua', 'Sin Especificar');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Color', 'Amarillo a dorado medio');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Turbidez', 'Buena claridad');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Color de Espuma', 'Blanca');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Retencion de Espuma', 'Densa, masiva, persistente');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Sabor', 'Combinación de sabores frutados (peras, naranjas, manzanas), especiados (pimienta) y alcohólicos, con un suave carácter a malta');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Regusto', 'Leve a moderadamente amargo');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Textura', 'Suave pero evidente tibieza por alcohol; jamás caliente o solventada');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Cuerpo', 'Liviano a medio');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Carbonatacion', 'Altamente carbonatada');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Acabado', 'Seco');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Amargor (IBUs)', 'Medio a alto');
+
+CALL relate_cara ('Belgian Golden Strong Ale', 'Aroma', 'Complejo, con aroma a ésteres frutados, moderado a especias, y bajos a moderados aromas a alcohol y lúpulo');
+
+-- Belgian Specialty Ale
+CALL relate_ingr ('Belgian Specialty Ale', 'Levadura', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Ester', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Fenol', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Lupulo', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Malta', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Malta de Trigo', 'Sin Especifica');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Sugar Candy', 'Puede incluirse');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Miel', 'Puede incluirse');
+
+CALL relate_ingr ('Belgian Specialty Ale', 'Agua', 'Sin Especifica');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Color', 'Varía considerablemente de dorado pálido a muy oscuro');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Turbidez', 'Puede ser desde turbia hasta cristalina');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Retencion de Espuma', 'Generalmente buena');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Sabor', 'Se encuentran una gran variedad de sabores, con maltosidad de ligera a algo sabrosa y un sabor y amargor del lúpulo de bajo a alto');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Textura', 'Puede haber una sensación de "fruncimiento de boca" debido a la acidez');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Cuerpo', 'Algunas están bien atenuadas, por lo que tendrán un cuerpo más liviano, mientras que otras son espesas y densas');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Carbonatacion', 'Usualmente de moderada a alta');
+
+CALL relate_cara ('Belgian Specialty Ale', 'Aroma', 'Variable, con distintas cantidades de ésteres frutados, fenoles especiados, aromas de levadura, y puede incluir aromas de adiciones de especias');
+
+-- Dos Leones Latin American Pale Ale
+CALL relate_cara ('Dos Leones Latin American Pale Ale', 'Sabor', 'Tonos cítricos');
+
+-- Benitz Pale Ale
+CALL relate_cara ('Benitz Pale Ale', 'Sabor', 'Dulce de Maltas');
+
+CALL relate_cara ('Benitz Pale Ale', 'Amargor (IBUs)', 'Suave');
+
+CALL relate_cara ('Benitz Pale Ale', 'Acabado', 'Suave y fluido');
+
+--Cervecería Lago Ángel o Demonio
+CALL relate_cara ('Cervecería Lago Ángel o Demonio', 'Color', 'Dorado');
+
+CALL relate_cara ('Cervecería Lago Ángel o Demonio', 'Color de Espuma', 'Blanca');
+
+-- Aldarra Mantuana
+CALL relate_cara ('Aldarra Mantuana', 'Color', 'Dorado');
+
+CALL relate_cara ('Aldarra Mantuana', 'Sabor', 'Ligero');
+
+CALL relate_cara ('Aldarra Mantuana', 'Cuerpo', 'Liviano, Sin Astringencias');
+
+CALL relate_cara ('Aldarra Mantuana', 'Aroma', 'Recuerda a Frutas Tropicales');
+
+CALL relate_cara ('Aldarra Mantuana', 'Carbonatacion', 'Media');
+
+-- Insert cervezas reales
+-- Pilsen Fuente: https://birrapedia.com/polar-pilsen/f-56d6d147f70fb5ca0c7e71ed
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Polar Pilsen', get_tipo_cerv ('Pilsener'));
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Color', 'Dorado');
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Color de Espuma', 'Blanca');
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Aroma', 'Ligero a Malta y Maiz');
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Cuerpo', 'Ligero');
+
+CALL relate_cara_cerv ('Polar Pilsen', 'Sabor', 'Algo dulce, a malta y maiz');
+
+-- Solera Clasica: https://birrapedia.com/polar-pilsen/f-56d6d147f70fb5ca0c7e71ed
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Solera Clasica', get_tipo_cerv ('Munich Helles'));
+
+CALL relate_cara_cerv ('Solera Clasica', 'Cuerpo', 'Pronunciado');
+
+CALL relate_cara_cerv ('Solera Clasica', 'Graduacion', '6%');
+
+CALL relate_cara_cerv ('Solera Clasica', 'Color', 'Amarillo');
+
+-- Solera Light https://birrapedia.com/solera-light/f-598abdbd1603dad60e8d39c8
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Solera Light', get_tipo_cerv ('Lager'));
+
+CALL relate_cara_cerv ('Solera Light', 'Carbonatacion', 'Bajo');
+
+CALL relate_cara_cerv ('Solera Light', 'Graduacion', '4%');
+
+CALL relate_cara_cerv ('Solera Light', 'Color', 'Amarillo');
+
+-- Solera IPA https://birrapedia.com/solera-ipa/f-5aff60251603dacb688b4a00
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Solera IPA', get_tipo_cerv ('Indian Pale Ale'));
+
+-- Solera Kriek https://birrapedia.com/solera-kriek/f-5d489aed1603dae30d8b4807
+-- TODO: Relacionar con Polar "J-00041312-6"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Solera Kriek', get_tipo_cerv ('Fruit Lambic'));
+
+CALL relate_cara_cerv ('Solera Kriek', 'Aroma', 'Frutal a cereza, persistente');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Sabor', 'Entre acido, amargo y dulcel');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Color', 'Rojo macerado');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Amargor (IBUs)', 'Ligero');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Cuerpo', 'Medio');
+
+CALL relate_cara_cerv ('Solera Kriek', 'Graduacion', '4%');
+
+-- Mito Brewhouse Momoy https://birrapedia.com/mito-brewhouse-momoy/f-577cc4dd1603dad47a4bb481
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Momoy', get_tipo_cerv ('Witbier'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Graduacion', '4.6%');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Sabor', 'Recuerda a canela o clavo');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Carbonatacion', 'Alta');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Aroma', 'Hierba o pino fresco');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Color', 'Palido');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Retencion de Espuma', 'Estable y Consistente');
+
+CALL relate_cara_cerv ('Mito Brewhouse Momoy', 'Regusto', 'Bueno');
+
+-- Mito Brewhouse Sayona https://birrapedia.com/mito-brewhouse-sayona/f-577cc62f1603dabe204bd0a6
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Sayona', get_tipo_cerv ('Red Ale'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Sayona', 'Aroma', 'Citrico y Floral');
+
+CALL relate_cara_cerv ('Mito Brewhouse Sayona', 'Sabor', 'Amargo');
+
+CALL relate_cara_cerv ('Mito Brewhouse Sayona', 'Color', 'Rojizo');
+
+-- Mito Brewhouse Silbon https://birrapedia.com/mito-brewhouse-silbon/f-577cc74f1603da5d0c4bfb3f
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Silbon', get_tipo_cerv ('Dry Stout'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Silbon', 'Amargor (IBUs)', '15');
+
+-- Mito Brewhouse Alcántara https://birrapedia.com/mito-brewhouse-alcantara/f-57e8dd271603da873690d05a
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Alcántara', get_tipo_cerv ('Imperial Stout'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Alcántara', 'Color', 'Oscuro Profundo');
+
+CALL relate_cara_cerv ('Mito Brewhouse Alcántara', 'Aroma', 'Intenso');
+
+CALL relate_cara_cerv ('Mito Brewhouse Alcántara', 'Graduacion', 'Alto');
+
+CALL relate_cara_cerv ('Mito Brewhouse Alcántara', 'Sabor', 'Roble, Malta Dulce, de Caramelo, Tostado');
+
+-- Mito Brewhouse Candilleja https://birrapedia.com/mito-brewhouse-candileja/f-57e8de101603da893690d053
+-- TODO: Relacionar con Mito Brewhouse "TODO"
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Mito Brewhouse Candileja de Abadía', get_tipo_cerv ('Belgian Dubbel'));
+
+CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Cuerpo', 'Denso');
+
+CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Color', 'Ambar');
+
+CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Aroma', 'Intenso a Caramelo');
+
+CALL relate_cara_cerv ('Mito Brewhouse Candileja de Abadía', 'Carbonatacion', 'Media a Alta');
+
+-- Instrucciones
+CALL add_inst ('American Amber Ale', 'Maceración de toda la malta durante 1 hora a 66 grados');
+
+CALL add_inst ('American Amber Ale', 'Realizar el sparging a 76 grados');
+
+CALL add_inst ('American Amber Ale', 'Ebullición de una hora, siguiendo los tiempos de adición del lúpulo indicados');
+
+CALL add_inst ('American Amber Ale', 'Fermentar a 18-20 grados');
+
+CALL add_inst ('American Amber Ale', 'Maduración en botella o en barril durante 4 semanas');
+
+CALL add_inst ('Belgian Dubbel', 'Reúne los ingredientes necesarios, incluyendo maltas Pilsner, Munich, Caramelo, de trigo, lúpulos nobles como Saaz o Hallertau, levadura belga y agua de buena calidad.');
+
+CALL add_inst ('Belgian Dubbel', 'Calienta el agua a aproximadamente 66-68 °C, añade las maltas molidas y mantén esta temperatura durante 60 minutos para la conversión de almidones en azúcares fermentables.');
+
+CALL add_inst ('Belgian Dubbel', 'Separa el mosto después de la maceración y llévalo a ebullición durante 60 minutos, añadiendo lúpulo al inicio para amargor y en los últimos 15 minutos para aroma.');
+
+CALL add_inst ('Belgian Dubbel', 'Enfría rápidamente el mosto a unos 20-22 °C, transfiérelo a un fermentador y añade la levadura, sellando el fermentador con un airlock.');
+
+CALL add_inst ('Belgian Dubbel', 'Deja fermentar durante 1-2 semanas a temperatura controlada, embotella la cerveza con un poco de azúcar para carbonatación y deja madurar en botella durante al menos 2-4 semanas antes de disfrutar.');
