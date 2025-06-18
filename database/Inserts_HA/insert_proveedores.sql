@@ -47,17 +47,6 @@ BEGIN
 END;
 $$;
 
-DELETE FROM Usuario
-WHERE fk_rol = 100;
-
-DELETE FROM Rol
-WHERE nombre_rol = 'Miembro';
-
-DELETE FROM Miembro;
-
-INSERT INTO Rol
-    VALUES (100, 'Miembro', 'Proveedor de cerveza, les compramos');
-
 CALL add_miembro ('J000413126', 'Compañía Anónima Cervecería Polar', 'Polar', 'Avenida José Antonio Páez, Edificio Polar, El Paraíso, Caracas, Venezuela', 'https://empresaspolar.com', 468, 468);
 
 CALL add_miembro_random ('J482367195', 'Blacks International ', 'Interior Mutual S.A', '6287 Holmcroft, Simi Valley, Rhode Island, 54650', 'https://crowd.nationwide/ver.php');
