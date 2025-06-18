@@ -239,7 +239,7 @@ export const CatalogoProductos: React.FC = () => {
         {productosEjemplo
           .filter((producto) => producto.nombre_cerv.toLowerCase().includes(searchTerm.toLowerCase()))
           .map((producto) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={producto.cod_cerv}>
+            <Grid size={{ xs: 12, md: 4, sm: 6, lg: 3 }} key={producto.cod_cerv}>
               <ProductCard producto={producto} />
             </Grid>
           ))}
@@ -257,14 +257,14 @@ export const CatalogoProductos: React.FC = () => {
           {selectedProduct && (
             <Box>
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <img
                     src="/placeholder.svg?height=300&width=300"
                     alt={selectedProduct.nombre_cerv}
                     style={{ width: "100%", maxHeight: 300, objectFit: "cover" }}
                   />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="h5" gutterBottom>
                     {selectedProduct.nombre_cerv}
                   </Typography>

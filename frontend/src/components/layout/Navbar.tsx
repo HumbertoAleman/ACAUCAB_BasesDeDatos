@@ -32,7 +32,8 @@ export const Navbar: React.FC = () => {
         {user && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Typography variant="body2">
-              {user.username_usua} ({user.rol?.nombre_rol})
+              {user.username_usua}
+              {/* ({user.rol?.nombre_rol}) */}
             </Typography>
 
             <IconButton

@@ -191,7 +191,7 @@ export const PuntoVenta: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Panel de Productos */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 2, mb: 2 }}>
             <TextField
               fullWidth
@@ -206,7 +206,7 @@ export const PuntoVenta: React.FC = () => {
 
           <Grid container spacing={2}>
             {productosFiltered.map((producto) => (
-              <Grid item xs={12} sm={6} md={4} key={producto.cod_cerv}>
+              <Grid size={{ xs: 12, md: 4, sm: 6 }} key={producto.cod_cerv}>
                 <Card
                   sx={{
                     cursor: "pointer",
@@ -247,7 +247,7 @@ export const PuntoVenta: React.FC = () => {
         </Grid>
 
         {/* Panel de Venta */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 2, position: "sticky", top: 20 }}>
             <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <ShoppingCart />

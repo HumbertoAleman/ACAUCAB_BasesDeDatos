@@ -108,7 +108,7 @@ export const RegistroCliente: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
           {/* Tipo de Cliente */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
                 Tipo de Cliente
@@ -125,14 +125,14 @@ export const RegistroCliente: React.FC = () => {
           </Grid>
 
           {/* Información Principal */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
                 {tipoCliente === "Juridico" ? "Persona Jurídica" : "Persona Natural"}
               </Typography>
 
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="RIF"
@@ -144,48 +144,48 @@ export const RegistroCliente: React.FC = () => {
 
                 {tipoCliente === "Juridico" ? (
                   <>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Razón Social" {...register("razon_social_juri")} />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Denominación Comercial" {...register("denom_comercial_juri")} />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Capital Disponible" type="number" {...register("capital_juri")} />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Página Web" {...register("pag_web_juri")} />
                     </Grid>
                   </>
                 ) : (
                   <>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Cédula de Identidad" {...register("ci_natu")} />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Primer Nombre" {...register("primer_nom_natu")} />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Segundo Nombre" {...register("segundo_nom_natu")} />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Primer Apellido" {...register("primer_ape_natu")} />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField fullWidth label="Segundo Apellido" {...register("segundo_ape_natu")} />
                     </Grid>
                   </>
                 )}
 
                 {/* Direcciones */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="subtitle1" gutterBottom>
                     Direcciones
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="Dirección Física Principal"
@@ -194,7 +194,7 @@ export const RegistroCliente: React.FC = () => {
                     {...register("direccion_fisica_clie")}
                   />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="Dirección Fiscal"
@@ -204,7 +204,7 @@ export const RegistroCliente: React.FC = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <FormControl fullWidth>
                     <InputLabel>Ciudad</InputLabel>
                     <Select label="Ciudad" {...register("fk_luga_1")}>
@@ -214,7 +214,7 @@ export const RegistroCliente: React.FC = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <FormControl fullWidth>
                     <InputLabel>Estado</InputLabel>
                     <Select label="Estado" {...register("fk_luga_2")}>
@@ -229,7 +229,7 @@ export const RegistroCliente: React.FC = () => {
           </Grid>
 
           {/* Teléfonos */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{ p: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Typography variant="h6">Teléfonos</Typography>
@@ -262,7 +262,7 @@ export const RegistroCliente: React.FC = () => {
                     </Box>
 
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
+                      <Grid size={{ xs: 12, md: 4 }}>
                         <TextField
                           fullWidth
                           label="Código de Área"
@@ -270,7 +270,7 @@ export const RegistroCliente: React.FC = () => {
                           {...register(`telefonos.${index}.cod_area_tele`)}
                         />
                       </Grid>
-                      <Grid item xs={12} md={8}>
+                      <Grid size={{ xs: 12, md: 8 }}>
                         <TextField
                           fullWidth
                           label="Número de Teléfono"
@@ -286,7 +286,7 @@ export const RegistroCliente: React.FC = () => {
           </Grid>
 
           {/* Correos */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{ p: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Typography variant="h6">Correos Electrónicos</Typography>
@@ -319,14 +319,14 @@ export const RegistroCliente: React.FC = () => {
                     </Box>
 
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                           fullWidth
                           label="Usuario (antes del @)"
                           {...register(`correos.${index}.prefijo_corr`)}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                           fullWidth
                           label="Dominio (después del @)"
@@ -341,7 +341,7 @@ export const RegistroCliente: React.FC = () => {
           </Grid>
 
           {/* Personas de Contacto */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{ p: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Typography variant="h6">Persona(s) de Contacto</Typography>
@@ -374,28 +374,28 @@ export const RegistroCliente: React.FC = () => {
                     </Box>
 
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                           fullWidth
                           label="Primer Nombre"
                           {...register(`contactos.${index}.primer_nom_pers`)}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                           fullWidth
                           label="Segundo Nombre"
                           {...register(`contactos.${index}.segundo_nom_pers`)}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                           fullWidth
                           label="Primer Apellido"
                           {...register(`contactos.${index}.primer_ape_pers`)}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                           fullWidth
                           label="Segundo Apellido"
@@ -410,7 +410,7 @@ export const RegistroCliente: React.FC = () => {
           </Grid>
 
           {/* Botón de Registro */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
               <Button
                 type="submit"

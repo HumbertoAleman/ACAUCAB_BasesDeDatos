@@ -94,10 +94,10 @@ export const Reportes: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Lista de Reportes */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Grid container spacing={2}>
             {reportesDisponibles.map((reporte) => (
-              <Grid item xs={12} sm={6} key={reporte.id}>
+              <Grid size={{ xs: 12, sm: 6 }} key={reporte.id}>
                 <Card
                   sx={{
                     cursor: "pointer",
@@ -122,7 +122,7 @@ export const Reportes: React.FC = () => {
         </Grid>
 
         {/* Panel de Parámetros */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 2, position: "sticky", top: 20 }}>
             <Typography variant="h6" gutterBottom>
               Configuración del Reporte
