@@ -1,3 +1,15 @@
+CREATE OR REPLACE FUNCTION get_estatus (nombre varchar (40))
+LANGUAGE plpgsql
+    RETURNS integer
+    AS $$
+DECLARE
+    result integer;
+BEGIN
+    SELECT cod_esta INTO result FROM Estatus WHERE nombre_esta = nombre;
+    RETURN result;
+END;
+$$
+
 CREATE OR REPLACE FUNCTION create_punc_canj_historial_on_new_venta ()
     RETURNS TRIGGER
     AS $$
@@ -10,6 +22,17 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_new_estatus_for_venta ()
+RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO ESTA_VENT (fk_esta, fk_vent, fecha_ini, fecha_fin)
+    VALUES ( get_estatus('Procesando'), NEW.cod_vent, NEW.fecha_vent, NULL);
+    RETURN NEW;
+END;
+$$
 
 CREATE OR REPLACE FUNCTION get_most_recent_punt_clie_punt (clie varchar(20))
     RETURNS integer
@@ -205,6 +228,11 @@ CREATE OR REPLACE TRIGGER substract_points_on_venta
     AFTER INSERT ON Pago
     FOR EACH ROW
     EXECUTE FUNCTION substract_points_to_clie ();
+
+CREATE OR REPLACE TRIGGER set_estatus_for_new_venta
+    AFTER INSERT ON Venta
+    FOR EACH ROW
+    EXECUTE FUNCTION create_new_estatus_for_venta ();
 
 -- Crear un trigger cuando se cree la venta, en el trigger se revisa si es online u offline,
 -- solo se crea PUNT_CLIE cuando la venta es offline
