@@ -13,17 +13,6 @@ BEGIN
 END;
 $$;
 
-DELETE FROM Usuario
-WHERE fk_rol = 300;
-
-DELETE FROM Rol
-WHERE nombre_rol = 'Empleado';
-
-DELETE FROM Empleado;
-
-INSERT INTO Rol
-    VALUES (300, 'Empleado', 'Empleado regular de ACAUCAB');
-
 CALL add_empleado(31279920, 'Serita', 'Jewel', 'Herrick', 'Blevins', 73.02);
 
 CALL add_empleado(48422996, 'Thora', 'Candra', 'Ferrer', 'Pina', 46.97);
