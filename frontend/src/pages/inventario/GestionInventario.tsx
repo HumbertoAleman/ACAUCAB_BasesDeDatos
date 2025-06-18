@@ -26,7 +26,8 @@ import {
   Select,
   MenuItem,
 } from "@mui/material"
-import { Search, Add, Edit, Warning, CheckCircle, HelpIcon } from "@mui/icons-material"
+import { Search, Add, Edit, Warning, CheckCircle } from "@mui/icons-material"
+import HelpIcon from '@mui/icons-material/Help';
 import type { InventarioTienda } from "../../interfaces"
 
 // Datos de ejemplo basados en las interfaces
