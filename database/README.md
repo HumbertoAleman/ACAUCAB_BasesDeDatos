@@ -72,6 +72,15 @@ FROM pg_stat_user_tables
 ORDER BY table_name;
 ```
 
+Solo las que nos faltan
+
+```
+SELECT relname AS table_name, n_live_tup AS row_count
+FROM pg_stat_user_tables
+where n_live_tup < 10
+ORDER BY table_name;
+```
+
 Si prefieres ver el porcentaje que llevamos hecho:
 
 ```sql
