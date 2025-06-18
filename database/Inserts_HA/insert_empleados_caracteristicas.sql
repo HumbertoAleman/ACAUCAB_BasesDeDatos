@@ -1,5 +1,3 @@
--[x] Beneficio -[x] EMPL_BENE -[x] Vacacion -[] Asistencia;
-
 CREATE OR REPLACE PROCEDURE create_and_give_benefits ()
     AS $$
 DECLARE
@@ -19,13 +17,12 @@ BEGIN
         ('Beneficios de Bienestar', 1000);
     FOR e_c IN (
         SELECT
-            fk_empl,
-            fk_carg
+            *
         FROM
             EMPL_CARG)
         LOOP
-            INSERT INTO EMPL_BENE (fk_empl_carg_1, fk_empl_carg_2, fk_bene, monto_bene)
-                VALUES (e_c.fk_empl, e_c.fk_carg, (
+            INSERT INTO EMPL_BENE (fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3, fk_bene, monto_bene)
+                VALUES (e_c.fk_empl, e_c.fk_carg, e_c.cod_empl_carg, (
                         SELECT
                             cod_bene
                         FROM
@@ -46,13 +43,12 @@ DECLARE
 BEGIN
     FOR e_c IN (
         SELECT
-            fk_empl,
-            fk_carg
+            *
         FROM
             EMPL_CARG)
         LOOP
-            INSERT INTO Vacacion (fecha_ini_vaca, fecha_fin_vaca, pagada, fk_empl_carg_1, fk_empl_carg_2)
-                VALUES ('2024-12-12', '2025-01-01', FALSE, e_c.fk_empl, e_c.fk_carg);
+            INSERT INTO Vacacion (fecha_ini_vaca, fecha_fin_vaca, pagada, fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3)
+                VALUES ('2024-12-12', '2025-01-01', FALSE, e_c.fk_empl, e_c.fk_carg, e_c.cod_empl_carg);
         END LOOP;
 END
 $$
@@ -68,7 +64,7 @@ DECLARE
     end_hour interval;
 BEGIN
     FOR emp IN SELECT DISTINCT
-        fk_empl
+        *
     FROM
         EMPL_CARG LOOP
             FOR i IN 0..9 LOOP
@@ -76,8 +72,8 @@ BEGIN
                 IF RANDOM() >= 0.05 THEN
                     start_hour := INTERVAL '9 hours' + (RANDOM() * INTERVAL '30 minutes');
                     end_hour := INTERVAL '17 hours' + (RANDOM() * INTERVAL '30 minutes');
-                    INSERT INTO Asistencia (fecha_hora_ini_asis, fecha_hora_fin_asis, fk_empl_carg_1, fk_empl_carg_2)
-                        VALUES (business_day + start_hour, business_day + end_hour, emp.fk_empl, 10);
+                    INSERT INTO Asistencia (fecha_hora_ini_asis, fecha_hora_fin_asis, fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3)
+                        VALUES (business_day + start_hour, business_day + end_hour, emp.fk_empl, emp.fk_carg, emp.cod_empl_carg);
                 END IF;
             END LOOP;
         END LOOP;
@@ -86,7 +82,7 @@ $$
 LANGUAGE plpgsql;
 
 -- Call the procedure to generate the entries
-CALL give_benefits ();
+CALL create_and_give_benefits ();
 
 CALL create_vacaciones ();
 

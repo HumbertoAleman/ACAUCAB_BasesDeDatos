@@ -24,8 +24,8 @@ BEGIN
             *
         FROM
             EMPL_CARG LOOP
-                INSERT INTO EMPL_HORA (fk_hora, fk_empl_carg_1, fk_empl_carg_2)
-                    VALUES (rec_horario.cod_hora, rec_empl_carg.fk_empl, rec_empl_carg.fk_carg);
+                INSERT INTO EMPL_HORA (fk_hora, fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3)
+                    VALUES (rec_horario.cod_hora, rec_empl_carg.fk_empl, rec_empl_carg.fk_carg, rec_empl_carg.cod_empl_carg);
             END LOOP;
     END LOOP;
 END

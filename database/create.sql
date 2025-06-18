@@ -157,6 +157,7 @@ CREATE TABLE Departamento (
 );
 
 CREATE TABLE EMPL_CARG (
+	cod_empl_carg serial,
     fk_empl integer,
     fk_carg integer,
     fecha_ini date NOT NULL,
@@ -164,7 +165,7 @@ CREATE TABLE EMPL_CARG (
     cantidad_total_salario integer NOT NULL,
     fk_depa_1 integer NOT NULL,
     fk_depa_2 integer NOT NULL,
-    PRIMARY KEY (fk_empl, fk_carg),
+    PRIMARY KEY (cod_empl_carg, fk_empl, fk_carg),
     CONSTRAINT desempena FOREIGN KEY (fk_empl) REFERENCES Empleado (cod_empl),
     CONSTRAINT desempenado FOREIGN KEY (fk_carg) REFERENCES Cargo (cod_carg),
     CONSTRAINT contiene FOREIGN KEY (fk_depa_1, fk_depa_2) REFERENCES Departamento (cod_depa, fk_tien)
@@ -177,8 +178,9 @@ CREATE TABLE Vacacion (
     pagada boolean,
     fk_empl_carg_1 integer NOT NULL,
     fk_empl_carg_2 integer NOT NULL,
+    fk_empl_carg_3 integer NOT NULL,
     PRIMARY KEY (cod_vaca),
-    CONSTRAINT goza FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg)
+    CONSTRAINT goza FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3) REFERENCES EMPL_CARG (fk_empl, fk_carg, cod_empl_carg)
 );
 
 CREATE TABLE Asistencia (
@@ -187,8 +189,9 @@ CREATE TABLE Asistencia (
     fecha_hora_fin_asis timestamp NOT NULL,
     fk_empl_carg_1 integer NOT NULL,
     fk_empl_carg_2 integer NOT NULL,
+    fk_empl_carg_3 integer NOT NULL,
     PRIMARY KEY (cod_asis),
-    CONSTRAINT asiste FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg)
+    CONSTRAINT asiste FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3) REFERENCES EMPL_CARG (fk_empl, fk_carg, cod_empl_carg)
 );
 
 CREATE TABLE Horario (
@@ -506,7 +509,7 @@ CREATE TABLE DESC_CERV (
     fk_desc integer,
     fk_cerv_pres_1 integer,
     fk_cerv_pres_2 integer,
-    porcentaje_desc numeric(3, 2) NOT NULL,
+    porcentaje_desc numeric(5, 2) NOT NULL,
     PRIMARY KEY (fk_desc, fk_cerv_pres_1, fk_cerv_pres_2),
     CONSTRAINT aplica FOREIGN KEY (fk_desc) REFERENCES Descuento (cod_desc),
     CONSTRAINT aplicado FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres)
@@ -524,18 +527,20 @@ CREATE TABLE EMPL_HORA (
     fk_hora integer,
     fk_empl_carg_1 integer,
     fk_empl_carg_2 integer,
-    PRIMARY KEY (fk_empl_carg_1, fk_empl_carg_2, fk_hora),
-    CONSTRAINT cumple FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg),
+    fk_empl_carg_3 integer,
+    PRIMARY KEY (fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3, fk_hora),
+    CONSTRAINT cumple FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3) REFERENCES EMPL_CARG (fk_empl, fk_carg, cod_empl_carg),
     CONSTRAINT cumplido FOREIGN KEY (fk_hora) REFERENCES Horario (cod_hora)
 );
 
 CREATE TABLE EMPL_BENE (
     fk_empl_carg_1 integer,
     fk_empl_carg_2 integer,
+    fk_empl_carg_3 integer,
     fk_bene integer,
     monto_bene numeric(8, 2),
-    PRIMARY KEY (fk_empl_carg_1, fk_empl_carg_2, fk_bene),
-    CONSTRAINT disfruta FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2) REFERENCES EMPL_CARG (fk_empl, fk_carg),
+    PRIMARY KEY (fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3, fk_bene),
+    CONSTRAINT disfruta FOREIGN KEY (fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3) REFERENCES EMPL_CARG (fk_empl, fk_carg, cod_empl_carg),
     CONSTRAINT disfrutado FOREIGN KEY (fk_bene) REFERENCES Beneficio (cod_bene)
 );
 
