@@ -65,7 +65,7 @@ export const Dashboard: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Estadísticas principales */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md:3 }}>
           <StatCard
             title="Ventas del Día"
             value="Bs. 12,450"
@@ -75,7 +75,7 @@ export const Dashboard: React.FC = () => {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md:3 }}>
           <StatCard
             title="Clientes Activos"
             value="1,234"
@@ -85,7 +85,7 @@ export const Dashboard: React.FC = () => {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md:3 }}>
           <StatCard
             title="Productos en Stock"
             value="45,678"
@@ -95,7 +95,7 @@ export const Dashboard: React.FC = () => {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md:3 }}>
           <StatCard
             title="Órdenes Pendientes"
             value="23"
@@ -106,7 +106,7 @@ export const Dashboard: React.FC = () => {
         </Grid>
 
         {/* Ventas recientes */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <TrendingUp />
@@ -131,7 +131,7 @@ export const Dashboard: React.FC = () => {
         </Grid>
 
         {/* Alertas de inventario */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Warning />
@@ -158,14 +158,14 @@ export const Dashboard: React.FC = () => {
         </Grid>
 
         {/* Próximos eventos */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Event />
               Próximos Eventos
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="h6" color="primary">
@@ -177,7 +177,7 @@ export const Dashboard: React.FC = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="h6" color="primary">
@@ -189,7 +189,7 @@ export const Dashboard: React.FC = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="h6" color="primary">

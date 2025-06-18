@@ -121,7 +121,7 @@ export const GestionUsuarios: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Gestión de Usuarios */}
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Paper sx={{ p: 2 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
               <Typography variant="h6">Usuarios del Sistema</Typography>
@@ -147,7 +147,7 @@ export const GestionUsuarios: React.FC = () => {
                   <TableRow>
                     <TableCell>Usuario</TableCell>
                     <TableCell>Rol</TableCell>
-                    <TableCell>Estado</TableCell>
+                    <TableCell>Tipo</TableCell>
                     <TableCell align="center">Acciones</TableCell>
                   </TableRow>
                 </TableHead>
@@ -180,7 +180,7 @@ export const GestionUsuarios: React.FC = () => {
         </Grid>
 
         {/* Gestión de Roles */}
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <Paper sx={{ p: 2 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
               <Typography variant="h6">Roles y Privilegios</Typography>
@@ -211,13 +211,13 @@ export const GestionUsuarios: React.FC = () => {
         <DialogTitle>{usuarioSeleccionado ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField fullWidth label="Nombre de Usuario" defaultValue={usuarioSeleccionado?.username_usua || ""} />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField fullWidth label="Contraseña" type="password" />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <FormControl fullWidth>
                 <InputLabel>Rol</InputLabel>
                 <Select defaultValue={usuarioSeleccionado?.fk_rol || ""} label="Rol">

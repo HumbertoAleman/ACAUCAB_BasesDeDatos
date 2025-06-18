@@ -26,7 +26,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material"
-import { Search, Add, Edit, Warning, CheckCircle } from "@mui/icons-material"
+import { Search, Add, Edit, Warning, CheckCircle, HelpIcon } from "@mui/icons-material"
 import type { InventarioTienda } from "../../interfaces"
 
 // Datos de ejemplo basados en las interfaces
@@ -113,7 +113,7 @@ export const GestionInventario: React.FC = () => {
       case "Agotado":
         return <Warning />
       default:
-        return null
+        return <HelpIcon />;
     }
   }
 
@@ -126,7 +126,7 @@ export const GestionInventario: React.FC = () => {
       {/* Filtros */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               placeholder="Buscar productos..."
@@ -137,7 +137,7 @@ export const GestionInventario: React.FC = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth>
               <InputLabel>Filtrar por Estado</InputLabel>
               <Select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} label="Filtrar por Estado">
@@ -148,7 +148,7 @@ export const GestionInventario: React.FC = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Button fullWidth variant="outlined" startIcon={<Add />}>
               Nuevo Producto
             </Button>
