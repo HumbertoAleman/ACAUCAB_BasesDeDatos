@@ -70,9 +70,3 @@ CALL add_miembro_random ('J438201756', 'Kernel Energy ', 'Peru B.V', '5593 Holli
 CALL add_miembro_random ('J325497068', 'Upc Industries SIA', 'Ending International S.A', '9767 Raydon Avenue, Provo, Florida, 56944', 'https://www.navigator.bømlo.no/lucy');
 CALL add_miembro_random ('J471039258', 'Coordinate Industries Company', 'Emotions International ', '9059 Reddisher Circle, Grand Prairie, Maine, 73188', 'http://condos.com/rock.aspx');
 
-SELECT
-    *
-FROM
-    Usuario
-WHERE
-    fk_rol = 100;
