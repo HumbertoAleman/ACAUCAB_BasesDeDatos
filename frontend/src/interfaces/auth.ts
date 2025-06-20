@@ -46,3 +46,11 @@ export interface PrivRol {
   fk_rol: number;
   fk_priv: number;
 }
+
+export interface UsuarioFront {
+  username: string;
+}
+
+export interface RolFront {
+  nombre: string;
+}

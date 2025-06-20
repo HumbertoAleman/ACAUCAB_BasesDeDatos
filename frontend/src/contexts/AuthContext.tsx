@@ -3,8 +3,8 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import type { Usuario, Rol, Privilegio } from "../interfaces"
-import { authService, type LoginResponse } from "../services/api"
+import type { UsuarioFront, RolFront } from "../interfaces/auth"
+import { authService } from "../services/api"
 
 export interface LoginCredentials {
   username: string
@@ -12,13 +12,11 @@ export interface LoginCredentials {
 }
 
 export interface AuthContextType {
-  user: Usuario | null
-  role: Rol | null
-  privileges: Privilegio[]
+  user: UsuarioFront | null
+  role: string | null
   login: (credentials: LoginCredentials) => Promise<void>
   logout: () => void
   isLoading: boolean
-  hasPermission: (privilegio: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -36,9 +34,8 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<Usuario | null>(null)
-  const [role, setRole] = useState<Rol | null>(null)
-  const [privileges, setPrivileges] = useState<Privilegio[]>([])
+  const [user, setUser] = useState<UsuarioFront | null>(null)
+  const [role, setRole] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
   const location = useLocation()
@@ -47,47 +44,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       const savedUser = localStorage.getItem("acaucab_user")
       const savedRole = localStorage.getItem("acaucab_role")
-      const savedPrivileges = localStorage.getItem("acaucab_privileges")
       const token = localStorage.getItem("acaucab_token")
 
-      if (savedUser && savedRole && savedPrivileges && token) {
+      if (savedUser && savedRole && token) {
         try {
-          // Verificar si el token sigue siendo válido
           const response = await authService.verifyToken()
           if (response.success && response.data) {
-            setUser(response.data.user)
-            setRole(response.data.role)
-            setPrivileges(response.data.privileges)
+            setUser({ username: response.data.user.username_usua })
+            setRole(response.data.role.nombre_rol)
           } else {
-            // Token inválido, limpiar datos
             localStorage.removeItem("acaucab_user")
             localStorage.removeItem("acaucab_role")
-            localStorage.removeItem("acaucab_privileges")
             localStorage.removeItem("acaucab_token")
           }
         } catch (error) {
-          console.error("Error verificando token:", error)
-          // Limpiar datos en caso de error
           localStorage.removeItem("acaucab_user")
           localStorage.removeItem("acaucab_role")
-          localStorage.removeItem("acaucab_privileges")
           localStorage.removeItem("acaucab_token")
         }
       } else {
-        // Usar datos guardados si no hay token (fallback)
         if (savedUser) {
-          setUser(JSON.parse(savedUser))
+          const parsedUser = JSON.parse(savedUser)
+          setUser(parsedUser && parsedUser.username ? parsedUser : { username: parsedUser.username_usua })
         }
         if (savedRole) {
-          setRole(JSON.parse(savedRole))
-        }
-        if (savedPrivileges) {
-          setPrivileges(JSON.parse(savedPrivileges))
+          const parsedRole = JSON.parse(savedRole)
+          setRole(parsedRole && typeof parsedRole === 'string' ? parsedRole : parsedRole.nombre_rol)
         }
       }
       setIsLoading(false)
     }
-
     initializeAuth()
   }, [])
 
@@ -95,31 +81,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true)
     try {
       const response = await authService.login(credentials.username, credentials.password)
-      
       if (response.success && response.data) {
-        const { user, role, privileges, token } = response.data
-        
-        // Guardar datos en localStorage
-        localStorage.setItem("acaucab_user", JSON.stringify(user))
-        localStorage.setItem("acaucab_role", JSON.stringify(role))
-        localStorage.setItem("acaucab_privileges", JSON.stringify(privileges))
+        const { user, role, token } = response.data
+        const userFront = { username: user.username_usua }
+        const roleFront = role.nombre_rol
+        localStorage.setItem("acaucab_user", JSON.stringify(userFront))
+        localStorage.setItem("acaucab_role", JSON.stringify(roleFront))
         if (token) {
           localStorage.setItem("acaucab_token", token)
         }
-        
-        // Actualizar estado
-        setUser(user)
-        setRole(role)
-        setPrivileges(privileges)
-        
-        // Redirigir a la página original o al dashboard
+        setUser(userFront)
+        setRole(roleFront)
         const from = (location.state as any)?.from?.pathname || "/dashboard"
         navigate(from, { replace: true })
       } else {
         throw new Error(response.error || "Credenciales inválidas")
       }
     } catch (error) {
-      console.error("Error en login:", error)
       throw new Error(error instanceof Error ? error.message : "Error de conexión")
     } finally {
       setIsLoading(false)
@@ -128,40 +106,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Intentar hacer logout en el backend
       await authService.logout()
     } catch (error) {
-      console.error("Error en logout:", error)
+      // Ignorar error
     } finally {
-      // Limpiar datos locales independientemente del resultado del backend
       setUser(null)
       setRole(null)
-      setPrivileges([])
       localStorage.removeItem("acaucab_user")
       localStorage.removeItem("acaucab_role")
-      localStorage.removeItem("acaucab_privileges")
       localStorage.removeItem("acaucab_token")
-      
-      // Redirigir al login después del logout
       navigate("/login", { replace: true })
     }
-  }
-
-  const hasPermission = (privilegio: string): boolean => {
-    if (!user || !privileges.length) return false
-
-    // Verificar si el usuario tiene el privilegio específico
-    return privileges.some(priv => priv.nombre_priv === privilegio)
   }
 
   const value: AuthContextType = {
     user,
     role,
-    privileges,
     login,
     logout,
     isLoading,
-    hasPermission,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
