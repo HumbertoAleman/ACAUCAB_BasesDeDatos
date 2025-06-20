@@ -447,13 +447,3 @@ CALL insert_parroquias(ARRAY['Santa Rita','El Mene','Jose Cenobio Urribarri','Pe
 CALL insert_parroquias(ARRAY['Manuel Manrique','Rafael Maria Baralt','Rafael Urdaneta'],'Simon Bolivar');
 CALL insert_parroquias(ARRAY['Bobures','El Batey','Gibraltar','Heras','Monseñor Arturo alvarez','Romulo Gallegos'],'Sucre');
 CALL insert_parroquias(ARRAY['Rafael Urdaneta','La Victoria','Raul Cuenca'],'Valmore Rodriguez');
-
--- Check
-SELECT sub_L.nombre_luga, sub_L.tipo_luga, sup_L.nombre_luga
-FROM Lugar as sup_L, Lugar as sub_L
-WHERE
-	sup_L.cod_luga = sub_L.fk_luga;
-
-SELECT COUNT(*) FROM Lugar WHERE tipo_luga = 'Estado'; 
-SELECT COUNT(*) FROM Lugar WHERE tipo_luga = 'Municipio'; 
-SELECT COUNT(*) FROM Lugar WHERE tipo_luga = 'Parroquia'; 
