@@ -30,6 +30,40 @@ Bun.serve({
 				return Response.json({ success: true }, CORS_HEADERS)
 			}
 		},
+
+		"/api/users_with_details": {
+			GET: async (req, _) => {
+				const users = await sql`
+					SELECT U.cod_usua, U.username_usua, U.fk_rol, R.cod_rol, R.nombre_rol, R.descripcion_rol
+					FROM Usuario AS U
+					JOIN Rol AS R ON R.cod_rol = U.fk_rol
+				`;
+
+				if (users.length === 0)
+					return Response.json(users, CORS_HEADERS)
+
+				for (const user of users) {
+					user.rol = { cod_rol: user.cod_rol, nombre_rol: user.nombre_rol, descripcion_rol: user.descripcion_rol }
+					delete user.cod_rol;
+					delete user.nombre_rol;
+					delete user.descripcion_rol;
+				}
+
+				for (const user of users) {
+					const privileges = await sql`
+						SELECT P.cod_priv, P.nombre_priv, P.descripcion_priv
+						FROM Privilegio AS P
+						JOIN PRIV_ROL AS RP ON RP.fk_priv = P.cod_priv
+						JOIN Rol AS R ON RP.fk_rol = ${user.rol.cod_rol}`
+					user.rol.privileges = privileges;
+				}
+
+				return Response.json(users, CORS_HEADERS);
+			}
+		},
+
+
+
 		"/api/auth/login": {
 			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
 			POST: async req => {
