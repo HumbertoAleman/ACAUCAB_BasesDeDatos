@@ -51,8 +51,7 @@ Bun.serve({
 						}
 						, CORS_HEADERS)
 				}
-
-				return Response.json({ success: false, data: { message: "invalid credentials" } }, CORS_HEADERS)
+				return Response.json({ authenticated: false }, CORS_HEADERS)
 			}
 		}
 	}
