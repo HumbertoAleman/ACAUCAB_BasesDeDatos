@@ -9,7 +9,7 @@ BEGIN
     RETURNING
         cod_empl INTO x;
     INSERT INTO Usuario (contra_usua, username_usua, fk_rol, fk_empl)
-        VALUES ('admin', p_nom || ' ' || s_nom, 300, x);
+        VALUES ('admin', p_nom || ' ' || p_ape, 300, x);
 END;
 $$;
 
