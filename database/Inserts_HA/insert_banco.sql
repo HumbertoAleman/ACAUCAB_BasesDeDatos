@@ -1,4 +1,4 @@
-INSERT INTO BANCO (nombre_banc)
+INSERT INTO Banco (nombre_banc)
     VALUES ('Banco de Venezuela'),
     ('Bancamiga'),
     ('Banesco'),
