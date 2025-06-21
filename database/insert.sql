@@ -909,6 +909,33 @@ END
 $$
 LANGUAGE plpgsql;
 
+--[[ PROCEDURE REGISTRO_EVENTO ]]--
+CREATE OR REPLACE PROCEDURE register_juez_for_event ()
+    AS $$
+DECLARE
+    x int;
+    ev record;
+BEGIN
+    SELECT
+        *
+    FROM
+        Evento
+    ORDER BY
+        cod_even ASC
+    LIMIT 1 INTO ev;
+    FOR x IN (
+        SELECT
+            cod_juez
+        FROM
+            Juez)
+        LOOP
+            INSERT INTO Registro_Evento (fk_even, fk_juez, fecha_hora_regi_even)
+                VALUES (ev.cod_even, x, ev.fecha_hora_ini_even);
+        END LOOP;
+END
+$$
+LANGUAGE plpgsql;
+
 --[[[ TRIGGER BEGIN ]]]--
 
 -- Trigger to run after inserting on event, marks it as 'Pendiente'
@@ -931,6 +958,19 @@ CREATE OR REPLACE TRIGGER after_insert_evento
 --[[[ TRIGGER END ]]]--
 
 --[[[ INSERT BEGIN ]]]--
+
+--[[ INSERT JUEZ, INDEPENDENT ]]--
+INSERT INTO Juez (primar_nom_juez, segundo_nom_juez, primar_ape_juez, segundo_ape_juez, ci_juez)
+    VALUES ('Dot', 'Bay', 'Linton', 'Dossit', '0785098'),
+    ('Patton', 'Grayce', 'Bartlosz', 'Roston', '7272681'),
+    ('Quincy', 'Renee', 'Krzysztofiak', 'Pietz', '8088538'),
+    ('Janeva', 'Tera', 'Belz', 'Amis', '5472356'),
+    ('Valle', 'Valle', 'Trevarthen', 'Jadczak', '6944297'),
+    ('Ephrem', 'Sybilla', 'O''Cannovane', 'Indgs', '4532104'),
+    ('Albertina', 'Ermentrude', 'Linnell', 'Fraczek', '3006741'),
+    ('Georgine', 'Haskel', 'Reeks', 'Regi', '9667987'),
+    ('Nora', 'Gayla', 'Ensten', 'Jeandeau', '0912550'),
+    ('Marwin', 'Llywellyn', 'Fairney', 'Brain', '0908301');
 
 --[[ INSERT ROL, INDEPENDENT ]]--
 INSERT INTO Rol
@@ -2526,3 +2566,5 @@ INSERT INTO Evento (nombre_even, fecha_hora_ini_even, fecha_hora_fin_even, direc
     ('Arte y Espuma: Encuentro de Cerveza y Creatividad', '2025-07-30 16:00:00', '2025-07-30 19:00:00', 'Galería de Arte Nacional, Av. México', 80, 'Une el arte y la cerveza en este evento único, donde artistas locales exhibirán sus obras mientras los asistentes disfrutan de cervezas artesanales en un ambiente creativo', 20, 80, get_tipo_even ('Evento de Cerveza y Arte'), get_parroquia_random ()),
     ('Conexiones Cerveceras: Evento de Networking para Profesionales', '2025-08-05 18:00:00', '2025-08-05 21:00:00', 'Hotel Tamanaco, Av. Libertador', 100, 'Conéctate con otros profesionales de la industria cervecera en este evento de networking, donde podrás intercambiar ideas, establecer contactos y explorar oportunidades de colaboración', 40, 100, get_tipo_even ('Evento de Networking Para Cerveceros'), get_parroquia_random ());
 
+--[[ INSERT REGISTRO_EVENTO ]]--
+CALL register_juez_for_event ();
