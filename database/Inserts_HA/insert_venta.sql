@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION get_estatus (nombre varchar(40))
+CREATE OR REPLACE FUNCTION get_estatus_by_name (nombre varchar(40))
     RETURNS integer
     AS $$
 DECLARE
@@ -11,30 +11,6 @@ BEGIN
     WHERE
         nombre_esta = nombre;
     RETURN result;
-END
-$$
-LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION create_punc_canj_historial_on_new_venta ()
-    RETURNS TRIGGER
-    AS $$
-BEGIN
-    IF NOT NEW.online THEN
-        INSERT INTO PUNT_CLIE (fk_clie, fk_tasa, fk_vent, cant_puntos_acum, cant_puntos_canj, fecha_transaccion)
-            VALUES (NEW.fk_clie, create_or_insert_tasa (NEW.fecha_vent), NEW.cod_vent, get_most_recent_punt_clie_punt (NEW.fk_clie), 0, NEW.fecha_vent);
-    END IF;
-    RETURN NEW;
-END
-$$
-LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION create_new_estatus_for_venta ()
-    RETURNS TRIGGER
-    AS $$
-BEGIN
-    INSERT INTO ESTA_VENT (fk_esta, fk_vent, fecha_ini, fecha_fin)
-        VALUES (get_estatus ('Pagado'), NEW.cod_vent, NEW.fecha_vent, NULL);
-    RETURN NEW;
 END
 $$
 LANGUAGE plpgsql;
@@ -73,6 +49,84 @@ BEGIN
         fecha_ini_tasa = curr_date
     LIMIT 1 INTO tasa;
     RETURN tasa;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_precio_from_inventario (integer, integer, integer, integer)
+    RETURNS numeric
+    AS $$
+DECLARE
+    res numeric;
+BEGIN
+    SELECT
+        precio_actual_pres
+    FROM
+        Inventario_Tienda
+    WHERE
+        fk_cerv_pres_1 = $1
+        AND fk_cerv_pres_2 = $2
+        AND fk_tien = $3
+        AND fk_luga_tien = $4 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_random_juridico ()
+    RETURNS varchar (
+        20
+)
+    AS $$
+DECLARE
+    res varchar(20);
+BEGIN
+    SELECT
+        rif_clie
+    FROM
+        cliente
+    WHERE
+        tipo_clie = 'Juridico' INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_cheque_random ()
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        fk_meto_pago
+    FROM
+        cheque INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_punc_canj_historial_on_new_venta ()
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    IF NOT NEW.online THEN
+        INSERT INTO PUNT_CLIE (fk_clie, fk_tasa, fk_vent, cant_puntos_acum, cant_puntos_canj, fecha_transaccion)
+            VALUES (NEW.fk_clie, create_or_insert_tasa (NEW.fecha_vent), NEW.cod_vent, get_most_recent_punt_clie_punt (NEW.fk_clie), 0, NEW.fecha_vent);
+    END IF;
+    RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_new_estatus_for_venta ()
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    INSERT INTO ESTA_VENT (fk_esta, fk_vent, fecha_ini, fecha_fin)
+        VALUES (get_estatus_by_name ('Pagado'), NEW.cod_vent, NEW.fecha_vent, NULL);
+    RETURN NEW;
 END
 $$
 LANGUAGE plpgsql;
@@ -239,26 +293,6 @@ CREATE OR REPLACE TRIGGER set_estatus_for_new_venta
     FOR EACH ROW
     EXECUTE FUNCTION create_new_estatus_for_venta ();
 
-CREATE OR REPLACE FUNCTION get_precio_from_inventario (integer, integer, integer, integer)
-    RETURNS numeric
-    AS $$
-DECLARE
-    res numeric;
-BEGIN
-    SELECT
-        precio_actual_pres
-    FROM
-        Inventario_Tienda
-    WHERE
-        fk_cerv_pres_1 = $1
-        AND fk_cerv_pres_2 = $2
-        AND fk_tien = $3
-        AND fk_luga_tien = $4 INTO res;
-    RETURN res;
-END
-$$
-LANGUAGE plpgsql;
-
 -- Crear un trigger cuando se cree la venta, en el trigger se revisa si es online u offline,
 -- solo se crea PUNT_CLIE cuando la venta es offline
 -- Crear otro trigger cuando se cree un pago utilizando el metodo de pago Punto_Canjeo,
@@ -325,7 +359,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE realizar_ventas_aleatorias ()
+CREATE OR REPLACE PROCEDURE generate_random_ventas ()
     AS $$
 DECLARE
     v_fecha_vent date;
@@ -390,40 +424,6 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION get_random_juridico ()
-    RETURNS varchar (
-        20
-)
-        AS $$
-DECLARE
-    res varchar(20);
-BEGIN
-    SELECT
-        rif_clie
-    FROM
-        cliente
-    WHERE
-        tipo_clie = 'Juridico' INTO res;
-    RETURN res;
-END
-$$
-LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION get_cheque_random ()
-    RETURNS integer
-    AS $$
-DECLARE
-    res integer;
-BEGIN
-    SELECT
-        fk_meto_pago
-    FROM
-        cheque INTO res;
-    RETURN res;
-END
-$$
-LANGUAGE plpgsql;
-
 CREATE OR REPLACE PROCEDURE create_orden_compra_10_productos ()
     AS $$
 DECLARE
@@ -452,8 +452,8 @@ BEGIN
             FROM
                 Inventario_Tienda
             WHERE
-                fk_tien = 1 AND
-				fk_cerv_pres_1 <> ALL(fk_inve_tien_1)
+                fk_tien = 1
+                AND fk_cerv_pres_1 <> ALL (fk_inve_tien_1)
             ORDER BY
                 RANDOM();
             cant_item := array_append(cant_item, ROUND(RANDOM() * 200) + 200);
@@ -480,4 +480,4 @@ LANGUAGE plpgsql;
 
 CALL create_orden_compra_10_productos ();
 
-CALL realizar_ventas_aleatorias ();
+CALL generate_random_ventas ();
