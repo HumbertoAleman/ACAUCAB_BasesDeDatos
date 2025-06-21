@@ -48,7 +48,7 @@ Bun.serve({
 				const users = await sql`
 					SELECT U.cod_usua, U.username_usua, U.fk_rol, R.cod_rol, R.nombre_rol, R.descripcion_rol
 					FROM Usuario AS U
-					FULL JOIN Rol AS R ON R.cod_rol = U.fk_rol`;
+					JOIN Rol AS R ON R.cod_rol = U.fk_rol`;
 
 				if (users.length === 0)
 					return Response.json(users, CORS_HEADERS)
@@ -65,7 +65,9 @@ Bun.serve({
 						SELECT P.cod_priv, P.nombre_priv, P.descripcion_priv
 						FROM Privilegio AS P
 						JOIN PRIV_ROL AS RP ON RP.fk_priv = P.cod_priv
-						JOIN Rol AS R ON RP.fk_rol = ${user.rol.cod_rol}`
+						JOIN Rol AS R ON RP.fk_rol = ${user.rol.cod_rol}
+						group by P.cod_priv
+						order by P.cod_priv`
 					user.rol.privileges = privileges;
 				}
 

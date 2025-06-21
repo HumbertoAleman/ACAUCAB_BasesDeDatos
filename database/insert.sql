@@ -3582,3 +3582,8 @@ CALL crear_compra (1, 'J358172469', ARRAY[10000], ARRAY[4.99], ARRAY[8], ARRAY[1
 CALL crear_compra (1, 'J358172469', ARRAY[10000], ARRAY[4.99], ARRAY[9], ARRAY[1]);
 
 CALL crear_compra (1, 'J358172469', ARRAY[10000], ARRAY[4.99], ARRAY[10], ARRAY[1]);
+
+--[[ INSERT ADMIN USER ]]--
+INSERT INTO Empleado(cod_empl, ci_empl, primer_nom_empl, primer_ape_empl, salario_base_empl) VALUES (0, 123, 'admin', 'admin', 0.0);
+
+INSERT INTO Usuario (username_usua, contra_usua, fk_rol, fk_empl) VALUES('admin', 'admin', 500, 0);
