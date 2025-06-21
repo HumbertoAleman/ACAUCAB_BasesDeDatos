@@ -48,8 +48,7 @@ Bun.serve({
 				const users = await sql`
 					SELECT U.cod_usua, U.username_usua, U.fk_rol, R.cod_rol, R.nombre_rol, R.descripcion_rol
 					FROM Usuario AS U
-					JOIN Rol AS R ON R.cod_rol = U.fk_rol
-				`;
+					FULL JOIN Rol AS R ON R.cod_rol = U.fk_rol`;
 
 				if (users.length === 0)
 					return Response.json(users, CORS_HEADERS)
