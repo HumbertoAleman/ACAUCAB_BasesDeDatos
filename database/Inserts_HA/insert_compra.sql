@@ -9,14 +9,19 @@ BEGIN
     FROM
         Estatus
     WHERE
-        nombre_esta = 'Compra Pagada'
+        nombre_esta = 'Por aprobar'
     LIMIT 1 INTO compra_pagada;
     INSERT INTO ESTA_COMP (fk_esta, fk_comp, fecha_ini)
         VALUES (compra_pagada, NEW.cod_comp, CURRENT_DATE);
-	RETURN NEW;
+    RETURN NEW;
 END
 $$
 LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER on_compra_insert_create_esta_comp_pendiente
+    AFTER INSERT ON Compra
+    FOR EACH ROW
+    EXECUTE FUNCTION tri_create_esta_comp_pendiente ();
 
 CREATE OR REPLACE FUNCTION tri_increment_compra_total ()
     RETURNS TRIGGER
@@ -34,6 +39,11 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER on_detalle_compra_insert_increment_compra_total
+    AFTER INSERT ON Detalle_Compra
+    FOR EACH ROW
+    EXECUTE FUNCTION tri_increment_compra_total ();
 
 CREATE OR REPLACE FUNCTION tri_add_inventario_tienda ()
     RETURNS TRIGGER
@@ -116,16 +126,6 @@ END LOOP;
 END
 $$
 LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER on_compra_insert_create_esta_comp_pendiente
-    AFTER INSERT ON Compra
-    FOR EACH ROW
-    EXECUTE FUNCTION tri_create_esta_comp_pendiente ();
-
-CREATE OR REPLACE TRIGGER on_detalle_compra_insert_increment_compra_total
-    AFTER INSERT ON Detalle_Compra
-    FOR EACH ROW
-    EXECUTE FUNCTION tri_increment_compra_total ();
 
 CREATE OR REPLACE TRIGGER on_esta_compra_insert_add_inventario_tienda
     AFTER INSERT ON ESTA_COMP
