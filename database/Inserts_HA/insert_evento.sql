@@ -95,7 +95,7 @@ ARRAY[
 'Cata de Cervezas Trujillo', 'Recorrido Cerveceria Trujillo', 'Festival de Cervezas Trujillo', 'Cena de Maridaje Trujillo', 'Taller de Elaboracion Trujillo',
 'Cata de Cervezas Yaracuy', 'Recorrido Cerveceria Yaracuy', 'Festival de Cervezas Yaracuy', 'Cena de Maridaje Yaracuy', 'Taller de Elaboracion Yaracuy',
 'Cata de Cervezas Zulia', 'Recorrido Cerveceria Zulia', 'Festival de Cervezas Zulia', 'Cena de Maridaje Zulia', 'Taller de Elaboracion Zulia'
-],
+] :: varchar(40)[],
 
 -- Fechas y horas de inicio
 ARRAY[
@@ -123,7 +123,7 @@ ARRAY[
 '2025-07-22 16:00:00','2025-07-22 17:00:00','2025-07-22 18:00:00','2025-07-22 19:00:00','2025-07-22 20:00:00',
 '2025-07-23 16:00:00','2025-07-23 17:00:00','2025-07-23 18:00:00','2025-07-23 19:00:00','2025-07-23 20:00:00',
 '2025-07-24 16:00:00','2025-07-24 17:00:00','2025-07-24 18:00:00','2025-07-24 19:00:00','2025-07-24 20:00:00'
-],
+] :: timestamp[],
 
 -- Fechas y horas de fin
 ARRAY[
@@ -151,7 +151,7 @@ ARRAY[
 '2025-07-22 20:00:00','2025-07-22 21:00:00','2025-07-22 22:00:00','2025-07-22 23:00:00','2025-07-22 23:30:00',
 '2025-07-23 20:00:00','2025-07-23 21:00:00','2025-07-23 22:00:00','2025-07-23 23:00:00','2025-07-23 23:30:00',
 '2025-07-24 20:00:00','2025-07-24 21:00:00','2025-07-24 22:00:00','2025-07-24 23:00:00','2025-07-24 23:30:00'
-],
+] :: timestamp[],
 
 -- Direcciones
 ARRAY[
@@ -179,50 +179,50 @@ ARRAY[
 'Calle Trujillo, Trujillo, Trujillo','Avenida Bolivar, Trujillo, Trujillo','Calle Boconó, Boconó, Trujillo','Calle Valera, Valera, Trujillo','Calle Carache, Carache, Trujillo',
 'Calle San Felipe, San Felipe, Yaracuy','Avenida Yaracuy, San Felipe, Yaracuy','Calle Yaritagua, Yaritagua, Yaracuy','Calle Chivacoa, Chivacoa, Yaracuy','Calle Nirgua, Nirgua, Yaracuy',
 'Calle Maracaibo, Maracaibo, Zulia','Avenida Bella Vista, Maracaibo, Zulia','Calle Cabimas, Cabimas, Zulia','Calle Ciudad Ojeda, Ciudad Ojeda, Zulia','Calle San Francisco, San Francisco, Zulia'
-],
+] :: text[],
 
 -- Capacidades
 ARRAY[
 100,120,80,150,90,110,130,85,140,95,200,180,160,220,170,105,125,95,155,100,115,135,90,145,98,108,128,88,138,93,112,132,92,142,97,107,127,87,137,91,109,129,89,139,94,106,126,86,136,99,111,131,91,141,96,104,124,84,134,101,113,133,83,143,102,114,134,82,144,103,116,136,81,146,104,117,137,80,147,105,118,138,79,148,106,119,139,78,149,107,120,140,77,150,108,121,141,76,151,109,122,142,75,152,110,123,143,74,153,111,124,144,73,154,112,125,145,72,155,113,126,146,71,156,114,127,147,70,157,115,128,148,69,158,116,129,149,68,159,117,130,150,67,160,118,131,151,66,161,119,132,152,65,162,120,133,153,64,163,121,134,154,63,164,122,135,155,62,165,123,136,156,61,166,124,137,157,60,167,125,138,158,59,168,126,139,159,58,169,127,140,160
-],
+] :: integer[],
 
 -- Descripciones
 ARRAY[
-'Cata guiada de cervezas artesanales de Amazonas.','Recorrido por la cervecería local de Amazonas.','Festival con las mejores cervezas de Amazonas.','Cena de maridaje con cervezas y platos típicos de Amazonas.','Taller práctico de elaboración de cerveza en Amazonas.',
-'Cata guiada de cervezas artesanales de Anzoategui.','Recorrido por la cervecería local de Anzoategui.','Festival con las mejores cervezas de Anzoategui.','Cena de maridaje con cervezas y platos típicos de Anzoategui.','Taller práctico de elaboración de cerveza en Anzoategui.',
-'Cata guiada de cervezas artesanales de Apure.','Recorrido por la cervecería local de Apure.','Festival con las mejores cervezas de Apure.','Cena de maridaje con cervezas y platos típicos de Apure.','Taller práctico de elaboración de cerveza en Apure.',
-'Cata guiada de cervezas artesanales de Aragua.','Recorrido por la cervecería local de Aragua.','Festival con las mejores cervezas de Aragua.','Cena de maridaje con cervezas y platos típicos de Aragua.','Taller práctico de elaboración de cerveza en Aragua.',
-'Cata guiada de cervezas artesanales de Barinas.','Recorrido por la cervecería local de Barinas.','Festival con las mejores cervezas de Barinas.','Cena de maridaje con cervezas y platos típicos de Barinas.','Taller práctico de elaboración de cerveza en Barinas.',
-'Cata guiada de cervezas artesanales de Bolivar.','Recorrido por la cervecería local de Bolivar.','Festival con las mejores cervezas de Bolivar.','Cena de maridaje con cervezas y platos típicos de Bolivar.','Taller práctico de elaboración de cerveza en Bolivar.',
-'Cata guiada de cervezas artesanales de Carabobo.','Recorrido por la cervecería local de Carabobo.','Festival con las mejores cervezas de Carabobo.','Cena de maridaje con cervezas y platos típicos de Carabobo.','Taller práctico de elaboración de cerveza en Carabobo.',
-'Cata guiada de cervezas artesanales de Cojedes.','Recorrido por la cervecería local de Cojedes.','Festival con las mejores cervezas de Cojedes.','Cena de maridaje con cervezas y platos típicos de Cojedes.','Taller práctico de elaboración de cerveza en Cojedes.',
-'Cata guiada de cervezas artesanales de Delta Amacuro.','Recorrido por la cervecería local de Delta Amacuro.','Festival con las mejores cervezas de Delta Amacuro.','Cena de maridaje con cervezas y platos típicos de Delta Amacuro.','Taller práctico de elaboración de cerveza en Delta Amacuro.',
-'Cata guiada de cervezas artesanales de Distrito Capital.','Recorrido por la cervecería local de Distrito Capital.','Festival con las mejores cervezas de Distrito Capital.','Cena de maridaje con cervezas y platos típicos de Distrito Capital.','Taller práctico de elaboración de cerveza en Distrito Capital.',
-'Cata guiada de cervezas artesanales de Falcon.','Recorrido por la cervecería local de Falcon.','Festival con las mejores cervezas de Falcon.','Cena de maridaje con cervezas y platos típicos de Falcon.','Taller práctico de elaboración de cerveza en Falcon.',
-'Cata guiada de cervezas artesanales de Guarico.','Recorrido por la cervecería local de Guarico.','Festival con las mejores cervezas de Guarico.','Cena de maridaje con cervezas y platos típicos de Guarico.','Taller práctico de elaboración de cerveza en Guarico.',
-'Cata guiada de cervezas artesanales de La Guaira.','Recorrido por la cervecería local de La Guaira.','Festival con las mejores cervezas de La Guaira.','Cena de maridaje con cervezas y platos típicos de La Guaira.','Taller práctico de elaboración de cerveza en La Guaira.',
-'Cata guiada de cervezas artesanales de Lara.','Recorrido por la cervecería local de Lara.','Festival con las mejores cervezas de Lara.','Cena de maridaje con cervezas y platos típicos de Lara.','Taller práctico de elaboración de cerveza en Lara.',
-'Cata guiada de cervezas artesanales de Merida.','Recorrido por la cervecería local de Merida.','Festival con las mejores cervezas de Merida.','Cena de maridaje con cervezas y platos típicos de Merida.','Taller práctico de elaboración de cerveza en Merida.',
-'Cata guiada de cervezas artesanales de Miranda.','Recorrido por la cervecería local de Miranda.','Festival con las mejores cervezas de Miranda.','Cena de maridaje con cervezas y platos típicos de Miranda.','Taller práctico de elaboración de cerveza en Miranda.',
-'Cata guiada de cervezas artesanales de Monagas.','Recorrido por la cervecería local de Monagas.','Festival con las mejores cervezas de Monagas.','Cena de maridaje con cervezas y platos típicos de Monagas.','Taller práctico de elaboración de cerveza en Monagas.',
-'Cata guiada de cervezas artesanales de Nueva Esparta.','Recorrido por la cervecería local de Nueva Esparta.','Festival con las mejores cervezas de Nueva Esparta.','Cena de maridaje con cervezas y platos típicos de Nueva Esparta.','Taller práctico de elaboración de cerveza en Nueva Esparta.',
-'Cata guiada de cervezas artesanales de Portuguesa.','Recorrido por la cervecería local de Portuguesa.','Festival con las mejores cervezas de Portuguesa.','Cena de maridaje con cervezas y platos típicos de Portuguesa.','Taller práctico de elaboración de cerveza en Portuguesa.',
-'Cata guiada de cervezas artesanales de Sucre.','Recorrido por la cervecería local de Sucre.','Festival con las mejores cervezas de Sucre.','Cena de maridaje con cervezas y platos típicos de Sucre.','Taller práctico de elaboración de cerveza en Sucre.',
-'Cata guiada de cervezas artesanales de Tachira.','Recorrido por la cervecería local de Tachira.','Festival con las mejores cervezas de Tachira.','Cena de maridaje con cervezas y platos típicos de Tachira.','Taller práctico de elaboración de cerveza en Tachira.',
-'Cata guiada de cervezas artesanales de Trujillo.','Recorrido por la cervecería local de Trujillo.','Festival con las mejores cervezas de Trujillo.','Cena de maridaje con cervezas y platos típicos de Trujillo.','Taller práctico de elaboración de cerveza en Trujillo.',
-'Cata guiada de cervezas artesanales de Yaracuy.','Recorrido por la cervecería local de Yaracuy.','Festival con las mejores cervezas de Yaracuy.','Cena de maridaje con cervezas y platos típicos de Yaracuy.','Taller práctico de elaboración de cerveza en Yaracuy.',
-'Cata guiada de cervezas artesanales de Zulia.','Recorrido por la cervecería local de Zulia.','Festival con las mejores cervezas de Zulia.','Cena de maridaje con cervezas y platos típicos de Zulia.','Taller práctico de elaboración de cerveza en Zulia.'
-],
+'Cata guiada de cervezas artesanales de Amazonas','Recorrido por la cervecería local de Amazonas','Festival con las mejores cervezas de Amazonas','Cena de maridaje con cervezas y platos típicos de Amazonas','Taller práctico de elaboración de cerveza en Amazonas',
+'Cata guiada de cervezas artesanales de Anzoategui','Recorrido por la cervecería local de Anzoategui','Festival con las mejores cervezas de Anzoategui','Cena de maridaje con cervezas y platos típicos de Anzoategui','Taller práctico de elaboración de cerveza en Anzoategui',
+'Cata guiada de cervezas artesanales de Apure','Recorrido por la cervecería local de Apure','Festival con las mejores cervezas de Apure','Cena de maridaje con cervezas y platos típicos de Apure','Taller práctico de elaboración de cerveza en Apure',
+'Cata guiada de cervezas artesanales de Aragua','Recorrido por la cervecería local de Aragua','Festival con las mejores cervezas de Aragua','Cena de maridaje con cervezas y platos típicos de Aragua','Taller práctico de elaboración de cerveza en Aragua',
+'Cata guiada de cervezas artesanales de Barinas','Recorrido por la cervecería local de Barinas','Festival con las mejores cervezas de Barinas','Cena de maridaje con cervezas y platos típicos de Barinas','Taller práctico de elaboración de cerveza en Barinas',
+'Cata guiada de cervezas artesanales de Bolivar','Recorrido por la cervecería local de Bolivar','Festival con las mejores cervezas de Bolivar','Cena de maridaje con cervezas y platos típicos de Bolivar','Taller práctico de elaboración de cerveza en Bolivar',
+'Cata guiada de cervezas artesanales de Carabobo','Recorrido por la cervecería local de Carabobo','Festival con las mejores cervezas de Carabobo','Cena de maridaje con cervezas y platos típicos de Carabobo','Taller práctico de elaboración de cerveza en Carabobo',
+'Cata guiada de cervezas artesanales de Cojedes','Recorrido por la cervecería local de Cojedes','Festival con las mejores cervezas de Cojedes','Cena de maridaje con cervezas y platos típicos de Cojedes','Taller práctico de elaboración de cerveza en Cojedes',
+'Cata guiada de cervezas artesanales de Delta Amacuro','Recorrido por la cervecería local de Delta Amacuro','Festival con las mejores cervezas de Delta Amacuro','Cena de maridaje con cervezas y platos típicos de Delta Amacuro','Taller práctico de elaboración de cerveza en Delta Amacuro',
+'Cata guiada de cervezas artesanales de Distrito Capital','Recorrido por la cervecería local de Distrito Capital','Festival con las mejores cervezas de Distrito Capital','Cena de maridaje con cervezas y platos típicos de Distrito Capital','Taller práctico de elaboración de cerveza en Distrito Capital',
+'Cata guiada de cervezas artesanales de Falcon','Recorrido por la cervecería local de Falcon','Festival con las mejores cervezas de Falcon','Cena de maridaje con cervezas y platos típicos de Falcon','Taller práctico de elaboración de cerveza en Falcon',
+'Cata guiada de cervezas artesanales de Guarico','Recorrido por la cervecería local de Guarico','Festival con las mejores cervezas de Guarico','Cena de maridaje con cervezas y platos típicos de Guarico','Taller práctico de elaboración de cerveza en Guarico',
+'Cata guiada de cervezas artesanales de La Guaira','Recorrido por la cervecería local de La Guaira','Festival con las mejores cervezas de La Guaira','Cena de maridaje con cervezas y platos típicos de La Guaira','Taller práctico de elaboración de cerveza en La Guaira',
+'Cata guiada de cervezas artesanales de Lara','Recorrido por la cervecería local de Lara','Festival con las mejores cervezas de Lara','Cena de maridaje con cervezas y platos típicos de Lara','Taller práctico de elaboración de cerveza en Lara',
+'Cata guiada de cervezas artesanales de Merida','Recorrido por la cervecería local de Merida','Festival con las mejores cervezas de Merida','Cena de maridaje con cervezas y platos típicos de Merida','Taller práctico de elaboración de cerveza en Merida',
+'Cata guiada de cervezas artesanales de Miranda','Recorrido por la cervecería local de Miranda','Festival con las mejores cervezas de Miranda','Cena de maridaje con cervezas y platos típicos de Miranda','Taller práctico de elaboración de cerveza en Miranda',
+'Cata guiada de cervezas artesanales de Monagas','Recorrido por la cervecería local de Monagas','Festival con las mejores cervezas de Monagas','Cena de maridaje con cervezas y platos típicos de Monagas','Taller práctico de elaboración de cerveza en Monagas',
+'Cata guiada de cervezas artesanales de Nueva Esparta','Recorrido por la cervecería local de Nueva Esparta','Festival con las mejores cervezas de Nueva Esparta','Cena de maridaje con cervezas y platos típicos de Nueva Esparta','Taller práctico de elaboración de cerveza en Nueva Esparta',
+'Cata guiada de cervezas artesanales de Portuguesa','Recorrido por la cervecería local de Portuguesa','Festival con las mejores cervezas de Portuguesa','Cena de maridaje con cervezas y platos típicos de Portuguesa','Taller práctico de elaboración de cerveza en Portuguesa',
+'Cata guiada de cervezas artesanales de Sucre','Recorrido por la cervecería local de Sucre','Festival con las mejores cervezas de Sucre','Cena de maridaje con cervezas y platos típicos de Sucre','Taller práctico de elaboración de cerveza en Sucre',
+'Cata guiada de cervezas artesanales de Tachira','Recorrido por la cervecería local de Tachira','Festival con las mejores cervezas de Tachira','Cena de maridaje con cervezas y platos típicos de Tachira','Taller práctico de elaboración de cerveza en Tachira',
+'Cata guiada de cervezas artesanales de Trujillo','Recorrido por la cervecería local de Trujillo','Festival con las mejores cervezas de Trujillo','Cena de maridaje con cervezas y platos típicos de Trujillo','Taller práctico de elaboración de cerveza en Trujillo',
+'Cata guiada de cervezas artesanales de Yaracuy','Recorrido por la cervecería local de Yaracuy','Festival con las mejores cervezas de Yaracuy','Cena de maridaje con cervezas y platos típicos de Yaracuy','Taller práctico de elaboración de cerveza en Yaracuy',
+'Cata guiada de cervezas artesanales de Zulia','Recorrido por la cervecería local de Zulia','Festival con las mejores cervezas de Zulia','Cena de maridaje con cervezas y platos típicos de Zulia','Taller práctico de elaboración de cerveza en Zulia'
+] :: text[],
 
 -- Precios de entradas
 ARRAY[
 15.00,20.00,25.00,30.00,18.00,16.00,21.00,26.00,31.00,19.00,35.00,40.00,45.00,50.00,38.00,17.00,22.00,27.00,32.00,20.00,18.50,23.00,28.00,33.00,21.00,19.50,24.00,29.00,34.00,22.00,20.50,25.00,30.00,35.00,23.00,21.50,26.00,31.00,36.00,24.00,22.50,27.00,32.00,37.00,25.00,23.50,28.00,33.00,38.00,26.00,24.50,29.00,34.00,39.00,27.00,25.50,30.00,35.00,40.00,28.00,26.50,31.00,36.00,41.00,29.00,27.50,32.00,37.00,42.00,30.00,28.50,33.00,38.00,43.00,31.00,29.50,34.00,39.00,44.00,32.00,30.50,35.00,40.00,45.00,33.00,31.50,36.00,41.00,46.00,34.00,32.50,37.00,42.00,47.00,35.00,33.50,38.00,43.00,48.00,36.00,34.50,39.00,44.00,49.00,37.00,35.50,40.00,45.00,50.00,38.00,36.50,41.00,46.00,51.00,39.00,37.50,42.00,47.00,52.00,40.00,38.50,43.00,48.00,53.00,41.00,39.50,44.00,49.00,54.00,42.00,40.50,45.00,50.00,55.00
-],
+] :: numeric (8,2) [],
 
 -- Cantidad máxima de entradas (igual que capacidad)
 ARRAY[
 100,120,80,150,90,110,130,85,140,95,200,180,160,220,170,105,125,95,155,100,115,135,90,145,98,108,128,88,138,93,112,132,92,142,97,107,127,87,137,91,109,129,89,139,94,106,126,86,136,99,111,131,91,141,96,104,124,84,134,101,113,133,83,143,102,114,134,82,144,103,116,136,81,146,104,117,137,80,147,105,118,138,79,148,106,119,139,78,149,107,120,140,77,150,108,121,141,76,151,109,122,142,75,152,110,123,143,74,153,111,124,144,73,154,112,125,145,72,155,113,126,146,71,156,114,127,147,70,157,115,128,148,69,158,116,129,149,68,159,117,130,150,67,160,118,131,151,66,161,119,132,152,65,162,120,133,153,64,163,121,134,154,63,164,122,135,155,62,165,123,136,156,61,166,124,137,157,60,167,125,138,158,59,168,126,139,159,58,169,127,140,160
-],
+] :: integer[],
 
 -- Tipos de eventos (alternando los 10 tipos)
 ARRAY[
@@ -252,38 +252,38 @@ ARRAY[
 'Fiesta de Lanzamiento de Cervezas de Temporada','Noche de Musica en Vivo','Noche de Trivia','Evento de Cerveza y Arte','Evento de Networking Para Cerveceros',
 'Cata de cervezas','Recorrido por cerveceria','Festival de Cervezas','Cena de Maridaje','Taller de Elaboracion de Cerveza',
 'Fiesta de Lanzamiento de Cervezas de Temporada','Noche de Musica en Vivo','Noche de Trivia','Evento de Cerveza y Arte','Evento de Networking Para Cerveceros'
-],
+] :: varchar(60)[],
 
 -- Parroquias (cada 5 de un estado distinto)
 ARRAY[
 'Fernando Giron Tovar','Luis Alberto Gomez','Parhueña','Platanillal','La Esmeralda',
 'Anaco','San Joaquin','Cachipo','Aragua de Barcelona','Lecheria',
 'Achaguas','Apurito','El Yagual','Guachara','Mucuritas',
-'Maracay','Las Delicias','Cagua','Turmero','La Victoria',
-'Barinas','Industrial','Libertad','Obispos','Sabaneta',
-'Angostura','Libertador','Upata','Tumeremo','El Callao',
-'Valencia','Bolivar','Naguanagua','Guacara','San Diego',
-'Tinaquillo','San Carlos','Tinaco','El Baul','Las Vegas',
-'Tucupita','Pedernales','Curiapo','Capure','Araguaimujo',
-'La Pastora','San Juan','El Valle','La Vega','Antimano',
-'Coro','Zamora','Punto Fijo','Chichiriviche','Tucacas',
-'San Juan de los Morros','Calabozo','Zaraza','Valle de la Pascua','Altagracia de Orituco',
-'Macuto','La Playa','Catia La Mar','Maiquetia','Caraballeda',
-'Barquisimeto','Lara','Cabudare','El Tocuyo','Quibor',
-'Merida','Los Andes','Ejido','Tovar','Lagunillas',
-'Los Teques','Miranda','Guarenas','Guatire','Charallave',
-'Maturin','Bolivar','Punta de Mata','Caripito','Temblador',
-'Porlamar','4 de Mayo','Pampatar','Juan Griego','La Asuncion',
-'Guanare','Portuguesa','Acarigua','Araure','Biscucuy',
-'Cumana','Sucre','Carupano','Rio Caribe','Guiria',
-'San Cristobal','Tachira','Rubio','La Grita','Colon',
-'Trujillo','Bolivar','Boconó','Valera','Carache',
-'San Felipe','Yaracuy','Yaritagua','Chivacoa','Nirgua',
-'Maracaibo','Bella Vista','Cabimas','Ciudad Ojeda','San Francisco'
-],
+'Choroni','Las Delicias','Cagua','Turmero','Jose Felix Ribas',
+'Barinas','Alfredo Arvelo Larriva','Libertad','Obispos','Sabaneta',
+'Cachamay','Vista al Sol','Upata','Tumeremo','El Callao',
+'Urbana San Blas','Simon Bolivar','Urbana Naguanagua Valencia','Guacara','San Diego Valencia',
+'Cojedes','El Pao','Tinaquillo','Macapo','San Carlos de Austria',
+'Curiapo','Imataca','Pedernales','San Jose','Curiapo',
+'23 de Enero','Antimano','Catedral','El Valle','La Pastora',
+'Capadare','Aracua','Bariro','Norte','La Vela de Coro',
+'Camaguan','Chaguaramas','El Socorro','Tucupido','San Juan de los Morros',
+'Caraballeda','Carayaca','Catia La Mar','Maiquetia','Macuto',
+'Quebrada Honda de Guache','Freitez','Anzoategui','Cabudare','Buria',
+'Presidente Betancourt','Santa Cruz de Mora','La Azulita','Aricagua','Fernandez Peña',
+'Aragüita','Cumbo','El Cafetal','Higuerote','Mamporal',
+'San Antonio de Maturin','Aguasay','Caripito','El Tejero','Alto de los Godos',
+'Antolin del Campo','San Juan Bautista','Garcia','Bolivar','Aguirre',
+'Araure','Agua Blanca','Piritu','Cordova','Guanarito',
+'Mariño','San Jose de Areocuar','Rio Caribe','El Pilar','Santa Catalina',
+'Cordero','Virgen del Carmen','San Juan de Colon','Isaias Medina Angarita','Amenodoro Rangel Lamus',
+'Santa Isabel','Bocono','Sabana Grande','Chejende','Carache',
+'Aristides Bastidas','Bolivar','Chivacoa','Cocorote','Independencia',
+'Isla de Toas','San Timoteo','Ambrosio','Encontrados','San Carlos del Zulia'
+] :: varchar(40)[],
 
 -- Estados (24, uno por cada grupo de 5 eventos)
 ARRAY[
 'Amazonas','Anzoategui','Apure','Aragua','Barinas','Bolivar','Carabobo','Cojedes','Delta Amacuro','Distrito Capital','Falcon','Guarico','La Guaira','Lara','Merida','Miranda','Monagas','Nueva Esparta','Portuguesa','Sucre','Tachira','Trujillo','Yaracuy','Zulia'
-]
+] :: varchar(40)[]
 );
