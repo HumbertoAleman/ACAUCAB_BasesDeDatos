@@ -142,18 +142,6 @@ END;
 $$
 LANGUAGE plpgsql;
 
-DELETE FROM TIPO_CARA;
-
-DELETE FROM RECE_INGR;
-
-DELETE FROM Tipo_Cerveza;
-
-DELETE FROM Receta;
-
-DELETE FROM Ingrediente;
-
-DELETE FROM Caracteristica;
-
 CALL insert_tipo_cerveza ('Lager', NULL);
 
 CALL insert_tipo_cerveza ('Ale', NULL);
