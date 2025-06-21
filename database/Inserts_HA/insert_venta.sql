@@ -166,8 +166,8 @@ BEGIN
     UPDATE
         Venta
     SET
-        iva_vent = NEW.cant_deta_vent * NEW.precio_unitario_vent * 0.16,
-        base_imponible_vent = NEW.cant_deta_vent * NEW.precio_unitario_vent
+        iva_vent = iva_vent + NEW.cant_deta_vent * NEW.precio_unitario_vent * 0.16,
+        base_imponible_vent = base_imponible_vent + NEW.cant_deta_vent * NEW.precio_unitario_vent
     WHERE
         cod_vent = NEW.fk_vent;
     UPDATE
