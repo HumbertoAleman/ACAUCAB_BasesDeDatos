@@ -4,6 +4,18 @@ import { quickInsert } from "./src/insert";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
 
+function generateUserToken(length: number = 32): string {
+	const characters = '0123456789abcdef';
+	let token = '';
+	for (let i = 0; i < length; i++) {
+		const randomIndex = Math.floor(Math.random() * characters.length);
+		token += characters[randomIndex];
+	}
+	return token;
+}
+
+const user_tokens: { [key: string]: string } = {};
+
 const CORS_HEADERS = {
 	headers: {
 		'Access-Control-Allow-Origin': '*',
@@ -69,15 +81,18 @@ Bun.serve({
 			POST: async req => {
 				const body = await req.json() as { username: string, password: string };
 				const authorization: Array<any> = await sql`
-					SELECT U.username_usua, R.nombre_rol
+					SELECT U.cod_usua, U.username_usua, R.nombre_rol
 					FROM USUARIO AS U
 					JOIN ROL AS R ON R.cod_rol = U.fk_rol
 					WHERE username_usua = ${body.username} AND contra_usua = ${body.password}`
 				if (authorization.length > 0) {
 					const user = authorization[0];
+					const token = generateUserToken();
+					user_tokens[token] = user.cod_usua;
 					return Response.json(
 						{
 							"authenticated": true,
+							"token": token,
 							"user": {
 								"username": user.username_usua,
 								"rol": user.nombre_rol
