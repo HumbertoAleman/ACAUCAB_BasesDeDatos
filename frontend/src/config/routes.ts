@@ -14,25 +14,25 @@ export const ROUTES: RouteConfig[] = [
   },
   {
     path: "/ventas",
-    permission: "ventas",
+    permission: "venta_read",
     title: "Ventas",
     description: "Gestión de ventas y punto de venta",
   },
   {
     path: "/inventario",
-    permission: "inventario",
+    permission: "inventario_read",
     title: "Inventario",
     description: "Gestión de inventario y productos",
   },
   {
     path: "/reportes",
-    permission: "reportes",
+    permission: "reporte_read",
     title: "Reportes",
     description: "Reportes y estadísticas",
   },
   {
     path: "/usuarios",
-    permission: "usuarios",
+    permission: "usuario_read",
     title: "Usuarios",
     description: "Gestión de usuarios y roles",
   },
@@ -40,6 +40,7 @@ export const ROUTES: RouteConfig[] = [
     path: "/configuracion",
     title: "Configuración",
     description: "Configuración del sistema",
+    permission: "admin_only"
   },
 ]
 

@@ -2,8 +2,8 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import type { UsuarioFront, RolFront } from "../interfaces/auth"
+import { useNavigate } from "react-router-dom"
+import type { UsuarioFront } from "../interfaces/auth"
 import { authService } from "../services/api"
 
 export interface LoginCredentials {
@@ -13,10 +13,10 @@ export interface LoginCredentials {
 
 export interface AuthContextType {
   user: UsuarioFront | null
-  role: string | null
   login: (credentials: LoginCredentials) => Promise<void>
   logout: () => void
   isLoading: boolean
+  hasPermission: (permission: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -35,96 +35,100 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UsuarioFront | null>(null)
-  const [role, setRole] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
-  const location = useLocation()
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const savedUser = localStorage.getItem("acaucab_user")
-      const savedRole = localStorage.getItem("acaucab_role")
-      const token = localStorage.getItem("acaucab_token")
-
-      if (savedUser && savedRole && token) {
-        try {
-          const response = await authService.verifyToken()
-          if (response.success && response.data) {
-            setUser({ username: response.data.user.username_usua })
-            setRole(response.data.role.nombre_rol)
-          } else {
-            localStorage.removeItem("acaucab_user")
-            localStorage.removeItem("acaucab_role")
-            localStorage.removeItem("acaucab_token")
-          }
-        } catch (error) {
-          localStorage.removeItem("acaucab_user")
-          localStorage.removeItem("acaucab_role")
-          localStorage.removeItem("acaucab_token")
+    const initializeAuth = () => {
+      try {
+        const token = localStorage.getItem("acaucab_token")
+        const savedUser = localStorage.getItem("acaucab_user")
+        
+        if (token && savedUser) {
+          const parsedUser: UsuarioFront = JSON.parse(savedUser)
+          setUser(parsedUser)
         }
-      } else {
-        if (savedUser) {
-          const parsedUser = JSON.parse(savedUser)
-          setUser(parsedUser && parsedUser.username ? parsedUser : { username: parsedUser.username_usua })
-        }
-        if (savedRole) {
-          const parsedRole = JSON.parse(savedRole)
-          setRole(parsedRole && typeof parsedRole === 'string' ? parsedRole : parsedRole.nombre_rol)
-        }
+      } catch (error) {
+        console.error("Failed to initialize auth:", error)
+        // Clear storage if parsing fails
+        localStorage.removeItem("acaucab_user")
+        localStorage.removeItem("acaucab_token")
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
     initializeAuth()
+
+    const handleBeforeUnload = () => {
+      // This will run when the tab is closed, but not on refresh
+      // Note: modern browsers may prevent some async operations here for security
+      // A better approach for "logout on close" is using sessionStorage instead of localStorage
+      // For this implementation, we'll stick to the explicit logout call.
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, [])
+
+  const hasPermission = (permission: string): boolean => {
+    if (!user) return false;
+
+    // Special case for role-based permission
+    if (permission === 'admin_only') {
+      return user.rol === 'Administrador';
+    }
+
+    if (!user.privileges) {
+      return false;
+    }
+    // The permission check is now against the user's own list of privileges
+    return user.privileges.includes(permission);
+  };
 
   const login = async (credentials: LoginCredentials) => {
     setIsLoading(true)
     try {
       const response = await authService.login(credentials.username, credentials.password)
-      if (response.success && response.data) {
-        const { user, role, token } = response.data
-        const userFront = { username: user.username_usua }
-        const roleFront = role.nombre_rol
-        localStorage.setItem("acaucab_user", JSON.stringify(userFront))
-        localStorage.setItem("acaucab_role", JSON.stringify(roleFront))
-        if (token) {
-          localStorage.setItem("acaucab_token", token)
+      if (response.success && response.data?.authenticated) {
+        const { token, user: userData } = response.data
+        const userToStore: UsuarioFront = {
+          username: userData.username,
+          rol: userData.rol,
+          privileges: userData.privileges,
         }
-        setUser(userFront)
-        setRole(roleFront)
-        const from = (location.state as any)?.from?.pathname || "/dashboard"
-        navigate(from, { replace: true })
+        localStorage.setItem("acaucab_token", token)
+        localStorage.setItem("acaucab_user", JSON.stringify(userToStore))
+        setUser(userToStore)
+        navigate("/dashboard", { replace: true })
       } else {
         throw new Error(response.error || "Credenciales inválidas")
       }
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Error de conexión")
+      const errorMessage = error instanceof Error ? error.message : "Error de conexión"
+      console.error("Login failed:", errorMessage)
+      // Here you might want to show a notification to the user
+      throw new Error(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const logout = async () => {
-    try {
-      await authService.logout()
-    } catch (error) {
-      // Ignorar error
-    } finally {
-      setUser(null)
-      setRole(null)
-      localStorage.removeItem("acaucab_user")
-      localStorage.removeItem("acaucab_role")
-      localStorage.removeItem("acaucab_token")
-      navigate("/login", { replace: true })
-    }
+  const logout = () => {
+    setUser(null)
+    localStorage.removeItem("acaucab_user")
+    localStorage.removeItem("acaucab_token")
+    navigate("/login", { replace: true })
   }
 
   const value: AuthContextType = {
     user,
-    role,
     login,
     logout,
     isLoading,
+    hasPermission
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
