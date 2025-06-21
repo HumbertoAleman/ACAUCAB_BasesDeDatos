@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION get_esta_even (text)
+CREATE OR REPLACE FUNCTION get_estatus (text)
     RETURNS integer
     AS $$
 DECLARE
@@ -37,7 +37,7 @@ CREATE OR REPLACE FUNCTION insert_into_esta_even ()
     AS $$
 BEGIN
     INSERT INTO ESTA_EVEN (fk_esta, fk_even, fecha_ini)
-        VALUES (get_esta_even ('Pendiente'), NEW.cod_even, NOW());
+        VALUES (get_estatus ('Pendiente'), NEW.cod_even, NOW());
     RETURN NEW;
 END;
 $$
