@@ -161,8 +161,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DELETE FROM Lugar;
-
 --[[ PROCEDURE TIENDA,
 -- DEPENDENT get_parroquia() ]]--
 CREATE OR REPLACE PROCEDURE add_tienda (nombre varchar(40), fecha date, direccion text, nom_parroquia varchar(40), nom_estado varchar(40))
