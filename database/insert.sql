@@ -400,6 +400,116 @@ END;
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION get_random_juridico ()
+    RETURNS varchar (
+        20
+)
+    AS $$
+DECLARE
+    res varchar(20);
+BEGIN
+    SELECT
+        rif_clie
+    FROM
+        cliente
+    WHERE
+        tipo_clie = 'Juridico' INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_cheque_random ()
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        fk_meto_pago
+    FROM
+        cheque INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_estatus_by_name (nombre varchar(40))
+    RETURNS integer
+    AS $$
+DECLARE
+    result integer;
+BEGIN
+    SELECT
+        cod_esta INTO result
+    FROM
+        Estatus
+    WHERE
+        nombre_esta = nombre;
+    RETURN result;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_precio_from_inventario (integer, integer, integer, integer)
+    RETURNS numeric
+    AS $$
+DECLARE
+    res numeric;
+BEGIN
+    SELECT
+        precio_actual_pres
+    FROM
+        Inventario_Tienda
+    WHERE
+        fk_cerv_pres_1 = $1
+        AND fk_cerv_pres_2 = $2
+        AND fk_tien = $3
+        AND fk_luga_tien = $4 INTO res;
+    RETURN res;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_most_recent_punt_clie_punt (clie varchar(20))
+    RETURNS integer
+    AS $$
+DECLARE
+    res integer;
+BEGIN
+    SELECT
+        cant_puntos_acum
+    FROM
+        PUNT_CLIE AS p_c
+    WHERE
+        fk_clie = clie
+    ORDER BY
+        p_c.cod_punt_clie DESC
+    LIMIT 1 INTO res;
+    RETURN COALESCE(res, 0);
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_tasa_conversion (curr_date date)
+    RETURNS integer
+    AS $$
+DECLARE
+    tasa numeric;
+BEGIN
+    SELECT
+        tasa_punto
+    FROM
+        Tasa
+    WHERE
+        fecha_ini_tasa = curr_date
+    LIMIT 1 INTO tasa;
+    RETURN tasa;
+END
+$$
+LANGUAGE plpgsql;
+
+
 
 --[[[ FUNCTION END ]]]---
 
@@ -429,9 +539,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE insert_parroquias(varchar(40)[], text) AS $$
+CREATE OR REPLACE PROCEDURE insert_parroquias(varchar(40)[], text, text) AS $$
 DECLARE
-    found_id integer = (SELECT cod_luga FROM Lugar WHERE nombre_luga = $2 AND tipo_luga = 'Municipio' LIMIT 1);
+    found_id integer = (SELECT l1.cod_luga FROM Lugar l1, Lugar l2 WHERE l1.nombre_luga = $2 AND l1.tipo_luga = 'Municipio' AND l1.fk_luga = l2.cod_luga AND l2.tipo_luga = 'Estado' AND l2.nombre_luga = $3 LIMIT 1);
     x varchar(40);
 BEGIN
     FOREACH x IN ARRAY $1
@@ -497,7 +607,7 @@ DECLARE
     fk_depa1 integer;
 BEGIN
     INSERT INTO EMPL_CARG (fk_empl, fk_carg, fecha_ini, fecha_fin, cantidad_total_salario, fk_depa_1, fk_depa_2)
-        VALUES (get_empleado (ci), get_cargo (nombre_carg), ini, fin, montoTotal, get_departamento (nombre_derp), get_tienda_1 ());
+        VALUES (get_empleado (ci), get_cargo (nombre_carg), ini, fin, montoTotal, get_departamento_1 (nombre_derp), get_tienda_1 ());
 END
 $$
 LANGUAGE plpgsql;
@@ -1268,7 +1378,7 @@ BEGIN
         END LOOP;
     END LOOP;
 END;
-$$
+$$;
 
 --[[[ TRIGGER BEGIN ]]]--
 
@@ -1787,410 +1897,410 @@ CALL insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas
 
 -- Amazonas
 CALL insert_municipios(ARRAY['Altures', 'Alto Orinoco', 'Atabapo', 'Autana', 'Manapiare', 'Maroa', 'Rio Negro'], 'Amazonas');
-CALL insert_parroquias(ARRAY['Fernando Giron Tovar', 'Luis Alberto Gomez', 'Parhueña', 'Platanillal'], 'Altures');
-CALL insert_parroquias(ARRAY['La Esmeralda', 'Marawaka', 'Mavaca', 'Sierra Parima'], 'Alto Orinoco');
-CALL insert_parroquias(ARRAY['San Fernando de Atabapo', 'Laja Lisa', 'Santa Barbara', 'Guarinuma'], 'Atabapo');
-CALL insert_parroquias(ARRAY['Isla Raton', 'San Pedro del Orinoco', 'Pendare', 'Manduapo', 'Samariapo'], 'Autana');
-CALL insert_parroquias(ARRAY['San Juan de Manapiare', 'Camani', 'Capure', 'Manueta'], 'Manapiare');
-CALL insert_parroquias(ARRAY['Maroa', 'Comunidad', 'Victorino'], 'Maroa');
-CALL insert_parroquias(ARRAY['San Carlos de Rio Negro', 'Solano', 'Curimacare', 'Santa Lucia'], 'Rio Negro');
+CALL insert_parroquias(ARRAY['Fernando Giron Tovar', 'Luis Alberto Gomez', 'Parhueña', 'Platanillal'], 'Altures', 'Amazonas');
+CALL insert_parroquias(ARRAY['La Esmeralda', 'Marawaka', 'Mavaca', 'Sierra Parima'], 'Alto Orinoco', 'Amazonas');
+CALL insert_parroquias(ARRAY['San Fernando de Atabapo', 'Laja Lisa', 'Santa Barbara', 'Guarinuma'], 'Atabapo', 'Amazonas');
+CALL insert_parroquias(ARRAY['Isla Raton', 'San Pedro del Orinoco', 'Pendare', 'Manduapo', 'Samariapo'], 'Autana', 'Amazonas');
+CALL insert_parroquias(ARRAY['San Juan de Manapiare', 'Camani', 'Capure', 'Manueta'], 'Manapiare', 'Amazonas');
+CALL insert_parroquias(ARRAY['Maroa', 'Comunidad', 'Victorino'], 'Maroa', 'Amazonas');
+CALL insert_parroquias(ARRAY['San Carlos de Rio Negro', 'Solano', 'Curimacare', 'Santa Lucia'], 'Rio Negro', 'Amazonas');
 
 -- Anzoategui
 CALL insert_municipios(ARRAY['Anaco', 'Aragua', 'Diego Bautista Urbaneja', 'Fernando de Peñalver', 'Francisco del Carmen Carvajal', 'Francisco de Miranda', 'Guanta', 'Independencia', 'Jose Gregorio Monagas', 'Juan Antonio Sotillo', 'Juan Manuel Cajigal', 'Libertad', 'Manuel Ezequiel Bruzual', 'Pedro Maria Freites', 'Piritu', 'Guanipa', 'San Juan de Capistrano', 'Santa Ana', 'Simon Bolivar', 'Simon Rodriguez', 'Sir Arthur McGregor'], 'Anzoategui');
-CALL insert_parroquias(ARRAY['Anaco', 'San Joaquin'], 'Anaco');
-CALL insert_parroquias(ARRAY['Cachipo', 'Aragua de Barcelona'], 'Aragua');
-CALL insert_parroquias(ARRAY['Lecheria', 'El Morro'], 'Diego Bautista Urbaneja');
-CALL insert_parroquias(ARRAY['San Miguel', 'Sucre'], 'Fernando de Peñalver');
-CALL insert_parroquias(ARRAY['Valle de Guanape', 'Santa Barbara'], 'Francisco del Carmen Carvajal');
-CALL insert_parroquias(ARRAY['Atapirire', 'Boca del Pao', 'El Pao', 'Pariaguan'], 'Francisco de Miranda');
-CALL insert_parroquias(ARRAY['Guanta', 'Chorreron'], 'Guanta');
-CALL insert_parroquias(ARRAY['Mamo', 'Soledad'], 'Independencia');
-CALL insert_parroquias(ARRAY['Mapire', 'Piar', 'Santa Clara', 'San Diego de Cabrutica', 'Uverito', 'Zuata'], 'Jose Gregorio Monagas');
-CALL insert_parroquias(ARRAY['Puerto La Cruz', 'Pozuelos'], 'Juan Antonio Sotillo');
-CALL insert_parroquias(ARRAY['Onoto', 'San Pablo'], 'Juan Manuel Cajigal');
-CALL insert_parroquias(ARRAY['San Mateo', 'El Carito', 'Santa Ines', 'La Romereña'], 'Libertad');
-CALL insert_parroquias(ARRAY['Clarines', 'Guanape', 'Sabana de Uchire'], 'Manuel Ezequiel Bruzual');
-CALL insert_parroquias(ARRAY['Cantaura', 'Libertador', 'Santa Rosa', 'Urica'], 'Pedro Maria Freites');
-CALL insert_parroquias(ARRAY['Piritu', 'San Francisco'], 'Piritu');
-CALL insert_parroquias(ARRAY['San Jose de Guanipa'], 'Guanipa');
-CALL insert_parroquias(ARRAY['Boca de Uchire', 'Boca de Chavez'], 'San Juan de Capistrano');
-CALL insert_parroquias(ARRAY['Pueblo Nuevo', 'Santa Ana'], 'Santa Ana');
-CALL insert_parroquias(ARRAY['Bergantin', 'El Pilar', 'Naricual', 'San Cristobal'], 'Simon Bolivar');
-CALL insert_parroquias(ARRAY['Edmundo Barrios', 'Miguel Otero Silva'], 'Simon Rodriguez');
-CALL insert_parroquias(ARRAY['El Chaparro', 'Tomas Alfaro', 'Calatrava'], 'Sir Arthur McGregor');
+CALL insert_parroquias(ARRAY['Anaco', 'San Joaquin'], 'Anaco', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Cachipo', 'Aragua de Barcelona'], 'Aragua', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Lecheria', 'El Morro'], 'Diego Bautista Urbaneja', 'Anzoategui');
+CALL insert_parroquias(ARRAY['San Miguel', 'Sucre'], 'Fernando de Peñalver', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Valle de Guanape', 'Santa Barbara'], 'Francisco del Carmen Carvajal', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Atapirire', 'Boca del Pao', 'El Pao', 'Pariaguan'], 'Francisco de Miranda', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Guanta', 'Chorreron'], 'Guanta', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Mamo', 'Soledad'], 'Independencia', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Mapire', 'Piar', 'Santa Clara', 'San Diego de Cabrutica', 'Uverito', 'Zuata'], 'Jose Gregorio Monagas', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Puerto La Cruz', 'Pozuelos'], 'Juan Antonio Sotillo', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Onoto', 'San Pablo'], 'Juan Manuel Cajigal', 'Anzoategui');
+CALL insert_parroquias(ARRAY['San Mateo', 'El Carito', 'Santa Ines', 'La Romereña'], 'Libertad', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Clarines', 'Guanape', 'Sabana de Uchire'], 'Manuel Ezequiel Bruzual', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Cantaura', 'Libertador', 'Santa Rosa', 'Urica'], 'Pedro Maria Freites', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Piritu', 'San Francisco'], 'Piritu', 'Anzoategui');
+CALL insert_parroquias(ARRAY['San Jose de Guanipa'], 'Guanipa', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Boca de Uchire', 'Boca de Chavez'], 'San Juan de Capistrano', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Pueblo Nuevo', 'Santa Ana'], 'Santa Ana', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Bergantin', 'El Pilar', 'Naricual', 'San Cristobal'], 'Simon Bolivar', 'Anzoategui');
+CALL insert_parroquias(ARRAY['Edmundo Barrios', 'Miguel Otero Silva'], 'Simon Rodriguez', 'Anzoategui');
+CALL insert_parroquias(ARRAY['El Chaparro', 'Tomas Alfaro', 'Calatrava'], 'Sir Arthur McGregor', 'Anzoategui');
 
 -- Apure
 CALL insert_municipios(ARRAY['Achaguas', 'Biruaca', 'Muñoz', 'Paez', 'Pedro Camejo', 'Romulo Gallegos', 'San Fernando'], 'Apure');
-CALL insert_parroquias(ARRAY['Achaguas', 'Apurito', 'El Yagual', 'Guachara', 'Mucuritas', 'Queseras del Medio'], 'Achaguas');
-CALL insert_parroquias(ARRAY['Biruaca'], 'Biruaca');
-CALL insert_parroquias(ARRAY['Bruzual', 'Santa Barbara'], 'Muñoz');
-CALL insert_parroquias(ARRAY['Guasdualito', 'Aramendi', 'El Amparo', 'San Camilo', 'Urdaneta', 'Canagua', 'Dominga Ortiz de Paez', 'Santa Rosalia'], 'Paez');
-CALL insert_parroquias(ARRAY['San Juan de Payara', 'Codazzi', 'Cunaviche'], 'Pedro Camejo');
-CALL insert_parroquias(ARRAY['Elorza', 'La Trinidad de Orichuna'], 'Romulo Gallegos');
-CALL insert_parroquias(ARRAY['El Recreo', 'Peñalver', 'San Fernando de Apure', 'San Rafael de Atamaica'], 'San Fernando');
+CALL insert_parroquias(ARRAY['Achaguas', 'Apurito', 'El Yagual', 'Guachara', 'Mucuritas', 'Queseras del Medio'], 'Achaguas', 'Apure');
+CALL insert_parroquias(ARRAY['Biruaca'], 'Biruaca', 'Apure');
+CALL insert_parroquias(ARRAY['Bruzual', 'Santa Barbara'], 'Muñoz', 'Apure');
+CALL insert_parroquias(ARRAY['Guasdualito', 'Aramendi', 'El Amparo', 'San Camilo', 'Urdaneta', 'Canagua', 'Dominga Ortiz de Paez', 'Santa Rosalia'], 'Paez', 'Apure');
+CALL insert_parroquias(ARRAY['San Juan de Payara', 'Codazzi', 'Cunaviche'], 'Pedro Camejo', 'Apure');
+CALL insert_parroquias(ARRAY['Elorza', 'La Trinidad de Orichuna'], 'Romulo Gallegos', 'Apure');
+CALL insert_parroquias(ARRAY['El Recreo', 'Peñalver', 'San Fernando de Apure', 'San Rafael de Atamaica'], 'San Fernando', 'Apure');
 
 -- Aragua 
 CALL insert_municipios(ARRAY['Girardot', 'Bolivar', 'Mario Briceño Iragorry', 'Santos Michelena', 'Sucre', 'Santiago Mariño', 'Jose angel Lamas', 'Francisco Linares Alcantara', 'San Casimiro', 'Urdaneta', 'Jose Felix Ribas', 'Jose Rafael Revenga', 'Ocumare de la Costa de Oro', 'Tovar', 'Camatagua', 'Zamora', 'San Sebastian', 'Libertador'], 'Aragua'); 
-CALL insert_parroquias(ARRAY['Bolivar San Mateo'], 'Bolivar');
-CALL insert_parroquias(ARRAY['Camatagua', 'Carmen de Cura'], 'Camatagua');
-CALL insert_parroquias(ARRAY['Santa Rita', 'Francisco de Miranda', 'Moseñor Feliciano Gonzalez Paraparal'], 'Francisco Linares Alcantara');
-CALL insert_parroquias(ARRAY['Pedro Jose Ovalles', 'Joaquin Crespo', 'Jose Casanova Godoy', 'Madre Maria de San Jose', 'Andres Eloy Blanco', 'Los Tacarigua', 'Las Delicias', 'Choroni'], 'Girardot');
-CALL insert_parroquias(ARRAY['Santa Cruz'], 'Jose angel Lamas');
-CALL insert_parroquias(ARRAY['Jose Felix Ribas', 'Castor Nieves Rios', 'Las Guacamayas', 'Pao de Zarate', 'Zuata'], 'Jose Felix Ribas');
-CALL insert_parroquias(ARRAY['Jose Rafael Revenga'], 'Jose Rafael Revenga');
-CALL insert_parroquias(ARRAY['Palo Negro', 'San Martin de Porres'], 'Libertador');
-CALL insert_parroquias(ARRAY['El Limon', 'Caña de Azucar'], 'Mario Briceño Iragorry');
-CALL insert_parroquias(ARRAY['Ocumare de la Costa'], 'Ocumare de la Costa de Oro');
-CALL insert_parroquias(ARRAY['San Casimiro', 'Güiripa', 'Ollas de Caramacate', 'Valle Morin'], 'San Casimiro');
-CALL insert_parroquias(ARRAY['San Sebastian'], 'San Sebastian');
-CALL insert_parroquias(ARRAY['Turmero', 'Arevalo Aponte', 'Chuao', 'Saman de Güere', 'Alfredo Pacheco Miranda'], 'Santiago Mariño');
-CALL insert_parroquias(ARRAY['Santos Michelena', 'Tiara'], 'Santos Michelena');
-CALL insert_parroquias(ARRAY['Cagua', 'Bella Vista'], 'Sucre');
-CALL insert_parroquias(ARRAY['Tovar'], 'Tovar');
-CALL insert_parroquias(ARRAY['Urdaneta', 'Las Peñitas', 'San Francisco de Cara', 'Taguay'], 'Urdaneta');
-CALL insert_parroquias(ARRAY['Zamora', 'Magdaleno', 'San Francisco de Asis', 'Valles de Tucutunemo', 'Augusto Mijares'], 'Zamora');
+CALL insert_parroquias(ARRAY['Bolivar San Mateo'], 'Bolivar', 'Aragua');
+CALL insert_parroquias(ARRAY['Camatagua', 'Carmen de Cura'], 'Camatagua', 'Aragua');
+CALL insert_parroquias(ARRAY['Santa Rita', 'Francisco de Miranda', 'Moseñor Feliciano Gonzalez Paraparal'], 'Francisco Linares Alcantara', 'Aragua');
+CALL insert_parroquias(ARRAY['Pedro Jose Ovalles', 'Joaquin Crespo', 'Jose Casanova Godoy', 'Madre Maria de San Jose', 'Andres Eloy Blanco', 'Los Tacarigua', 'Las Delicias', 'Choroni'], 'Girardot', 'Aragua');
+CALL insert_parroquias(ARRAY['Santa Cruz'], 'Jose angel Lamas', 'Aragua');
+CALL insert_parroquias(ARRAY['Jose Felix Ribas', 'Castor Nieves Rios', 'Las Guacamayas', 'Pao de Zarate', 'Zuata'], 'Jose Felix Ribas', 'Aragua');
+CALL insert_parroquias(ARRAY['Jose Rafael Revenga'], 'Jose Rafael Revenga', 'Aragua');
+CALL insert_parroquias(ARRAY['Palo Negro', 'San Martin de Porres'], 'Libertador', 'Aragua');
+CALL insert_parroquias(ARRAY['El Limon', 'Caña de Azucar'], 'Mario Briceño Iragorry', 'Aragua');
+CALL insert_parroquias(ARRAY['Ocumare de la Costa'], 'Ocumare de la Costa de Oro', 'Aragua');
+CALL insert_parroquias(ARRAY['San Casimiro', 'Güiripa', 'Ollas de Caramacate', 'Valle Morin'], 'San Casimiro', 'Aragua');
+CALL insert_parroquias(ARRAY['San Sebastian'], 'San Sebastian', 'Aragua');
+CALL insert_parroquias(ARRAY['Turmero', 'Arevalo Aponte', 'Chuao', 'Saman de Güere', 'Alfredo Pacheco Miranda'], 'Santiago Mariño', 'Aragua');
+CALL insert_parroquias(ARRAY['Santos Michelena', 'Tiara'], 'Santos Michelena', 'Aragua');
+CALL insert_parroquias(ARRAY['Cagua', 'Bella Vista'], 'Sucre', 'Aragua');
+CALL insert_parroquias(ARRAY['Tovar'], 'Tovar', 'Aragua');
+CALL insert_parroquias(ARRAY['Urdaneta', 'Las Peñitas', 'San Francisco de Cara', 'Taguay'], 'Urdaneta', 'Aragua');
+CALL insert_parroquias(ARRAY['Zamora', 'Magdaleno', 'San Francisco de Asis', 'Valles de Tucutunemo', 'Augusto Mijares'], 'Zamora', 'Aragua');
 
 -- Barinas
 CALL insert_municipios(ARRAY['Alberto Arvelo Torrealba', 'Andres Eloy Blanco', 'Antonio Jose de Sucre', 'Arismendi', 'Barinas', 'Bolivar', 'Cruz Paredes', 'Ezequiel Zamora', 'Obispos', 'Pedraza', 'Sosa', 'Rojas'], 'Barinas');
-CALL insert_parroquias(ARRAY['Arismendi', 'Guadarrama', 'La Union', 'San Antonio'], 'Arismendi');
-CALL insert_parroquias(ARRAY['Barinas', 'Alfredo Arvelo Larriva', 'San Silvestre', 'Santa Ines', 'Santa Lucia', 'Torunos', 'El Carmen', 'Romulo Betancourt', 'Corazon de Jesus', 'Ramon Ignacio Mendez', 'Alto Barinas', 'Manuel Palacio Fajardo', 'Juan Antonio Rodriguez Dominguez', 'Dominga Ortiz de Paez'], 'Barinas');
-CALL insert_parroquias(ARRAY['El Canton', 'Santa Cruz de Guacas', 'Puerto Vivas'], 'Andres Eloy Blanco');
-CALL insert_parroquias(ARRAY['Barinitas', 'Altamira de Caceres', 'Calderas'], 'Bolivar');
-CALL insert_parroquias(ARRAY['Masparrito', 'El Socorro', 'Barrancas'], 'Cruz Paredes');
-CALL insert_parroquias(ARRAY['Obispos', 'El Real', 'La Luz', 'Los Guasimitos'], 'Obispos');
-CALL insert_parroquias(ARRAY['Ciudad Bolivia', 'Ignacio Briceño', 'Jose Felix Ribas', 'Paez'], 'Pedraza');
-CALL insert_parroquias(ARRAY['Libertad', 'Dolores', 'Santa Rosa', 'Simon Rodriguez', 'Palacio Fajardo'], 'Rojas');
-CALL insert_parroquias(ARRAY['Ciudad de Nutrias', 'El Regalo', 'Puerto Nutrias', 'Santa Catalina', 'Simon Bolivar'], 'Sosa');
-CALL insert_parroquias(ARRAY['Ticoporo', 'Nicolas Pulido', 'Andres Bello'], 'Antonio Jose de Sucre');
-CALL insert_parroquias(ARRAY['Sabaneta', 'Juan Antonio Rodriguez Dominguez'], 'Alberto Arvelo Torrealba');
-CALL insert_parroquias(ARRAY['Santa Barbara', 'Pedro Briceño Mendez', 'Ramon Ignacio Mendez', 'Jose Ignacio del Pumar'], 'Ezequiel Zamora');
+CALL insert_parroquias(ARRAY['Arismendi', 'Guadarrama', 'La Union', 'San Antonio'], 'Arismendi', 'Barinas');
+CALL insert_parroquias(ARRAY['Barinas', 'Alfredo Arvelo Larriva', 'San Silvestre', 'Santa Ines', 'Santa Lucia', 'Torunos', 'El Carmen', 'Romulo Betancourt', 'Corazon de Jesus', 'Ramon Ignacio Mendez', 'Alto Barinas', 'Manuel Palacio Fajardo', 'Juan Antonio Rodriguez Dominguez', 'Dominga Ortiz de Paez'], 'Barinas', 'Barinas');
+CALL insert_parroquias(ARRAY['El Canton', 'Santa Cruz de Guacas', 'Puerto Vivas'], 'Andres Eloy Blanco', 'Barinas');
+CALL insert_parroquias(ARRAY['Barinitas', 'Altamira de Caceres', 'Calderas'], 'Bolivar', 'Barinas');
+CALL insert_parroquias(ARRAY['Masparrito', 'El Socorro', 'Barrancas'], 'Cruz Paredes', 'Barinas');
+CALL insert_parroquias(ARRAY['Obispos', 'El Real', 'La Luz', 'Los Guasimitos'], 'Obispos', 'Barinas');
+CALL insert_parroquias(ARRAY['Ciudad Bolivia', 'Ignacio Briceño', 'Jose Felix Ribas', 'Paez'], 'Pedraza', 'Barinas');
+CALL insert_parroquias(ARRAY['Libertad', 'Dolores', 'Santa Rosa', 'Simon Rodriguez', 'Palacio Fajardo'], 'Rojas', 'Barinas');
+CALL insert_parroquias(ARRAY['Ciudad de Nutrias', 'El Regalo', 'Puerto Nutrias', 'Santa Catalina', 'Simon Bolivar'], 'Sosa', 'Barinas');
+CALL insert_parroquias(ARRAY['Ticoporo', 'Nicolas Pulido', 'Andres Bello'], 'Antonio Jose de Sucre', 'Barinas');
+CALL insert_parroquias(ARRAY['Sabaneta', 'Juan Antonio Rodriguez Dominguez'], 'Alberto Arvelo Torrealba', 'Barinas');
+CALL insert_parroquias(ARRAY['Santa Barbara', 'Pedro Briceño Mendez', 'Ramon Ignacio Mendez', 'Jose Ignacio del Pumar'], 'Ezequiel Zamora', 'Barinas');
 
 -- Bolivar
 CALL insert_municipios(ARRAY['Caroni', 'Cedeño', 'El Callao', 'Gran Sabana', 'Heres', 'Padre Pedro Chien', 'Piar', 'Angostura', 'Roscio', 'Sifontes', 'Sucre'], 'Bolivar');
-CALL insert_parroquias(ARRAY['Cachamay', 'Chirica', 'Dalla Costa', 'Once de Abril', 'Simon Bolivar', 'Unare', 'Universidad', 'Vista al Sol', 'Pozo Verde', 'Yocoima', '5 de Julio'], 'Caroni');
-CALL insert_parroquias(ARRAY['Cedeño', 'Altagracia', 'Ascension Farreras', 'Guaniamo', 'La Urbana', 'Pijiguaos'], 'Cedeño');
-CALL insert_parroquias(ARRAY['El Callao'], 'El Callao');
-CALL insert_parroquias(ARRAY['Gran Sabana', 'Ikabaru'], 'Gran Sabana');
-CALL insert_parroquias(ARRAY['Catedral', 'Zea', 'Orinoco', 'Jose Antonio Paez', 'Marhuanta', 'Agua Salada', 'Vista Hermosa', 'La Sabanita', 'Panapana'], 'Heres');
-CALL insert_parroquias(ARRAY['Padre Pedro Chien'], 'Padre Pedro Chien');
-CALL insert_parroquias(ARRAY['Andres Eloy Blanco', 'Pedro Cova', 'Upata'], 'Piar');
-CALL insert_parroquias(ARRAY['Raul Leoni', 'Barceloneta', 'Santa Barbara', 'San Francisco'], 'Angostura');
-CALL insert_parroquias(ARRAY['Roscio', 'Salom'], 'Roscio');
-CALL insert_parroquias(ARRAY['Tumeremo', 'Dalla Costa', 'San Isidro'], 'Sifontes');
-CALL insert_parroquias(ARRAY['Sucre', 'Aripao', 'Guarataro', 'Las Majadas', 'Moitaco'], 'Sucre');
+CALL insert_parroquias(ARRAY['Cachamay', 'Chirica', 'Dalla Costa', 'Once de Abril', 'Simon Bolivar', 'Unare', 'Universidad', 'Vista al Sol', 'Pozo Verde', 'Yocoima', '5 de Julio'], 'Caroni', 'Bolivar');
+CALL insert_parroquias(ARRAY['Cedeño', 'Altagracia', 'Ascension Farreras', 'Guaniamo', 'La Urbana', 'Pijiguaos'], 'Cedeño', 'Bolivar');
+CALL insert_parroquias(ARRAY['El Callao'], 'El Callao', 'Bolivar');
+CALL insert_parroquias(ARRAY['Gran Sabana', 'Ikabaru'], 'Gran Sabana', 'Bolivar');
+CALL insert_parroquias(ARRAY['Catedral', 'Zea', 'Orinoco', 'Jose Antonio Paez', 'Marhuanta', 'Agua Salada', 'Vista Hermosa', 'La Sabanita', 'Panapana'], 'Heres', 'Bolivar');
+CALL insert_parroquias(ARRAY['Padre Pedro Chien'], 'Padre Pedro Chien', 'Bolivar');
+CALL insert_parroquias(ARRAY['Andres Eloy Blanco', 'Pedro Cova', 'Upata'], 'Piar', 'Bolivar');
+CALL insert_parroquias(ARRAY['Raul Leoni', 'Barceloneta', 'Santa Barbara', 'San Francisco'], 'Angostura', 'Bolivar');
+CALL insert_parroquias(ARRAY['Roscio', 'Salom'], 'Roscio', 'Bolivar');
+CALL insert_parroquias(ARRAY['Tumeremo', 'Dalla Costa', 'San Isidro'], 'Sifontes', 'Bolivar');
+CALL insert_parroquias(ARRAY['Sucre', 'Aripao', 'Guarataro', 'Las Majadas', 'Moitaco'], 'Sucre', 'Bolivar');
 
 -- Carabobo
 CALL insert_municipios(ARRAY['Bejuma','Carlos Arvelo','Diego Ibarra','Guacara','Juan Jose Mora','Libertador','Los Guayos','Miranda','Montalban','Naguanagua','Puerto Cabello','San Diego','San Joaquin','Valencia'],'Carabobo');
-CALL insert_parroquias(ARRAY['Canoabo', 'Simon Bolivar'], 'Bejuma');
-CALL insert_parroquias(ARRAY['Güigüe', 'Belen', 'Tacarigua'], 'Carlos Arvelo');
-CALL insert_parroquias(ARRAY['Mariara', 'Aguas Calientes'], 'Diego Ibarra');
-CALL insert_parroquias(ARRAY['Ciudad Alianza', 'Guacara', 'Yagua'], 'Guacara');
-CALL insert_parroquias(ARRAY['Moron', 'Urama'], 'Juan Jose Mora');
-CALL insert_parroquias(ARRAY['Tocuyito Valencia', 'Independencia Campo Carabobo'], 'Libertador');
-CALL insert_parroquias(ARRAY['Los Guayos Valencia'], 'Los Guayos');
-CALL insert_parroquias(ARRAY['Miranda'], 'Miranda');
-CALL insert_parroquias(ARRAY['Montalban'], 'Montalban');
-CALL insert_parroquias(ARRAY['Urbana Naguanagua Valencia'], 'Naguanagua');
-CALL insert_parroquias(ARRAY['Bartolome Salom', 'Democracia', 'Fraternidad', 'Goaigoaza', 'Juan Jose Flores', 'Union', 'Borburata', 'Patanemo'], 'Puerto Cabello');
-CALL insert_parroquias(ARRAY['San Diego Valencia'], 'San Diego');
-CALL insert_parroquias(ARRAY['San Joaquin'], 'San Joaquin');
-CALL insert_parroquias(ARRAY['Urbana Candelaria', 'Urbana Catedral', 'Urbana El Socorro', 'Urbana Miguel Peña', 'Urbana Rafael Urdaneta', 'Urbana San Blas', 'Urbana San Jose', 'Urbana Santa Rosa', 'Rural Negro Primero'], 'Valencia');
+CALL insert_parroquias(ARRAY['Canoabo', 'Simon Bolivar'], 'Bejuma', 'Carabobo');
+CALL insert_parroquias(ARRAY['Güigüe', 'Belen', 'Tacarigua'], 'Carlos Arvelo', 'Carabobo');
+CALL insert_parroquias(ARRAY['Mariara', 'Aguas Calientes'], 'Diego Ibarra', 'Carabobo');
+CALL insert_parroquias(ARRAY['Ciudad Alianza', 'Guacara', 'Yagua'], 'Guacara', 'Carabobo');
+CALL insert_parroquias(ARRAY['Moron', 'Urama'], 'Juan Jose Mora', 'Carabobo');
+CALL insert_parroquias(ARRAY['Tocuyito Valencia', 'Independencia Campo Carabobo'], 'Libertador', 'Carabobo');
+CALL insert_parroquias(ARRAY['Los Guayos Valencia'], 'Los Guayos', 'Carabobo');
+CALL insert_parroquias(ARRAY['Miranda'], 'Miranda', 'Carabobo');
+CALL insert_parroquias(ARRAY['Montalban'], 'Montalban', 'Carabobo');
+CALL insert_parroquias(ARRAY['Urbana Naguanagua Valencia'], 'Naguanagua', 'Carabobo');
+CALL insert_parroquias(ARRAY['Bartolome Salom', 'Democracia', 'Fraternidad', 'Goaigoaza', 'Juan Jose Flores', 'Union', 'Borburata', 'Patanemo'], 'Puerto Cabello', 'Carabobo');
+CALL insert_parroquias(ARRAY['San Diego Valencia'], 'San Diego', 'Carabobo');
+CALL insert_parroquias(ARRAY['San Joaquin'], 'San Joaquin', 'Carabobo');
+CALL insert_parroquias(ARRAY['Urbana Candelaria', 'Urbana Catedral', 'Urbana El Socorro', 'Urbana Miguel Peña', 'Urbana Rafael Urdaneta', 'Urbana San Blas', 'Urbana San Jose', 'Urbana Santa Rosa', 'Rural Negro Primero'], 'Valencia', 'Carabobo');
 
 -- Cojedes
 CALL insert_municipios(ARRAY['Anzoategui','Pao de San Juan Bautista','Tinaquillo','Girardot','Lima Blanco','Ricaurte','Romulo Gallegos','Ezequiel Zamora','Tinaco'],'Cojedes');
-CALL insert_parroquias(ARRAY['Cojedes', 'Juan de Mata Suarez'], 'Anzoategui');
-CALL insert_parroquias(ARRAY['El Pao'], 'Pao de San Juan Bautista');
-CALL insert_parroquias(ARRAY['Tinaquillo'], 'Tinaquillo');
-CALL insert_parroquias(ARRAY['El Baul', 'Sucre'], 'Girardot');
-CALL insert_parroquias(ARRAY['La Aguadita', 'Macapo'], 'Lima Blanco');
-CALL insert_parroquias(ARRAY['El Amparo', 'Libertad de Cojedes'], 'Ricaurte');
-CALL insert_parroquias(ARRAY['Romulo Gallegos (Las Vegas)'], 'Romulo Gallegos');
-CALL insert_parroquias(ARRAY['San Carlos de Austria', 'Juan angel Bravo', 'Manuel Manrique'], 'Ezequiel Zamora');
-CALL insert_parroquias(ARRAY['General en Jefe Jos Laurencio Silva'], 'Tinaco');
+CALL insert_parroquias(ARRAY['Cojedes', 'Juan de Mata Suarez'], 'Anzoategui', 'Cojedes');
+CALL insert_parroquias(ARRAY['El Pao'], 'Pao de San Juan Bautista', 'Cojedes');
+CALL insert_parroquias(ARRAY['Tinaquillo'], 'Tinaquillo', 'Cojedes');
+CALL insert_parroquias(ARRAY['El Baul', 'Sucre'], 'Girardot', 'Cojedes');
+CALL insert_parroquias(ARRAY['La Aguadita', 'Macapo'], 'Lima Blanco', 'Cojedes');
+CALL insert_parroquias(ARRAY['El Amparo', 'Libertad de Cojedes'], 'Ricaurte', 'Cojedes');
+CALL insert_parroquias(ARRAY['Romulo Gallegos (Las Vegas)'], 'Romulo Gallegos', 'Cojedes');
+CALL insert_parroquias(ARRAY['San Carlos de Austria', 'Juan angel Bravo', 'Manuel Manrique'], 'Ezequiel Zamora', 'Cojedes');
+CALL insert_parroquias(ARRAY['General en Jefe Jos Laurencio Silva'], 'Tinaco', 'Cojedes');
 
 -- Delta Amacuro
 CALL insert_municipios(ARRAY['Antonio Diaz','Casacoima','Pedernales','Tucupita'],'Delta Amacuro');
-CALL insert_parroquias(ARRAY['Curiapo','Almirante Luis Brion','Francisco Aniceto Lugo','Manuel Renaud','Padre Barral','Santos de Abelgas'],'Antonio Diaz');
-CALL insert_parroquias(ARRAY['Imataca','Juan Bautista Arismendi','Manuel Piar','Romulo Gallegos'],'Casacoima');
-CALL insert_parroquias(ARRAY['Pedernales','Luis Beltran Prieto Figueroa'],'Pedernales');
-CALL insert_parroquias(ARRAY['San Jose','Jose Vidal Marcano','Leonardo Ruiz Pineda','Mariscal Antonio Jose de Sucre','Monseñor Argimiro Garcia','Virgen del Valle','San Rafael','Juan Millan'],'Tucupita');
+CALL insert_parroquias(ARRAY['Curiapo','Almirante Luis Brion','Francisco Aniceto Lugo','Manuel Renaud','Padre Barral','Santos de Abelgas'],'Antonio Diaz','Delta Amacuro');
+CALL insert_parroquias(ARRAY['Imataca','Juan Bautista Arismendi','Manuel Piar','Romulo Gallegos'],'Casacoima','Delta Amacuro');
+CALL insert_parroquias(ARRAY['Pedernales','Luis Beltran Prieto Figueroa'],'Pedernales','Delta Amacuro');
+CALL insert_parroquias(ARRAY['San Jose','Jose Vidal Marcano','Leonardo Ruiz Pineda','Mariscal Antonio Jose de Sucre','Monseñor Argimiro Garcia','Virgen del Valle','San Rafael','Juan Millan'],'Tucupita','Delta Amacuro');
 
 -- Distrito Federal
 CALL insert_municipios(ARRAY['Libertador'],'Distrito Capital');
-CALL insert_parroquias(ARRAY['23 de Enero','Altagracia','Antimano','Caricuao','Catedral','Coche','El Junquito','El Paraiso','El Recreo','El Valle','La Candelaria','La Pastora','La Vega','Macarao','San Agustin','San Bernardino','San Jose','San Juan','San Pedro','Santa Rosalia','Santa Teresa','Sucre'],'Libertador');
+CALL insert_parroquias(ARRAY['23 de Enero','Altagracia','Antimano','Caricuao','Catedral','Coche','El Junquito','El Paraiso','El Recreo','El Valle','La Candelaria','La Pastora','La Vega','Macarao','San Agustin','San Bernardino','San Jose','San Juan','San Pedro','Santa Rosalia','Santa Teresa','Sucre'],'Libertador','Distrito Capital');
 
 -- Falcon
 CALL insert_municipios(ARRAY['Acosta','Bolivar','Buchivacoa','Cacique Manaure','Carirubana','Colina','Dabajuro','Democracia','Falcon','Federacion','Jacura','Los Taques','Mauroa','Miranda','Monseñor Iturriza','Palmasola','Petit','Piritu','San Francisco','Jose Laurencio Silva','Sucre','Tocopero','Union','Urumaco','Zamora'],'Falcon');
-CALL insert_parroquias(ARRAY['Capadare', 'La Pastora', 'Libertador', 'San Juan de los Cayos'], 'Acosta');
-CALL insert_parroquias(ARRAY['Aracua', 'La Peña', 'San Luis'], 'Bolivar');
-CALL insert_parroquias(ARRAY['Bariro', 'Borojo', 'Capatarida', 'Guajiro', 'Seque', 'Valle de Eroa', 'Zazarida'], 'Buchivacoa');
-CALL insert_parroquias(ARRAY['Cacique Manaure (Yaracal)'], 'Cacique Manaure');
-CALL insert_parroquias(ARRAY['Norte', 'Carirubana', 'Santa Ana', 'Urbana Punta Cardon'], 'Carirubana');
-CALL insert_parroquias(ARRAY['La Vela de Coro', 'Acurigua', 'Guaibacoa', 'Las Calderas', 'Mataruca'], 'Colina');
-CALL insert_parroquias(ARRAY['Dabajuro'], 'Dabajuro');
-CALL insert_parroquias(ARRAY['Agua Clara', 'Avaria', 'Pedregal', 'Piedra Grande', 'Purureche'], 'Democracia');
-CALL insert_parroquias(ARRAY['Adaure', 'Adicora', 'Baraived', 'Buena Vista', 'Jadacaquiva', 'El Vinculo', 'El Hato', 'Moruy', 'Pueblo Nuevo'], 'Falcon');
-CALL insert_parroquias(ARRAY['Agua Larga', 'Churuguara', 'El Pauji', 'Independencia', 'Maparari'], 'Federacion');
-CALL insert_parroquias(ARRAY['Agua Linda', 'Araurima', 'Jacura'], 'Jacura');
-CALL insert_parroquias(ARRAY['Tucacas', 'Boca de Aroa'], 'Jose Laurencio Silva');
-CALL insert_parroquias(ARRAY['Los Taques', 'Judibana'], 'Los Taques');
-CALL insert_parroquias(ARRAY['Mene de Mauroa', 'San Felix', 'Casigua'], 'Mauroa');
-CALL insert_parroquias(ARRAY['Guzman Guillermo', 'Mitare', 'Rio Seco', 'Sabaneta', 'San Antonio', 'San Gabriel', 'Santa Ana'], 'Miranda');
-CALL insert_parroquias(ARRAY['Boca del Tocuyo', 'Chichiriviche', 'Tocuyo de la Costa'], 'Monseñor Iturriza');
-CALL insert_parroquias(ARRAY['Palmasola'], 'Palmasola');
-CALL insert_parroquias(ARRAY['Cabure', 'Colina', 'Curimagua'], 'Petit');
-CALL insert_parroquias(ARRAY['San Jose de la Costa', 'Piritu'], 'Piritu');
-CALL insert_parroquias(ARRAY['Capital San Francisco Mirimire'], 'San Francisco');
-CALL insert_parroquias(ARRAY['Sucre', 'Pecaya'], 'Sucre');
-CALL insert_parroquias(ARRAY['Tocopero'], 'Tocopero');
-CALL insert_parroquias(ARRAY['El Charal', 'Las Vegas del Tuy', 'Santa Cruz de Bucaral'], 'Union');
-CALL insert_parroquias(ARRAY['Bruzual', 'Urumaco'], 'Urumaco');
-CALL insert_parroquias(ARRAY['Puerto Cumarebo', 'La Cienaga', 'La Soledad', 'Pueblo Cumarebo', 'Zazarida'], 'Zamora');
+CALL insert_parroquias(ARRAY['Capadare', 'La Pastora', 'Libertador', 'San Juan de los Cayos'], 'Acosta', 'Falcon');
+CALL insert_parroquias(ARRAY['Aracua', 'La Peña', 'San Luis'], 'Bolivar', 'Falcon');
+CALL insert_parroquias(ARRAY['Bariro', 'Borojo', 'Capatarida', 'Guajiro', 'Seque', 'Valle de Eroa', 'Zazarida'], 'Buchivacoa', 'Falcon');
+CALL insert_parroquias(ARRAY['Cacique Manaure (Yaracal)'], 'Cacique Manaure', 'Falcon');
+CALL insert_parroquias(ARRAY['Norte', 'Carirubana', 'Santa Ana', 'Urbana Punta Cardon'], 'Carirubana', 'Falcon');
+CALL insert_parroquias(ARRAY['La Vela de Coro', 'Acurigua', 'Guaibacoa', 'Las Calderas', 'Mataruca'], 'Colina', 'Falcon');
+CALL insert_parroquias(ARRAY['Dabajuro'], 'Dabajuro', 'Falcon');
+CALL insert_parroquias(ARRAY['Agua Clara', 'Avaria', 'Pedregal', 'Piedra Grande', 'Purureche'], 'Democracia', 'Falcon');
+CALL insert_parroquias(ARRAY['Adaure', 'Adicora', 'Baraived', 'Buena Vista', 'Jadacaquiva', 'El Vinculo', 'El Hato', 'Moruy', 'Pueblo Nuevo'], 'Falcon', 'Falcon');
+CALL insert_parroquias(ARRAY['Agua Larga', 'Churuguara', 'El Pauji', 'Independencia', 'Maparari'], 'Federacion', 'Falcon');
+CALL insert_parroquias(ARRAY['Agua Linda', 'Araurima', 'Jacura'], 'Jacura', 'Falcon');
+CALL insert_parroquias(ARRAY['Tucacas', 'Boca de Aroa'], 'Jose Laurencio Silva', 'Falcon');
+CALL insert_parroquias(ARRAY['Los Taques', 'Judibana'], 'Los Taques', 'Falcon');
+CALL insert_parroquias(ARRAY['Mene de Mauroa', 'San Felix', 'Casigua'], 'Mauroa', 'Falcon');
+CALL insert_parroquias(ARRAY['Guzman Guillermo', 'Mitare', 'Rio Seco', 'Sabaneta', 'San Antonio', 'San Gabriel', 'Santa Ana'], 'Miranda', 'Falcon');
+CALL insert_parroquias(ARRAY['Boca del Tocuyo', 'Chichiriviche', 'Tocuyo de la Costa'], 'Monseñor Iturriza', 'Falcon');
+CALL insert_parroquias(ARRAY['Palmasola'], 'Palmasola', 'Falcon');
+CALL insert_parroquias(ARRAY['Cabure', 'Colina', 'Curimagua'], 'Petit', 'Falcon');
+CALL insert_parroquias(ARRAY['San Jose de la Costa', 'Piritu'], 'Piritu', 'Falcon');
+CALL insert_parroquias(ARRAY['Capital San Francisco Mirimire'], 'San Francisco', 'Falcon');
+CALL insert_parroquias(ARRAY['Sucre', 'Pecaya'], 'Sucre', 'Falcon');
+CALL insert_parroquias(ARRAY['Tocopero'], 'Tocopero', 'Falcon');
+CALL insert_parroquias(ARRAY['El Charal', 'Las Vegas del Tuy', 'Santa Cruz de Bucaral'], 'Union', 'Falcon');
+CALL insert_parroquias(ARRAY['Bruzual', 'Urumaco'], 'Urumaco', 'Falcon');
+CALL insert_parroquias(ARRAY['Puerto Cumarebo', 'La Cienaga', 'La Soledad', 'Pueblo Cumarebo', 'Zazarida'], 'Zamora', 'Falcon');
 
 -- Guarico
 CALL insert_municipios(ARRAY['Leonardo Infante','Julian Mellado','Francisco de Miranda','Monagas','Ribas','Roscio','Camaguan','San Jose de Guaribe','Las Mercedes','El Socorro','Ortiz','Santa Maria de Ipire','Chaguaramas','San Jeronimo de Guayabal', 'Juan Jose Rondon', 'Jose Felix Ribas', 'Jose Tadeo Monagas','Juan German Roscio','Pedro Zaraza'],'Guarico');
-CALL insert_parroquias(ARRAY['Camaguan', 'Puerto Miranda', 'Uverito'], 'Camaguan');
-CALL insert_parroquias(ARRAY['Chaguaramas'], 'Chaguaramas');
-CALL insert_parroquias(ARRAY['El Socorro'], 'El Socorro');
-CALL insert_parroquias(ARRAY['El Calvario', 'El Rastro', 'Guardatinajas', 'Capital Urbana Calabozo'], 'Francisco de Miranda');
-CALL insert_parroquias(ARRAY['Tucupido', 'San Rafael de Laya'], 'Jose Felix Ribas');
-CALL insert_parroquias(ARRAY['Altagracia de Orituco', 'San Rafael de Orituco', 'San Francisco Javier de Lezama', 'Paso Real de Macaira', 'Carlos Soublette', 'San Francisco de Macaira', 'Libertad de Orituco'], 'Jose Tadeo Monagas');
-CALL insert_parroquias(ARRAY['Cantagallo', 'San Juan de los Morros', 'Parapara'], 'Juan German Roscio');
-CALL insert_parroquias(ARRAY['El Sombrero', 'Sosa'], 'Julian Mellado');
-CALL insert_parroquias(ARRAY['Las Mercedes', 'Cabruta', 'Santa Rita de Manapire'], 'Juan Jose Rondon');
-CALL insert_parroquias(ARRAY['Valle de la Pascua', 'Espino'], 'Leonardo Infante');
-CALL insert_parroquias(ARRAY['San Jose de Tiznados', 'San Francisco de Tiznados', 'San Lorenzo de Tiznados', 'Ortiz'], 'Ortiz');
-CALL insert_parroquias(ARRAY['San Jose de Unare', 'Zaraza'], 'Pedro Zaraza');
-CALL insert_parroquias(ARRAY['Guayabal', 'Cazorla'], 'San Jeronimo de Guayabal');
-CALL insert_parroquias(ARRAY['San Jose de Guaribe'], 'San Jose de Guaribe');
-CALL insert_parroquias(ARRAY['Santa Maria de Ipire', 'Altamira'], 'Santa Maria de Ipire');
+CALL insert_parroquias(ARRAY['Camaguan', 'Puerto Miranda', 'Uverito'], 'Camaguan', 'Guarico');
+CALL insert_parroquias(ARRAY['Chaguaramas'], 'Chaguaramas', 'Guarico');
+CALL insert_parroquias(ARRAY['El Socorro'], 'El Socorro', 'Guarico');
+CALL insert_parroquias(ARRAY['El Calvario', 'El Rastro', 'Guardatinajas', 'Capital Urbana Calabozo'], 'Francisco de Miranda', 'Guarico');
+CALL insert_parroquias(ARRAY['Tucupido', 'San Rafael de Laya'], 'Jose Felix Ribas', 'Guarico');
+CALL insert_parroquias(ARRAY['Altagracia de Orituco', 'San Rafael de Orituco', 'San Francisco Javier de Lezama', 'Paso Real de Macaira', 'Carlos Soublette', 'San Francisco de Macaira', 'Libertad de Orituco'], 'Jose Tadeo Monagas', 'Guarico');
+CALL insert_parroquias(ARRAY['Cantagallo', 'San Juan de los Morros', 'Parapara'], 'Juan German Roscio', 'Guarico');
+CALL insert_parroquias(ARRAY['El Sombrero', 'Sosa'], 'Julian Mellado', 'Guarico');
+CALL insert_parroquias(ARRAY['Las Mercedes', 'Cabruta', 'Santa Rita de Manapire'], 'Juan Jose Rondon', 'Guarico');
+CALL insert_parroquias(ARRAY['Valle de la Pascua', 'Espino'], 'Leonardo Infante', 'Guarico');
+CALL insert_parroquias(ARRAY['San Jose de Tiznados', 'San Francisco de Tiznados', 'San Lorenzo de Tiznados', 'Ortiz'], 'Ortiz', 'Guarico');
+CALL insert_parroquias(ARRAY['San Jose de Unare', 'Zaraza'], 'Pedro Zaraza', 'Guarico');
+CALL insert_parroquias(ARRAY['Guayabal', 'Cazorla'], 'San Jeronimo de Guayabal', 'Guarico');
+CALL insert_parroquias(ARRAY['San Jose de Guaribe'], 'San Jose de Guaribe', 'Guarico');
+CALL insert_parroquias(ARRAY['Santa Maria de Ipire', 'Altamira'], 'Santa Maria de Ipire', 'Guarico');
 
 -- La Guaira
 CALL insert_municipios(ARRAY['Vargas'], 'La Guaira');
-CALL insert_parroquias(ARRAY['Caraballeda','Carayaca','Carlos Soublette','Caruao','Catia La Mar','El Junko','La Guaira','Macuto','Maiquetia','Naiguata','Urimare'],'Vargas');
+CALL insert_parroquias(ARRAY['Caraballeda','Carayaca','Carlos Soublette','Caruao','Catia La Mar','El Junko','La Guaira','Macuto','Maiquetia','Naiguata','Urimare'],'Vargas','La Guaira');
 
 -- Lara
 CALL insert_municipios(ARRAY['Iribarren','Jimenez','Crespo','Andres Eloy Blanco','Urdaneta','Torres','Palavecino','Moran','Simon Planas'],'Lara');
-CALL insert_parroquias(ARRAY['Quebrada Honda de Guache', 'Pio Tamayo', 'Yacambu'], 'Andres Eloy Blanco');
-CALL insert_parroquias(ARRAY['Freitez', 'Jose Maria Blanco'], 'Crespo');
-CALL insert_parroquias(ARRAY['Anzoategui', 'Bolivar', 'Guarico', 'Hilario Luna y Luna', 'Humocaro Bajo', 'Humocaro Alto', 'La Candelaria', 'Moran'], 'Moran');
-CALL insert_parroquias(ARRAY['Cabudare', 'Jose Gregorio Bastidas', 'Agua Viva'], 'Palavecino');
-CALL insert_parroquias(ARRAY['Buria', 'Gustavo Vega', 'Sarare'], 'Simon Planas');
-CALL insert_parroquias(ARRAY['Altagracia', 'Antonio Diaz', 'Camacaro', 'Castañeda', 'Cecilio Zubillaga', 'Chiquinquira', 'El Blanco', 'Espinoza de los Monteros', 'Heriberto Arrollo', 'Lara', 'Las Mercedes', 'Manuel Morillo', 'Montaña Verde', 'Montes de Oca', 'Reyes de Vargas', 'Torres', 'Trinidad Samuel'], 'Torres');
-CALL insert_parroquias(ARRAY['Xaguas', 'Siquisique', 'San Miguel', 'Moroturo'], 'Urdaneta');
-CALL insert_parroquias(ARRAY['Aguedo Felipe Alvarado', 'Buena Vista', 'Catedral', 'Concepcion', 'El Cuji', 'Juares', 'Guerrera Ana Soto', 'Santa Rosa', 'Tamaca', 'Union'], 'Iribarren');
-CALL insert_parroquias(ARRAY['Juan Bautista Rodriguez', 'Cuara', 'Diego de Lozada', 'Paraiso de San Jose', 'San Miguel', 'Tintorero', 'Jose Bernardo Dorante', 'Coronel Mariano Peraza'], 'Jimenez');
+CALL insert_parroquias(ARRAY['Quebrada Honda de Guache', 'Pio Tamayo', 'Yacambu'], 'Andres Eloy Blanco', 'Lara');
+CALL insert_parroquias(ARRAY['Freitez', 'Jose Maria Blanco'], 'Crespo', 'Lara');
+CALL insert_parroquias(ARRAY['Anzoategui', 'Bolivar', 'Guarico', 'Hilario Luna y Luna', 'Humocaro Bajo', 'Humocaro Alto', 'La Candelaria', 'Moran'], 'Moran', 'Lara');
+CALL insert_parroquias(ARRAY['Cabudare', 'Jose Gregorio Bastidas', 'Agua Viva'], 'Palavecino', 'Lara');
+CALL insert_parroquias(ARRAY['Buria', 'Gustavo Vega', 'Sarare'], 'Simon Planas', 'Lara');
+CALL insert_parroquias(ARRAY['Altagracia', 'Antonio Diaz', 'Camacaro', 'Castañeda', 'Cecilio Zubillaga', 'Chiquinquira', 'El Blanco', 'Espinoza de los Monteros', 'Heriberto Arrollo', 'Lara', 'Las Mercedes', 'Manuel Morillo', 'Montaña Verde', 'Montes de Oca', 'Reyes de Vargas', 'Torres', 'Trinidad Samuel'], 'Torres', 'Lara');
+CALL insert_parroquias(ARRAY['Xaguas', 'Siquisique', 'San Miguel', 'Moroturo'], 'Urdaneta', 'Lara');
+CALL insert_parroquias(ARRAY['Aguedo Felipe Alvarado', 'Buena Vista', 'Catedral', 'Concepcion', 'El Cuji', 'Juares', 'Guerrera Ana Soto', 'Santa Rosa', 'Tamaca', 'Union'], 'Iribarren', 'Lara');
+CALL insert_parroquias(ARRAY['Juan Bautista Rodriguez', 'Cuara', 'Diego de Lozada', 'Paraiso de San Jose', 'San Miguel', 'Tintorero', 'Jose Bernardo Dorante', 'Coronel Mariano Peraza'], 'Jimenez', 'Lara');
 
 -- Merida
 CALL insert_municipios(ARRAY['Antonio Pinto Salinas','Aricagua','Arzobispo Chacon','Campo Elias','Caracciolo Parra Olmedo','Cardenal Quintero','Chacanta','El Mucuy','Guaraque','Julio Cesar Salas','Justo Briceño','Libertador','Luis Cristobal Moncada','Rivas Davila','Rangel','Santos Marquina','Tovar','Tulio Febres Cordero','Alberto Adriani','Andres Bello','Miranda','Zea','Sucre','Pueblo Llano','Obispo Ramos de Lora','Padre Noguera'],'Merida');
-CALL insert_parroquias(ARRAY['Presidente Betancourt','Presidente Paez','Presidente Romulo Gallegos','Gabriel Picon Gonzalez','Hector Amable Mora','Jose Nucete Sardi','Pulido Mendez'],'Alberto Adriani');
-CALL insert_parroquias(ARRAY['Santa Cruz de Mora','Mesa Bolivar','Mesa de Las Palmas'],'Antonio Pinto Salinas');
-CALL insert_parroquias(ARRAY['La Azulita'],'Andres Bello');
-CALL insert_parroquias(ARRAY['Aricagua','San Antonio'],'Aricagua');
-CALL insert_parroquias(ARRAY['Canagua','Capuri','Chacanta','El Molino','Guaimaral','Mucutuy','Mucuchachi'],'Arzobispo Chacon');
-CALL insert_parroquias(ARRAY['Fernandez Peña','Matriz','Montalban','Acequias','Jaji','La Mesa','San Jose del Sur'],'Campo Elias');
-CALL insert_parroquias(ARRAY['Tucani','Florencio Ramirez'],'Caracciolo Parra Olmedo');
-CALL insert_parroquias(ARRAY['Santo Domingo','Las Piedras'],'Cardenal Quintero');
-CALL insert_parroquias(ARRAY['Guaraque','Mesa Quintero','Rio Negro'],'Guaraque');
-CALL insert_parroquias(ARRAY['Arapuey','Palmira'],'Julio Cesar Salas');
-CALL insert_parroquias(ARRAY['San Cristobal de Torondoy','Torondoy'],'Justo Briceño');
-CALL insert_parroquias(ARRAY['Antonio Spinetti Dini','Arias','Caracciolo Parra Perez','Domingo Peña', 'Gonzalo Picon Febres','Jacinto Plaza','Juan Rodriguez Suarez','Lasso de la Vega','Mariano Picon Salas','Milla','Osuna Rodriguez','Sagrario','El Morro','Los Nevados'],'Libertador');
-CALL insert_parroquias(ARRAY['Andres Eloy Blanco','La Venta','Piñango','Timotes'],'Miranda');
-CALL insert_parroquias(ARRAY['Eloy Paredes','San Rafael de Alcazar','Santa Elena de Arenales'],'Obispo Ramos de Lora');
-CALL insert_parroquias(ARRAY['Santa Maria de Caparo'],'Padre Noguera');
-CALL insert_parroquias(ARRAY['Pueblo Llano'],'Pueblo Llano');
-CALL insert_parroquias(ARRAY['Cacute','La Toma','Mucuchies','Mucuruba','San Rafael'],'Rangel');
-CALL insert_parroquias(ARRAY['Geronimo Maldonado','Bailadores'],'Rivas Davila');
-CALL insert_parroquias(ARRAY['Tabay'],'Santos Marquina');
-CALL insert_parroquias(ARRAY['Chiguara','Estanques','Lagunillas','La Trampa','Pueblo Nuevo del Sur','San Juan'],'Sucre');
-CALL insert_parroquias(ARRAY['El Amparo','El Llano','San Francisco','Tovar'],'Tovar');
-CALL insert_parroquias(ARRAY['Independencia','Maria de la Concepcion Palacios Blanco','Nueva Bolivia','Santa Apolonia'],'Tulio Febres Cordero');
-CALL insert_parroquias(ARRAY['Caño El Tigre','Zea'],'Zea');
+CALL insert_parroquias(ARRAY['Presidente Betancourt','Presidente Paez','Presidente Romulo Gallegos','Gabriel Picon Gonzalez','Hector Amable Mora','Jose Nucete Sardi','Pulido Mendez'],'Alberto Adriani','Merida');
+CALL insert_parroquias(ARRAY['Santa Cruz de Mora','Mesa Bolivar','Mesa de Las Palmas'],'Antonio Pinto Salinas','Merida');
+CALL insert_parroquias(ARRAY['La Azulita'],'Andres Bello','Merida');
+CALL insert_parroquias(ARRAY['Aricagua','San Antonio'],'Aricagua','Merida');
+CALL insert_parroquias(ARRAY['Canagua','Capuri','Chacanta','El Molino','Guaimaral','Mucutuy','Mucuchachi'],'Arzobispo Chacon','Merida');
+CALL insert_parroquias(ARRAY['Fernandez Peña','Matriz','Montalban','Acequias','Jaji','La Mesa','San Jose del Sur'],'Campo Elias','Merida');
+CALL insert_parroquias(ARRAY['Tucani','Florencio Ramirez'],'Caracciolo Parra Olmedo','Merida');
+CALL insert_parroquias(ARRAY['Santo Domingo','Las Piedras'],'Cardenal Quintero','Merida');
+CALL insert_parroquias(ARRAY['Guaraque','Mesa Quintero','Rio Negro'],'Guaraque','Merida');
+CALL insert_parroquias(ARRAY['Arapuey','Palmira'],'Julio Cesar Salas','Merida');
+CALL insert_parroquias(ARRAY['San Cristobal de Torondoy','Torondoy'],'Justo Briceño','Merida');
+CALL insert_parroquias(ARRAY['Antonio Spinetti Dini','Arias','Caracciolo Parra Perez','Domingo Peña', 'Gonzalo Picon Febres','Jacinto Plaza','Juan Rodriguez Suarez','Lasso de la Vega','Mariano Picon Salas','Milla','Osuna Rodriguez','Sagrario','El Morro','Los Nevados'],'Libertador','Merida');
+CALL insert_parroquias(ARRAY['Andres Eloy Blanco','La Venta','Piñango','Timotes'],'Miranda','Merida');
+CALL insert_parroquias(ARRAY['Eloy Paredes','San Rafael de Alcazar','Santa Elena de Arenales'],'Obispo Ramos de Lora','Merida');
+CALL insert_parroquias(ARRAY['Santa Maria de Caparo'],'Padre Noguera','Merida');
+CALL insert_parroquias(ARRAY['Pueblo Llano'],'Pueblo Llano','Merida');
+CALL insert_parroquias(ARRAY['Cacute','La Toma','Mucuchies','Mucuruba','San Rafael'],'Rangel','Merida');
+CALL insert_parroquias(ARRAY['Geronimo Maldonado','Bailadores'],'Rivas Davila','Merida');
+CALL insert_parroquias(ARRAY['Tabay'],'Santos Marquina','Merida');
+CALL insert_parroquias(ARRAY['Chiguara','Estanques','Lagunillas','La Trampa','Pueblo Nuevo del Sur','San Juan'],'Sucre','Merida');
+CALL insert_parroquias(ARRAY['El Amparo','El Llano','San Francisco','Tovar'],'Tovar','Merida');
+CALL insert_parroquias(ARRAY['Independencia','Maria de la Concepcion Palacios Blanco','Nueva Bolivia','Santa Apolonia'],'Tulio Febres Cordero','Merida');
+CALL insert_parroquias(ARRAY['Caño El Tigre','Zea'],'Zea','Merida');
 
 -- Miranda
 CALL insert_municipios(ARRAY['Acevedo','Andres Bello','Baruta','Brion','Buroz','Carrizal','Chacao','Cristobal Rojas','El Hatillo','Guaicaipuro','Independencia','Lander','Los Salias','Paez','Paz Castillo','Pedro Gual','Plaza','Simon Bolivar','Sucre','Urdaneta','Zamora'],'Miranda');
-CALL insert_parroquias(ARRAY['Aragüita','Arevalo Gonzalez','Capaya','Caucagua','Panaquire','Ribas','El Cafe','Marizapa','Yaguapa'],'Acevedo');
-CALL insert_parroquias(ARRAY['Cumbo','San Jose de Barlovento'],'Andres Bello');
-CALL insert_parroquias(ARRAY['El Cafetal','Las Minas','Nuestra Señora del Rosario'],'Baruta');
-CALL insert_parroquias(ARRAY['Higuerote','Curiepe','Tacarigua de Brion','Chirimena','Birongo'],'Brion');
-CALL insert_parroquias(ARRAY['Mamporal'],'Buroz');
-CALL insert_parroquias(ARRAY['Carrizal'],'Carrizal');
-CALL insert_parroquias(ARRAY['Chacao'],'Chacao');
-CALL insert_parroquias(ARRAY['Charallave','Las Brisas'],'Cristobal Rojas');
-CALL insert_parroquias(ARRAY['Santa Rosalia de Palermo de El Hatillo'],'El Hatillo');
-CALL insert_parroquias(ARRAY['Altagracia de la Montaña','Cecilio Acosta','Los Teques','El Jarillo','San Pedro','Tacata','Paracotos'],'Guaicaipuro');
-CALL insert_parroquias(ARRAY['el Cartanal','Santa Teresa del Tuy'],'Independencia');
-CALL insert_parroquias(ARRAY['La Democracia','Ocumare del Tuy','Santa Barbara','La Mata','La Cabrera'],'Lander');
-CALL insert_parroquias(ARRAY['San Antonio de los Altos'],'Los Salias');
-CALL insert_parroquias(ARRAY['Rio Chico','El Guapo','Tacarigua de la Laguna','Paparo','San Fernando del Guapo'],'Paez');
-CALL insert_parroquias(ARRAY['Santa Lucia del Tuy','Santa Rita','Siquire','Soapire'],'Paz Castillo');
-CALL insert_parroquias(ARRAY['Cupira','Machurucuto','Guarabe'],'Pedro Gual');
-CALL insert_parroquias(ARRAY['Guarenas'],'Plaza');
-CALL insert_parroquias(ARRAY['San Antonio de Yare','San Francisco de Yare'],'Simon Bolivar');
-CALL insert_parroquias(ARRAY['Cua','Nueva Cua'],'Urdaneta');
-CALL insert_parroquias(ARRAY['Leoncio Martinez','Caucagüita','Filas de Mariche','La Dolorita','Petare'],'Sucre');
-CALL insert_parroquias(ARRAY['Guatire','Araira'],'Zamora');
+CALL insert_parroquias(ARRAY['Aragüita','Arevalo Gonzalez','Capaya','Caucagua','Panaquire','Ribas','El Cafe','Marizapa','Yaguapa'],'Acevedo','Miranda');
+CALL insert_parroquias(ARRAY['Cumbo','San Jose de Barlovento'],'Andres Bello','Miranda');
+CALL insert_parroquias(ARRAY['El Cafetal','Las Minas','Nuestra Señora del Rosario'],'Baruta','Miranda');
+CALL insert_parroquias(ARRAY['Higuerote','Curiepe','Tacarigua de Brion','Chirimena','Birongo'],'Brion','Miranda');
+CALL insert_parroquias(ARRAY['Mamporal'],'Buroz','Miranda');
+CALL insert_parroquias(ARRAY['Carrizal'],'Carrizal','Miranda');
+CALL insert_parroquias(ARRAY['Chacao'],'Chacao','Miranda');
+CALL insert_parroquias(ARRAY['Charallave','Las Brisas'],'Cristobal Rojas','Miranda');
+CALL insert_parroquias(ARRAY['Santa Rosalia de Palermo de El Hatillo'],'El Hatillo','Miranda');
+CALL insert_parroquias(ARRAY['Altagracia de la Montaña','Cecilio Acosta','Los Teques','El Jarillo','San Pedro','Tacata','Paracotos'],'Guaicaipuro','Miranda');
+CALL insert_parroquias(ARRAY['el Cartanal','Santa Teresa del Tuy'],'Independencia','Miranda');
+CALL insert_parroquias(ARRAY['La Democracia','Ocumare del Tuy','Santa Barbara','La Mata','La Cabrera'],'Lander','Miranda');
+CALL insert_parroquias(ARRAY['San Antonio de los Altos'],'Los Salias','Miranda');
+CALL insert_parroquias(ARRAY['Rio Chico','El Guapo','Tacarigua de la Laguna','Paparo','San Fernando del Guapo'],'Paez','Miranda');
+CALL insert_parroquias(ARRAY['Santa Lucia del Tuy','Santa Rita','Siquire','Soapire'],'Paz Castillo','Miranda');
+CALL insert_parroquias(ARRAY['Cupira','Machurucuto','Guarabe'],'Pedro Gual','Miranda');
+CALL insert_parroquias(ARRAY['Guarenas'],'Plaza','Miranda');
+CALL insert_parroquias(ARRAY['San Antonio de Yare','San Francisco de Yare'],'Simon Bolivar','Miranda');
+CALL insert_parroquias(ARRAY['Cua','Nueva Cua'],'Urdaneta','Miranda');
+CALL insert_parroquias(ARRAY['Leoncio Martinez','Caucagüita','Filas de Mariche','La Dolorita','Petare'],'Sucre','Miranda');
+CALL insert_parroquias(ARRAY['Guatire','Araira'],'Zamora','Miranda');
 
 -- Monagas
 CALL insert_municipios(ARRAY['Acosta','Aguasay','Bolivar','Caripe','Cedeño','Ezequiel Zamora','Libertador','Maturin','Piar','Punceres','Santa Barbara','Sotillo','Uracoa'],'Monagas');
-CALL insert_parroquias(ARRAY['San Antonio de Maturin','San Francisco de Maturin'],'Acosta');
-CALL insert_parroquias(ARRAY['Aguasay'],'Aguasay');
-CALL insert_parroquias(ARRAY['Caripito'],'Bolivar');
-CALL insert_parroquias(ARRAY['El Guacharo','La Guanota','Sabana de Piedra','San Agustin','Teresen','Caripe'],'Caripe');
-CALL insert_parroquias(ARRAY['Areo','Capital Cedeño','San Felix de Cantalicio','Viento Fresco'],'Cedeño');
-CALL insert_parroquias(ARRAY['El Tejero','Punta de Mata'],'Ezequiel Zamora');
-CALL insert_parroquias(ARRAY['Chaguaramas','Las Alhuacas','Tabasca','Temblador'],'Libertador');
-CALL insert_parroquias(ARRAY['Alto de los Godos','Boqueron','Las Cocuizas','La Cruz','San Simon','El Corozo','El Furrial','Jusepin','La Pica','San Vicente'],'Maturin');
-CALL insert_parroquias(ARRAY['Aparicio','Aragua de Maturin','Chaguaramal','El Pinto','Guanaguana','La Toscana','Taguaya'],'Piar');
-CALL insert_parroquias(ARRAY['Cachipo','Quiriquire'],'Punceres');
-CALL insert_parroquias(ARRAY['Santa Barbara','Moron'],'Santa Barbara');
-CALL insert_parroquias(ARRAY['Barrancas','Los Barrancos de Fajardo'],'Sotillo');
-CALL insert_parroquias(ARRAY['Uracoa'],'Uracoa');
+CALL insert_parroquias(ARRAY['San Antonio de Maturin','San Francisco de Maturin'],'Acosta','Monagas');
+CALL insert_parroquias(ARRAY['Aguasay'],'Aguasay','Monagas');
+CALL insert_parroquias(ARRAY['Caripito'],'Bolivar','Monagas');
+CALL insert_parroquias(ARRAY['El Guacharo','La Guanota','Sabana de Piedra','San Agustin','Teresen','Caripe'],'Caripe','Monagas');
+CALL insert_parroquias(ARRAY['Areo','Capital Cedeño','San Felix de Cantalicio','Viento Fresco'],'Cedeño','Monagas');
+CALL insert_parroquias(ARRAY['El Tejero','Punta de Mata'],'Ezequiel Zamora','Monagas');
+CALL insert_parroquias(ARRAY['Chaguaramas','Las Alhuacas','Tabasca','Temblador'],'Libertador','Monagas');
+CALL insert_parroquias(ARRAY['Alto de los Godos','Boqueron','Las Cocuizas','La Cruz','San Simon','El Corozo','El Furrial','Jusepin','La Pica','San Vicente'],'Maturin','Monagas');
+CALL insert_parroquias(ARRAY['Aparicio','Aragua de Maturin','Chaguaramal','El Pinto','Guanaguana','La Toscana','Taguaya'],'Piar','Monagas');
+CALL insert_parroquias(ARRAY['Cachipo','Quiriquire'],'Punceres','Monagas');
+CALL insert_parroquias(ARRAY['Santa Barbara','Moron'],'Santa Barbara','Monagas');
+CALL insert_parroquias(ARRAY['Barrancas','Los Barrancos de Fajardo'],'Sotillo','Monagas');
+CALL insert_parroquias(ARRAY['Uracoa'],'Uracoa','Monagas');
 
 -- Nueva Esparta
 CALL insert_municipios(ARRAY['Antolin del Campo','Arismendi','Diaz','Garcia','Gomez','Maneiro','Marcano','Mariño','Macanao','Tubores','Villalba'],'Nueva Esparta');
-CALL insert_parroquias(ARRAY['Antolin del Campo'],'Antolin del Campo');
-CALL insert_parroquias(ARRAY['Arismendi'],'Arismendi');
-CALL insert_parroquias(ARRAY['San Juan Bautista','Zabala'],'Diaz');
-CALL insert_parroquias(ARRAY['Garcia','Francisco Fajardo'],'Garcia');
-CALL insert_parroquias(ARRAY['Bolivar','Guevara','Matasiete','Santa Ana','Sucre'],'Gomez');
-CALL insert_parroquias(ARRAY['Aguirre','Maneiro'],'Maneiro');
-CALL insert_parroquias(ARRAY['Adrian','Juan Griego'],'Marcano');
-CALL insert_parroquias(ARRAY['Mariño'],'Mariño');
-CALL insert_parroquias(ARRAY['San Francisco de Macanao','Boca de Rio'],'Macanao');
-CALL insert_parroquias(ARRAY['Tubores','Los Barales'],'Tubores');
-CALL insert_parroquias(ARRAY['Vicente Fuentes','Villalba'],'Villalba');
+CALL insert_parroquias(ARRAY['Antolin del Campo'],'Antolin del Campo','Nueva Esparta');
+CALL insert_parroquias(ARRAY['Arismendi'],'Arismendi','Nueva Esparta');
+CALL insert_parroquias(ARRAY['San Juan Bautista','Zabala'],'Diaz','Nueva Esparta');
+CALL insert_parroquias(ARRAY['Garcia','Francisco Fajardo'],'Garcia','Nueva Esparta');
+CALL insert_parroquias(ARRAY['Bolivar','Guevara','Matasiete','Santa Ana','Sucre'],'Gomez','Nueva Esparta');
+CALL insert_parroquias(ARRAY['Aguirre','Maneiro'],'Maneiro','Nueva Esparta');
+CALL insert_parroquias(ARRAY['Adrian','Juan Griego'],'Marcano','Nueva Esparta');
+CALL insert_parroquias(ARRAY['Mariño'],'Mariño','Nueva Esparta');
+CALL insert_parroquias(ARRAY['San Francisco de Macanao','Boca de Rio'],'Macanao','Nueva Esparta');
+CALL insert_parroquias(ARRAY['Tubores','Los Barales'],'Tubores','Nueva Esparta');
+CALL insert_parroquias(ARRAY['Vicente Fuentes','Villalba'],'Villalba','Nueva Esparta');
 
 -- Portuguesa
 CALL insert_municipios(ARRAY['Araure','Esteller','Guanare','Guanarito','Ospino','Paez','Sucre','Turen','Monseñor Jose V. de Unda','Agua Blanca','Papelon','San Genaro de Boconoito','San Rafael de Onoto','Santa Rosalia'],'Portuguesa');
-CALL insert_parroquias(ARRAY['Araure','Rio Acarigua'],'Araure');
-CALL insert_parroquias(ARRAY['Agua Blanca'],'Agua Blanca');
-CALL insert_parroquias(ARRAY['Piritu','Uveral'],'Esteller');
-CALL insert_parroquias(ARRAY['Cordova','Guanare','San Jose de la Montaña','San Juan de Guanaguanare','Virgen de Coromoto'],'Guanare');
-CALL insert_parroquias(ARRAY['Guanarito','Trinidad de la Capilla','Divina Pastora'],'Guanarito');
-CALL insert_parroquias(ARRAY['Chabasquen','Peña Blanca'],'Monseñor Jose V. de Unda');
-CALL insert_parroquias(ARRAY['Aparicion','La Estacion','Ospino'],'Ospino');
-CALL insert_parroquias(ARRAY['Acarigua','Payara','Pimpinela','Ramon Peraza'],'Paez');
-CALL insert_parroquias(ARRAY['Caño Delgadito','Papelon'],'Papelon');
-CALL insert_parroquias(ARRAY['Antolin Tovar Aquino','Boconoito'],'San Genaro de Boconoito');
-CALL insert_parroquias(ARRAY['Santa Fe','San Rafael de Onoto','Thelmo Morles'],'San Rafael de Onoto');
-CALL insert_parroquias(ARRAY['Florida','El Playon'],'Santa Rosalia');
-CALL insert_parroquias(ARRAY['Biscucuy','Concepcion','San Rafael de Palo Alzado.','San Jose de Saguaz','Uvencio Antonio Velasquez.','Villa Rosa.'],'Sucre');
-CALL insert_parroquias(ARRAY['Villa Bruzual','Canelones','Santa Cruz','San Isidro Labrador la colonia'],'Turen');
+CALL insert_parroquias(ARRAY['Araure','Rio Acarigua'],'Araure','Portuguesa');
+CALL insert_parroquias(ARRAY['Agua Blanca'],'Agua Blanca','Portuguesa');
+CALL insert_parroquias(ARRAY['Piritu','Uveral'],'Esteller','Portuguesa');
+CALL insert_parroquias(ARRAY['Cordova','Guanare','San Jose de la Montaña','San Juan de Guanaguanare','Virgen de Coromoto'],'Guanare','Portuguesa');
+CALL insert_parroquias(ARRAY['Guanarito','Trinidad de la Capilla','Divina Pastora'],'Guanarito','Portuguesa');
+CALL insert_parroquias(ARRAY['Chabasquen','Peña Blanca'],'Monseñor Jose V. de Unda','Portuguesa');
+CALL insert_parroquias(ARRAY['Aparicion','La Estacion','Ospino'],'Ospino','Portuguesa');
+CALL insert_parroquias(ARRAY['Acarigua','Payara','Pimpinela','Ramon Peraza'],'Paez','Portuguesa');
+CALL insert_parroquias(ARRAY['Caño Delgadito','Papelon'],'Papelon','Portuguesa');
+CALL insert_parroquias(ARRAY['Antolin Tovar Aquino','Boconoito'],'San Genaro de Boconoito','Portuguesa');
+CALL insert_parroquias(ARRAY['Santa Fe','San Rafael de Onoto','Thelmo Morles'],'San Rafael de Onoto','Portuguesa');
+CALL insert_parroquias(ARRAY['Florida','El Playon'],'Santa Rosalia','Portuguesa');
+CALL insert_parroquias(ARRAY['Biscucuy','Concepcion','San Rafael de Palo Alzado.','San Jose de Saguaz','Uvencio Antonio Velasquez.','Villa Rosa.'],'Sucre','Portuguesa');
+CALL insert_parroquias(ARRAY['Villa Bruzual','Canelones','Santa Cruz','San Isidro Labrador la colonia'],'Turen','Portuguesa');
 
 -- Sucre
 CALL insert_municipios(ARRAY['Andres Eloy Blanco','Andres Mata','Arismendi','Benitez','Bermudez','Bolivar','Cajigal','Cruz Salmeron Acosta','Libertador','Mariño','Mejia','Montes','Ribero','Sucre','Valdez'],'Sucre');
-CALL insert_parroquias(ARRAY['Mariño','Romulo Gallegos'],'Andres Eloy Blanco');
-CALL insert_parroquias(ARRAY['San Jose de Areocuar','Tavera Acosta'],'Andres Mata');
-CALL insert_parroquias(ARRAY['Rio Caribe','Antonio Jose de Sucre','El Morro de Puerto Santo','Puerto Santo','San Juan de las Galdonas'],'Arismendi');
-CALL insert_parroquias(ARRAY['El Pilar','El Rincon','General Francisco Antonio Vazquez','Guaraunos','Tunapuicito','Union'],'Benitez');
-CALL insert_parroquias(ARRAY['Santa Catalina','Santa Rosa','Santa Teresa','Bolivar','Maracapana'],'Bermudez');
-CALL insert_parroquias(ARRAY['Marigüitar'],'Bolivar');
-CALL insert_parroquias(ARRAY['Libertad','El Paujil','Yaguaraparo'],'Cajigal');
-CALL insert_parroquias(ARRAY['Araya','Chacopata','Manicuare'],'Cruz Salmeron Acosta');
-CALL insert_parroquias(ARRAY['Tunapuy','Campo Elias'],'Libertador');
-CALL insert_parroquias(ARRAY['Irapa','Campo Claro','Marabal','San Antonio de Irapa','Soro'],'Mariño');
-CALL insert_parroquias(ARRAY['San Antonio del Golfo'],'Mejia');
-CALL insert_parroquias(ARRAY['Cumanacoa','Arenas','Aricagua','Cocollar','San Fernando','San Lorenzo'],'Montes');
-CALL insert_parroquias(ARRAY['Cariaco','Catuaro','Rendon','Santa Cruz','Santa Maria'],'Ribero');
-CALL insert_parroquias(ARRAY['Altagracia Cumana','Santa Ines Cumana','Valentin Valiente Cumana','Ayacucho Cumana','San Juan','Raul Leoni','Gran Mariscal'],'Sucre');
-CALL insert_parroquias(ARRAY['Cristobal Colon','Bideau','Punta de Piedras','Güiria'],'Valdez');
+CALL insert_parroquias(ARRAY['Mariño','Romulo Gallegos'],'Andres Eloy Blanco','Sucre');
+CALL insert_parroquias(ARRAY['San Jose de Areocuar','Tavera Acosta'],'Andres Mata','Sucre');
+CALL insert_parroquias(ARRAY['Rio Caribe','Antonio Jose de Sucre','El Morro de Puerto Santo','Puerto Santo','San Juan de las Galdonas'],'Arismendi','Sucre');
+CALL insert_parroquias(ARRAY['El Pilar','El Rincon','General Francisco Antonio Vazquez','Guaraunos','Tunapuicito','Union'],'Benitez','Sucre');
+CALL insert_parroquias(ARRAY['Santa Catalina','Santa Rosa','Santa Teresa','Bolivar','Maracapana'],'Bermudez','Sucre');
+CALL insert_parroquias(ARRAY['Marigüitar'],'Bolivar','Sucre');
+CALL insert_parroquias(ARRAY['Libertad','El Paujil','Yaguaraparo'],'Cajigal','Sucre');
+CALL insert_parroquias(ARRAY['Araya','Chacopata','Manicuare'],'Cruz Salmeron Acosta','Sucre');
+CALL insert_parroquias(ARRAY['Tunapuy','Campo Elias'],'Libertador','Sucre');
+CALL insert_parroquias(ARRAY['Irapa','Campo Claro','Marabal','San Antonio de Irapa','Soro'],'Mariño','Sucre');
+CALL insert_parroquias(ARRAY['San Antonio del Golfo'],'Mejia','Sucre');
+CALL insert_parroquias(ARRAY['Cumanacoa','Arenas','Aricagua','Cocollar','San Fernando','San Lorenzo'],'Montes','Sucre');
+CALL insert_parroquias(ARRAY['Cariaco','Catuaro','Rendon','Santa Cruz','Santa Maria'],'Ribero','Sucre');
+CALL insert_parroquias(ARRAY['Altagracia Cumana','Santa Ines Cumana','Valentin Valiente Cumana','Ayacucho Cumana','San Juan','Raul Leoni','Gran Mariscal'],'Sucre','Sucre');
+CALL insert_parroquias(ARRAY['Cristobal Colon','Bideau','Punta de Piedras','Güiria'],'Valdez','Sucre');
 
 -- Tachira
 CALL insert_municipios(ARRAY['Andres Bello','Antonio Romulo Acosta','Ayacucho','Bolivar','Cardenas','Cordoba','Fernandez Feo','Francisco de Miranda','Garcia de Hevia','Guasimos','Independencia','Jauregui','Jose Maria Vargas','Junin','Libertad','Libertador','Lobatera','Michelena','Panamericano','Pedro Maria Ureña','Rafael Urdaneta','Samuel Dario Maldonado','San Cristobal','San Judas Tadeo','Seboruco','Simon Rodriguez','Tariba','Torbes','Uribante'],'Tachira');
-CALL insert_parroquias(ARRAY['Cordero'],'Andres Bello');
-CALL insert_parroquias(ARRAY['Virgen del Carmen'],'Antonio Romulo Acosta');
-CALL insert_parroquias(ARRAY['Rivas Berti','San Juan de Colon','San Pedro del Rio'],'Ayacucho');
-CALL insert_parroquias(ARRAY['Isaias Medina Angarita','Juan Vicente Gomez','Palotal','San Antonio del Tachira'],'Bolivar');
-CALL insert_parroquias(ARRAY['Amenodoro Rangel Lamus','La Florida','Tariba'],'Cardenas');
-CALL insert_parroquias(ARRAY['Santa Ana del Tachira'],'Cordoba');
-CALL insert_parroquias(ARRAY['Alberto Adriani','San Rafael del Piñal','Santo Domingo'],'Fernandez Feo');
-CALL insert_parroquias(ARRAY['San Jose de Bolivar'],'Francisco de Miranda');
-CALL insert_parroquias(ARRAY['Boca de Grita','Jose Antonio Paez','La Fria'],'Garcia de Hevia');
-CALL insert_parroquias(ARRAY['Palmira'],'Guasimos');
-CALL insert_parroquias(ARRAY['Capacho Nuevo','Juan German Roscio','Roman Cardenas'],'Independencia');
-CALL insert_parroquias(ARRAY['Emilio Constantino Guerrero','La Grita','Monseñor Miguel Antonio Salas'],'Jauregui');
-CALL insert_parroquias(ARRAY['El Cobre'],'Jose Maria Vargas');
-CALL insert_parroquias(ARRAY['Bramon','La Petrolea','Quinimari','Rubio'],'Junin');
-CALL insert_parroquias(ARRAY['Capacho Viejo','Cipriano Castro','Manuel Felipe Rugeles'],'Libertad');
-CALL insert_parroquias(ARRAY['Abejales','Doradas','Emeterio Ochoa','San Joaquin de Navay'],'Libertador');
-CALL insert_parroquias(ARRAY['Lobatera','Constitucion'],'Lobatera');
-CALL insert_parroquias(ARRAY['Michelena'],'Michelena');
-CALL insert_parroquias(ARRAY['San Pablo','La Palmita'],'Panamericano');
-CALL insert_parroquias(ARRAY['Ureña','Nueva Arcadia'],'Pedro Maria Ureña');
-CALL insert_parroquias(ARRAY['Delicias'],'Rafael Urdaneta');
-CALL insert_parroquias(ARRAY['Bocono','Hernandez','La Tendida'],'Samuel Dario Maldonado');
-CALL insert_parroquias(ARRAY['Francisco Romero Lobo','La Concordia','Pedro Maria Morantes','San Juan Bautista','San Sebastian'],'San Cristobal');
-CALL insert_parroquias(ARRAY['San Judas Tadeo'],'San Judas Tadeo');
-CALL insert_parroquias(ARRAY['Seboruco'],'Seboruco');
-CALL insert_parroquias(ARRAY['San Simon'],'Simon Rodriguez');
-CALL insert_parroquias(ARRAY['Eleazar Lopez Contreras','Capital Sucre','San Pablo'],'Sucre');
-CALL insert_parroquias(ARRAY['San Josecito'],'Torbes');
-CALL insert_parroquias(ARRAY['Cardenas','Juan Pablo Peñaloza','Potosi','Pregonero'],'Uribante');
+CALL insert_parroquias(ARRAY['Cordero'],'Andres Bello','Tachira');
+CALL insert_parroquias(ARRAY['Virgen del Carmen'],'Antonio Romulo Acosta','Tachira');
+CALL insert_parroquias(ARRAY['Rivas Berti','San Juan de Colon','San Pedro del Rio'],'Ayacucho','Tachira');
+CALL insert_parroquias(ARRAY['Isaias Medina Angarita','Juan Vicente Gomez','Palotal','San Antonio del Tachira'],'Bolivar','Tachira');
+CALL insert_parroquias(ARRAY['Amenodoro Rangel Lamus','La Florida','Tariba'],'Cardenas','Tachira');
+CALL insert_parroquias(ARRAY['Santa Ana del Tachira'],'Cordoba','Tachira');
+CALL insert_parroquias(ARRAY['Alberto Adriani','San Rafael del Piñal','Santo Domingo'],'Fernandez Feo','Tachira');
+CALL insert_parroquias(ARRAY['San Jose de Bolivar'],'Francisco de Miranda','Tachira');
+CALL insert_parroquias(ARRAY['Boca de Grita','Jose Antonio Paez','La Fria'],'Garcia de Hevia','Tachira');
+CALL insert_parroquias(ARRAY['Palmira'],'Guasimos','Tachira');
+CALL insert_parroquias(ARRAY['Capacho Nuevo','Juan German Roscio','Roman Cardenas'],'Independencia','Tachira');
+CALL insert_parroquias(ARRAY['Emilio Constantino Guerrero','La Grita','Monseñor Miguel Antonio Salas'],'Jauregui','Tachira');
+CALL insert_parroquias(ARRAY['El Cobre'],'Jose Maria Vargas','Tachira');
+CALL insert_parroquias(ARRAY['Bramon','La Petrolea','Quinimari','Rubio'],'Junin','Tachira');
+CALL insert_parroquias(ARRAY['Capacho Viejo','Cipriano Castro','Manuel Felipe Rugeles'],'Libertad','Tachira');
+CALL insert_parroquias(ARRAY['Abejales','Doradas','Emeterio Ochoa','San Joaquin de Navay'],'Libertador','Tachira');
+CALL insert_parroquias(ARRAY['Lobatera','Constitucion'],'Lobatera','Tachira');
+CALL insert_parroquias(ARRAY['Michelena'],'Michelena','Tachira');
+CALL insert_parroquias(ARRAY['San Pablo','La Palmita'],'Panamericano','Tachira');
+CALL insert_parroquias(ARRAY['Ureña','Nueva Arcadia'],'Pedro Maria Ureña','Tachira');
+CALL insert_parroquias(ARRAY['Delicias'],'Rafael Urdaneta','Tachira');
+CALL insert_parroquias(ARRAY['Bocono','Hernandez','La Tendida'],'Samuel Dario Maldonado','Tachira');
+CALL insert_parroquias(ARRAY['Francisco Romero Lobo','La Concordia','Pedro Maria Morantes','San Juan Bautista','San Sebastian'],'San Cristobal','Tachira');
+CALL insert_parroquias(ARRAY['San Judas Tadeo'],'San Judas Tadeo','Tachira');
+CALL insert_parroquias(ARRAY['Seboruco'],'Seboruco','Tachira');
+CALL insert_parroquias(ARRAY['San Simon'],'Simon Rodriguez','Tachira');
+CALL insert_parroquias(ARRAY['Eleazar Lopez Contreras','Capital Sucre','San Pablo'],'Sucre','Tachira');
+CALL insert_parroquias(ARRAY['San Josecito'],'Torbes','Tachira');
+CALL insert_parroquias(ARRAY['Cardenas','Juan Pablo Peñaloza','Potosi','Pregonero'],'Uribante','Tachira');
 
 -- Trujillo
 CALL insert_municipios(ARRAY['Andres Bello','Bocono','Bolivar','Candelaria','Carache','Escuque','Jose Felipe Marquez Cañizales','Juan Vicente Campo Elias','La Ceiba','Miranda','Monte Carmelo','Motatan','Pampan','Pampanito','Rafael Rangel','San Rafael de Carvajal','Sucre','Trujillo','Urdaneta','Valera'],'Trujillo');
-CALL insert_parroquias(ARRAY['Santa Isabel','Araguaney','El Jaguito','La Esperanza'],'Andres Bello');
-CALL insert_parroquias(ARRAY['Bocono','Ayacucho','Burbusay','El Carmen','General Ribas','Guaramacal','Monseñor Jauregui','Mosquey','Rafael Rangel','San Jose','San Miguel','Vega de Guaramacal'],'Bocono');
-CALL insert_parroquias(ARRAY['Sabana Grande','Cheregüe','Granados'],'Bolivar');
-CALL insert_parroquias(ARRAY['Chejende','Arnoldo Gabaldon','Bolivia','Carrillo','Cegarra','Manuel Salvador Ulloa','San Jose'],'Candelaria');
-CALL insert_parroquias(ARRAY['Carache','Cuicas','La Concepcion','Panamericana','Santa Cruz'],'Carache');
-CALL insert_parroquias(ARRAY['Escuque','La Union','Sabana Libre','Santa Rita'],'Escuque');
-CALL insert_parroquias(ARRAY['El Socorro','Antonio Jose de Sucre','Los Caprichos'],'Jose Felipe Marquez Cañizales');
-CALL insert_parroquias(ARRAY['Campo Elias','Arnoldo Gabaldon'],'Juan Vicente Campo Elias');
-CALL insert_parroquias(ARRAY['Santa Apolonia','El Progreso','La Ceiba','Tres de Febrero'],'La Ceiba');
-CALL insert_parroquias(ARRAY['El Dividive','Agua Caliente','Agua Santa','El Cenizo','Valerita'],'Miranda');
-CALL insert_parroquias(ARRAY['Monte Carmelo','Buena Vista','Santa Maria del Horcon'],'Monte Carmelo');
-CALL insert_parroquias(ARRAY['Motatan','El Baño','Jalisco'],'Motatan');
-CALL insert_parroquias(ARRAY['Pampan','Flor de Patria','La Paz','Santa Ana'],'Pampan');
-CALL insert_parroquias(ARRAY['Pampanito','La Concepcion','Pampanito II'],'Pampanito');
-CALL insert_parroquias(ARRAY['Betijoque','Jose Gregorio Hernandez','La Pueblita','Los Cedros'],'Rafael Rangel');
-CALL insert_parroquias(ARRAY['Carvajal','Antonio Nicolas Briceño','Campo Alegre','Jose Leonardo Suarez'],'San Rafael de Carvajal');
-CALL insert_parroquias(ARRAY['Sabana de Mendoza','El Paraiso','Junin','Valmore Rodriguez'],'Sucre');
-CALL insert_parroquias(ARRAY['Matriz','Andres Linares','Chiquinquira','Cristobal Mendoza','Cruz Carrillo','Monseñor Carrillo','Tres Esquinas'],'Trujillo');
-CALL insert_parroquias(ARRAY['La Quebrada','Cabimbu','Jajo','La Mesa','Santiago','Tuñame'],'Urdaneta');
-CALL insert_parroquias(ARRAY['Mercedes Diaz','Juan Ignacio Montilla','La Beatriz','La Puerta','Mendoza del Valle de Momboy','San Luis'],'Valera');
+CALL insert_parroquias(ARRAY['Santa Isabel','Araguaney','El Jaguito','La Esperanza'],'Andres Bello','Trujillo');
+CALL insert_parroquias(ARRAY['Bocono','Ayacucho','Burbusay','El Carmen','General Ribas','Guaramacal','Monseñor Jauregui','Mosquey','Rafael Rangel','San Jose','San Miguel','Vega de Guaramacal'],'Bocono','Trujillo');
+CALL insert_parroquias(ARRAY['Sabana Grande','Cheregüe','Granados'],'Bolivar','Trujillo');
+CALL insert_parroquias(ARRAY['Chejende','Arnoldo Gabaldon','Bolivia','Carrillo','Cegarra','Manuel Salvador Ulloa','San Jose'],'Candelaria','Trujillo');
+CALL insert_parroquias(ARRAY['Carache','Cuicas','La Concepcion','Panamericana','Santa Cruz'],'Carache','Trujillo');
+CALL insert_parroquias(ARRAY['Escuque','La Union','Sabana Libre','Santa Rita'],'Escuque','Trujillo');
+CALL insert_parroquias(ARRAY['El Socorro','Antonio Jose de Sucre','Los Caprichos'],'Jose Felipe Marquez Cañizales','Trujillo');
+CALL insert_parroquias(ARRAY['Campo Elias','Arnoldo Gabaldon'],'Juan Vicente Campo Elias','Trujillo');
+CALL insert_parroquias(ARRAY['Santa Apolonia','El Progreso','La Ceiba','Tres de Febrero'],'La Ceiba','Trujillo');
+CALL insert_parroquias(ARRAY['El Dividive','Agua Caliente','Agua Santa','El Cenizo','Valerita'],'Miranda','Trujillo');
+CALL insert_parroquias(ARRAY['Monte Carmelo','Buena Vista','Santa Maria del Horcon'],'Monte Carmelo','Trujillo');
+CALL insert_parroquias(ARRAY['Motatan','El Baño','Jalisco'],'Motatan','Trujillo');
+CALL insert_parroquias(ARRAY['Pampan','Flor de Patria','La Paz','Santa Ana'],'Pampan','Trujillo');
+CALL insert_parroquias(ARRAY['Pampanito','La Concepcion','Pampanito II'],'Pampanito','Trujillo');
+CALL insert_parroquias(ARRAY['Betijoque','Jose Gregorio Hernandez','La Pueblita','Los Cedros'],'Rafael Rangel','Trujillo');
+CALL insert_parroquias(ARRAY['Carvajal','Antonio Nicolas Briceño','Campo Alegre','Jose Leonardo Suarez'],'San Rafael de Carvajal','Trujillo');
+CALL insert_parroquias(ARRAY['Sabana de Mendoza','El Paraiso','Junin','Valmore Rodriguez'],'Sucre','Trujillo');
+CALL insert_parroquias(ARRAY['Matriz','Andres Linares','Chiquinquira','Cristobal Mendoza','Cruz Carrillo','Monseñor Carrillo','Tres Esquinas'],'Trujillo','Trujillo');
+CALL insert_parroquias(ARRAY['La Quebrada','Cabimbu','Jajo','La Mesa','Santiago','Tuñame'],'Urdaneta','Trujillo');
+CALL insert_parroquias(ARRAY['Mercedes Diaz','Juan Ignacio Montilla','La Beatriz','La Puerta','Mendoza del Valle de Momboy','San Luis'],'Valera','Trujillo');
 
 -- Yaracuy
 CALL insert_municipios(ARRAY['Aristides Bastidas','Bolivar','Bruzual','Cocorote','Independencia','Jose Antonio Paez','La Trinidad','Manuel Monge','Nirgua','Peña','San Felipe','Sucre','Urachiche','Veroes'],'Yaracuy');
-CALL insert_parroquias(ARRAY['Aristides Bastidas'],'Aristides Bastidas');
-CALL insert_parroquias(ARRAY['Bolivar'],'Bolivar');
-CALL insert_parroquias(ARRAY['Chivacoa','Campo Elias'],'Bruzual');
-CALL insert_parroquias(ARRAY['Cocorote'],'Cocorote');
-CALL insert_parroquias(ARRAY['Independencia'],'Independencia');
-CALL insert_parroquias(ARRAY['Jose Antonio Paez'],'Jose Antonio Paez');
-CALL insert_parroquias(ARRAY['La Trinidad'],'La Trinidad');
-CALL insert_parroquias(ARRAY['Manuel Monge'],'Manuel Monge');
-CALL insert_parroquias(ARRAY['Salom','Temerla','Nirgua','Cogollos'],'Nirgua');
-CALL insert_parroquias(ARRAY['San Andres','Yaritagua'],'Peña');
-CALL insert_parroquias(ARRAY['San Javier','Albarico','San Felipe'],'San Felipe');
-CALL insert_parroquias(ARRAY['Sucre'],'Sucre');
-CALL insert_parroquias(ARRAY['Urachiche'],'Urachiche');
-CALL insert_parroquias(ARRAY['El Guayabo','Farriar'],'Veroes');
+CALL insert_parroquias(ARRAY['Aristides Bastidas'],'Aristides Bastidas','Yaracuy');
+CALL insert_parroquias(ARRAY['Bolivar'],'Bolivar','Yaracuy');
+CALL insert_parroquias(ARRAY['Chivacoa','Campo Elias'],'Bruzual','Yaracuy');
+CALL insert_parroquias(ARRAY['Cocorote'],'Cocorote','Yaracuy');
+CALL insert_parroquias(ARRAY['Independencia'],'Independencia','Yaracuy');
+CALL insert_parroquias(ARRAY['Jose Antonio Paez'],'Jose Antonio Paez','Yaracuy');
+CALL insert_parroquias(ARRAY['La Trinidad'],'La Trinidad','Yaracuy');
+CALL insert_parroquias(ARRAY['Manuel Monge'],'Manuel Monge','Yaracuy');
+CALL insert_parroquias(ARRAY['Salom','Temerla','Nirgua','Cogollos'],'Nirgua','Yaracuy');
+CALL insert_parroquias(ARRAY['San Andres','Yaritagua'],'Peña','Yaracuy');
+CALL insert_parroquias(ARRAY['San Javier','Albarico','San Felipe'],'San Felipe','Yaracuy');
+CALL insert_parroquias(ARRAY['Sucre'],'Sucre','Yaracuy');
+CALL insert_parroquias(ARRAY['Urachiche'],'Urachiche','Yaracuy');
+CALL insert_parroquias(ARRAY['El Guayabo','Farriar'],'Veroes','Yaracuy');
 
 -- Zulia
 CALL insert_municipios(ARRAY['Almirante Padilla','Baralt','Cabimas','Catatumbo','Colon','Francisco Javier Pulgar','Guajira','Jesus Enrique Lossada','Jesus Maria Semprun','La Cañada de Urdaneta','Lagunillas','Machiques de Perija','Mara','Maracaibo','Miranda','Rosario de Perija','San Francisco','Santa Rita','Simon Bolivar','Sucre','Valmore Rodriguez'],'Zulia');
-CALL insert_parroquias(ARRAY['Isla de Toas','Monagas'],'Almirante Padilla');
-CALL insert_parroquias(ARRAY['San Timoteo','General Urdaneta','Libertador','Marcelino Briceño','Pueblo Nuevo','Manuel Guanipa Matos'],'Baralt');
-CALL insert_parroquias(ARRAY['Ambrosio','Aristides Calvani','Carmen Herrera','German Rios Linares','Jorge Hernandez','La Rosa','Punta Gorda','Romulo Betancourt','San Benito'],'Cabimas');
-CALL insert_parroquias(ARRAY['Encontrados','Udon Perez'],'Catatumbo');
-CALL insert_parroquias(ARRAY['San Carlos del Zulia','Moralito','Santa Barbara','Santa Cruz del Zulia','Urribarri'],'Colon');
-CALL insert_parroquias(ARRAY['Simon Rodriguez','Agustin Codazzi','Carlos Quevedo','Francisco Javier Pulgar'],'Francisco Javier Pulgar');
-CALL insert_parroquias(ARRAY['Sinamaica','Alta Guajira','Elias Sanchez Rubio','Guajira'],'Guajira');
-CALL insert_parroquias(ARRAY['La Concepcion','San Jose','Mariano Parra Leon','Jose Ramon Yepez'],'Jesus Enrique Lossada');
-CALL insert_parroquias(ARRAY['Jesus Maria Semprun','Bari'],'Jesus Maria Semprun');
-CALL insert_parroquias(ARRAY['Concepcion','Andres Bello','Chiquinquira','El Carmelo','Potreritos'],'La Cañada de Urdaneta');
-CALL insert_parroquias(ARRAY['Alonso de Ojeda','Libertad','Eleazar Lopez Contreras','Campo Lara','Venezuela','El Danto'],'Lagunillas');
-CALL insert_parroquias(ARRAY['Libertad','Bartolome de las Casas','Rio Negro','San Jose de Perija'],'Machiques de Perija');
-CALL insert_parroquias(ARRAY['San Rafael','La Sierrita','Las Parcelas','Luis De Vicente','Monseñor Marcos Sergio Godoy','Ricaurte','Tamare'],'Mara');
-CALL insert_parroquias(ARRAY['Antonio Borjas Romero','Bolivar','Cacique Mara','Carracciolo Parra Perez','Cecilio Acosta','Chinquinquira','Coquivacoa','Cristo de Aranza','Francisco Eugenio Bustamante','Idelfonzo Vasquez','Juana de avila','Luis Hurtado Higuera','Manuel Dagnino','Olegario Villalobos','Raul Leoni','San Isidro','Santa Lucia','Venancio Pulgar'],'Maracaibo');
-CALL insert_parroquias(ARRAY['Altagracia','Ana Maria Campos','Faria','San Antonio','San Jose'],'Miranda');
-CALL insert_parroquias(ARRAY['El Rosario','Donaldo Garcia','Sixto Zambrano'],'Rosario de Perija');
-CALL insert_parroquias(ARRAY['San Francisco','El Bajo','Domitila Flores','Francisco Ochoa','Los Cortijos','Marcial Hernandez','Jose Domingo Rus'],'San Francisco');
-CALL insert_parroquias(ARRAY['Santa Rita','El Mene','Jose Cenobio Urribarri','Pedro Lucas Urribarri'],'Santa Rita');
-CALL insert_parroquias(ARRAY['Manuel Manrique','Rafael Maria Baralt','Rafael Urdaneta'],'Simon Bolivar');
-CALL insert_parroquias(ARRAY['Bobures','El Batey','Gibraltar','Heras','Monseñor Arturo alvarez','Romulo Gallegos'],'Sucre');
-CALL insert_parroquias(ARRAY['Rafael Urdaneta','La Victoria','Raul Cuenca'],'Valmore Rodriguez');
+CALL insert_parroquias(ARRAY['Isla de Toas','Monagas'],'Almirante Padilla','Zulia');
+CALL insert_parroquias(ARRAY['San Timoteo','General Urdaneta','Libertador','Marcelino Briceño','Pueblo Nuevo','Manuel Guanipa Matos'],'Baralt','Zulia');
+CALL insert_parroquias(ARRAY['Ambrosio','Aristides Calvani','Carmen Herrera','German Rios Linares','Jorge Hernandez','La Rosa','Punta Gorda','Romulo Betancourt','San Benito'],'Cabimas','Zulia');
+CALL insert_parroquias(ARRAY['Encontrados','Udon Perez'],'Catatumbo','Zulia');
+CALL insert_parroquias(ARRAY['San Carlos del Zulia','Moralito','Santa Barbara','Santa Cruz del Zulia','Urribarri'],'Colon','Zulia');
+CALL insert_parroquias(ARRAY['Simon Rodriguez','Agustin Codazzi','Carlos Quevedo','Francisco Javier Pulgar'],'Francisco Javier Pulgar','Zulia');
+CALL insert_parroquias(ARRAY['Sinamaica','Alta Guajira','Elias Sanchez Rubio','Guajira'],'Guajira','Zulia');
+CALL insert_parroquias(ARRAY['La Concepcion','San Jose','Mariano Parra Leon','Jose Ramon Yepez'],'Jesus Enrique Lossada','Zulia');
+CALL insert_parroquias(ARRAY['Jesus Maria Semprun','Bari'],'Jesus Maria Semprun','Zulia');
+CALL insert_parroquias(ARRAY['Concepcion','Andres Bello','Chiquinquira','El Carmelo','Potreritos'],'La Cañada de Urdaneta','Zulia');
+CALL insert_parroquias(ARRAY['Alonso de Ojeda','Libertad','Eleazar Lopez Contreras','Campo Lara','Venezuela','El Danto'],'Lagunillas','Zulia');
+CALL insert_parroquias(ARRAY['Libertad','Bartolome de las Casas','Rio Negro','San Jose de Perija'],'Machiques de Perija','Zulia');
+CALL insert_parroquias(ARRAY['San Rafael','La Sierrita','Las Parcelas','Luis De Vicente','Monseñor Marcos Sergio Godoy','Ricaurte','Tamare'],'Mara','Zulia');
+CALL insert_parroquias(ARRAY['Antonio Borjas Romero','Bolivar','Cacique Mara','Carracciolo Parra Perez','Cecilio Acosta','Chinquinquira','Coquivacoa','Cristo de Aranza','Francisco Eugenio Bustamante','Idelfonzo Vasquez','Juana de avila','Luis Hurtado Higuera','Manuel Dagnino','Olegario Villalobos','Raul Leoni','San Isidro','Santa Lucia','Venancio Pulgar'],'Maracaibo','Zulia');
+CALL insert_parroquias(ARRAY['Altagracia','Ana Maria Campos','Faria','San Antonio','San Jose'],'Miranda','Zulia');
+CALL insert_parroquias(ARRAY['El Rosario','Donaldo Garcia','Sixto Zambrano'],'Rosario de Perija','Zulia');
+CALL insert_parroquias(ARRAY['San Francisco','El Bajo','Domitila Flores','Francisco Ochoa','Los Cortijos','Marcial Hernandez','Jose Domingo Rus'],'San Francisco','Zulia');
+CALL insert_parroquias(ARRAY['Santa Rita','El Mene','Jose Cenobio Urribarri','Pedro Lucas Urribarri'],'Santa Rita','Zulia');
+CALL insert_parroquias(ARRAY['Manuel Manrique','Rafael Maria Baralt','Rafael Urdaneta'],'Simon Bolivar','Zulia');
+CALL insert_parroquias(ARRAY['Bobures','El Batey','Gibraltar','Heras','Monseñor Arturo alvarez','Romulo Gallegos'],'Sucre','Zulia');
+CALL insert_parroquias(ARRAY['Rafael Urdaneta','La Victoria','Raul Cuenca'],'Valmore Rodriguez','Zulia');
 
 -- [[ INSERT TIENDA,
 -- DEPENDENT add_tienda, Lugar ]]--
@@ -2373,7 +2483,7 @@ CALL add_cliente_juridico_random ('J487520139', '95 Mccormick Junction', '599 We
 
 --[[ INSERT MIEMBRO ]]--
 -- NOTE: Esta es importante porque aqui es donde insertaremos la mayoria de cervezas
-CALL add_miembro ('J000413126', 'Compañía Anónima Cervecería Polar', 'Polar', 'Avenida José Antonio Páez, Edificio Polar, El Paraíso, Caracas, Venezuela', 'https://empresaspolar.com', 468, 468);
+CALL add_miembro ('J000413126', 'Compañía Anónima Cervecería Polar', 'Polar', 'Avenida José Antonio Páez, Edificio Polar, El Paraíso, Caracas, Venezuela', 'https://empresaspolar.com', get_parroquia_from_estado('El Recreo', 'Distrito Capital'), get_parroquia_from_estado('El Recreo', 'Distrito Capital'));
 
 CALL add_miembro_random ('J482367195', 'Blacks International ', 'Interior Mutual S.A', '6287 Holmcroft, Simi Valley, Rhode Island, 54650', 'https://crowd.nationwide/ver.php');
 
@@ -3245,7 +3355,7 @@ ARRAY[
 'Cata de Cervezas Trujillo', 'Recorrido Cerveceria Trujillo', 'Festival de Cervezas Trujillo', 'Cena de Maridaje Trujillo', 'Taller de Elaboracion Trujillo',
 'Cata de Cervezas Yaracuy', 'Recorrido Cerveceria Yaracuy', 'Festival de Cervezas Yaracuy', 'Cena de Maridaje Yaracuy', 'Taller de Elaboracion Yaracuy',
 'Cata de Cervezas Zulia', 'Recorrido Cerveceria Zulia', 'Festival de Cervezas Zulia', 'Cena de Maridaje Zulia', 'Taller de Elaboracion Zulia'
-],
+] :: varchar(40)[],
 
 -- Fechas y horas de inicio
 ARRAY[
@@ -3273,7 +3383,7 @@ ARRAY[
 '2025-07-22 16:00:00','2025-07-22 17:00:00','2025-07-22 18:00:00','2025-07-22 19:00:00','2025-07-22 20:00:00',
 '2025-07-23 16:00:00','2025-07-23 17:00:00','2025-07-23 18:00:00','2025-07-23 19:00:00','2025-07-23 20:00:00',
 '2025-07-24 16:00:00','2025-07-24 17:00:00','2025-07-24 18:00:00','2025-07-24 19:00:00','2025-07-24 20:00:00'
-],
+] :: timestamp[],
 
 -- Fechas y horas de fin
 ARRAY[
@@ -3301,7 +3411,7 @@ ARRAY[
 '2025-07-22 20:00:00','2025-07-22 21:00:00','2025-07-22 22:00:00','2025-07-22 23:00:00','2025-07-22 23:30:00',
 '2025-07-23 20:00:00','2025-07-23 21:00:00','2025-07-23 22:00:00','2025-07-23 23:00:00','2025-07-23 23:30:00',
 '2025-07-24 20:00:00','2025-07-24 21:00:00','2025-07-24 22:00:00','2025-07-24 23:00:00','2025-07-24 23:30:00'
-],
+] :: timestamp[],
 
 -- Direcciones
 ARRAY[
@@ -3329,50 +3439,50 @@ ARRAY[
 'Calle Trujillo, Trujillo, Trujillo','Avenida Bolivar, Trujillo, Trujillo','Calle Boconó, Boconó, Trujillo','Calle Valera, Valera, Trujillo','Calle Carache, Carache, Trujillo',
 'Calle San Felipe, San Felipe, Yaracuy','Avenida Yaracuy, San Felipe, Yaracuy','Calle Yaritagua, Yaritagua, Yaracuy','Calle Chivacoa, Chivacoa, Yaracuy','Calle Nirgua, Nirgua, Yaracuy',
 'Calle Maracaibo, Maracaibo, Zulia','Avenida Bella Vista, Maracaibo, Zulia','Calle Cabimas, Cabimas, Zulia','Calle Ciudad Ojeda, Ciudad Ojeda, Zulia','Calle San Francisco, San Francisco, Zulia'
-],
+] :: text[],
 
 -- Capacidades
 ARRAY[
 100,120,80,150,90,110,130,85,140,95,200,180,160,220,170,105,125,95,155,100,115,135,90,145,98,108,128,88,138,93,112,132,92,142,97,107,127,87,137,91,109,129,89,139,94,106,126,86,136,99,111,131,91,141,96,104,124,84,134,101,113,133,83,143,102,114,134,82,144,103,116,136,81,146,104,117,137,80,147,105,118,138,79,148,106,119,139,78,149,107,120,140,77,150,108,121,141,76,151,109,122,142,75,152,110,123,143,74,153,111,124,144,73,154,112,125,145,72,155,113,126,146,71,156,114,127,147,70,157,115,128,148,69,158,116,129,149,68,159,117,130,150,67,160,118,131,151,66,161,119,132,152,65,162,120,133,153,64,163,121,134,154,63,164,122,135,155,62,165,123,136,156,61,166,124,137,157,60,167,125,138,158,59,168,126,139,159,58,169,127,140,160
-],
+] :: integer[],
 
 -- Descripciones
 ARRAY[
-'Cata guiada de cervezas artesanales de Amazonas.','Recorrido por la cervecería local de Amazonas.','Festival con las mejores cervezas de Amazonas.','Cena de maridaje con cervezas y platos típicos de Amazonas.','Taller práctico de elaboración de cerveza en Amazonas.',
-'Cata guiada de cervezas artesanales de Anzoategui.','Recorrido por la cervecería local de Anzoategui.','Festival con las mejores cervezas de Anzoategui.','Cena de maridaje con cervezas y platos típicos de Anzoategui.','Taller práctico de elaboración de cerveza en Anzoategui.',
-'Cata guiada de cervezas artesanales de Apure.','Recorrido por la cervecería local de Apure.','Festival con las mejores cervezas de Apure.','Cena de maridaje con cervezas y platos típicos de Apure.','Taller práctico de elaboración de cerveza en Apure.',
-'Cata guiada de cervezas artesanales de Aragua.','Recorrido por la cervecería local de Aragua.','Festival con las mejores cervezas de Aragua.','Cena de maridaje con cervezas y platos típicos de Aragua.','Taller práctico de elaboración de cerveza en Aragua.',
-'Cata guiada de cervezas artesanales de Barinas.','Recorrido por la cervecería local de Barinas.','Festival con las mejores cervezas de Barinas.','Cena de maridaje con cervezas y platos típicos de Barinas.','Taller práctico de elaboración de cerveza en Barinas.',
-'Cata guiada de cervezas artesanales de Bolivar.','Recorrido por la cervecería local de Bolivar.','Festival con las mejores cervezas de Bolivar.','Cena de maridaje con cervezas y platos típicos de Bolivar.','Taller práctico de elaboración de cerveza en Bolivar.',
-'Cata guiada de cervezas artesanales de Carabobo.','Recorrido por la cervecería local de Carabobo.','Festival con las mejores cervezas de Carabobo.','Cena de maridaje con cervezas y platos típicos de Carabobo.','Taller práctico de elaboración de cerveza en Carabobo.',
-'Cata guiada de cervezas artesanales de Cojedes.','Recorrido por la cervecería local de Cojedes.','Festival con las mejores cervezas de Cojedes.','Cena de maridaje con cervezas y platos típicos de Cojedes.','Taller práctico de elaboración de cerveza en Cojedes.',
-'Cata guiada de cervezas artesanales de Delta Amacuro.','Recorrido por la cervecería local de Delta Amacuro.','Festival con las mejores cervezas de Delta Amacuro.','Cena de maridaje con cervezas y platos típicos de Delta Amacuro.','Taller práctico de elaboración de cerveza en Delta Amacuro.',
-'Cata guiada de cervezas artesanales de Distrito Capital.','Recorrido por la cervecería local de Distrito Capital.','Festival con las mejores cervezas de Distrito Capital.','Cena de maridaje con cervezas y platos típicos de Distrito Capital.','Taller práctico de elaboración de cerveza en Distrito Capital.',
-'Cata guiada de cervezas artesanales de Falcon.','Recorrido por la cervecería local de Falcon.','Festival con las mejores cervezas de Falcon.','Cena de maridaje con cervezas y platos típicos de Falcon.','Taller práctico de elaboración de cerveza en Falcon.',
-'Cata guiada de cervezas artesanales de Guarico.','Recorrido por la cervecería local de Guarico.','Festival con las mejores cervezas de Guarico.','Cena de maridaje con cervezas y platos típicos de Guarico.','Taller práctico de elaboración de cerveza en Guarico.',
-'Cata guiada de cervezas artesanales de La Guaira.','Recorrido por la cervecería local de La Guaira.','Festival con las mejores cervezas de La Guaira.','Cena de maridaje con cervezas y platos típicos de La Guaira.','Taller práctico de elaboración de cerveza en La Guaira.',
-'Cata guiada de cervezas artesanales de Lara.','Recorrido por la cervecería local de Lara.','Festival con las mejores cervezas de Lara.','Cena de maridaje con cervezas y platos típicos de Lara.','Taller práctico de elaboración de cerveza en Lara.',
-'Cata guiada de cervezas artesanales de Merida.','Recorrido por la cervecería local de Merida.','Festival con las mejores cervezas de Merida.','Cena de maridaje con cervezas y platos típicos de Merida.','Taller práctico de elaboración de cerveza en Merida.',
-'Cata guiada de cervezas artesanales de Miranda.','Recorrido por la cervecería local de Miranda.','Festival con las mejores cervezas de Miranda.','Cena de maridaje con cervezas y platos típicos de Miranda.','Taller práctico de elaboración de cerveza en Miranda.',
-'Cata guiada de cervezas artesanales de Monagas.','Recorrido por la cervecería local de Monagas.','Festival con las mejores cervezas de Monagas.','Cena de maridaje con cervezas y platos típicos de Monagas.','Taller práctico de elaboración de cerveza en Monagas.',
-'Cata guiada de cervezas artesanales de Nueva Esparta.','Recorrido por la cervecería local de Nueva Esparta.','Festival con las mejores cervezas de Nueva Esparta.','Cena de maridaje con cervezas y platos típicos de Nueva Esparta.','Taller práctico de elaboración de cerveza en Nueva Esparta.',
-'Cata guiada de cervezas artesanales de Portuguesa.','Recorrido por la cervecería local de Portuguesa.','Festival con las mejores cervezas de Portuguesa.','Cena de maridaje con cervezas y platos típicos de Portuguesa.','Taller práctico de elaboración de cerveza en Portuguesa.',
-'Cata guiada de cervezas artesanales de Sucre.','Recorrido por la cervecería local de Sucre.','Festival con las mejores cervezas de Sucre.','Cena de maridaje con cervezas y platos típicos de Sucre.','Taller práctico de elaboración de cerveza en Sucre.',
-'Cata guiada de cervezas artesanales de Tachira.','Recorrido por la cervecería local de Tachira.','Festival con las mejores cervezas de Tachira.','Cena de maridaje con cervezas y platos típicos de Tachira.','Taller práctico de elaboración de cerveza en Tachira.',
-'Cata guiada de cervezas artesanales de Trujillo.','Recorrido por la cervecería local de Trujillo.','Festival con las mejores cervezas de Trujillo.','Cena de maridaje con cervezas y platos típicos de Trujillo.','Taller práctico de elaboración de cerveza en Trujillo.',
-'Cata guiada de cervezas artesanales de Yaracuy.','Recorrido por la cervecería local de Yaracuy.','Festival con las mejores cervezas de Yaracuy.','Cena de maridaje con cervezas y platos típicos de Yaracuy.','Taller práctico de elaboración de cerveza en Yaracuy.',
-'Cata guiada de cervezas artesanales de Zulia.','Recorrido por la cervecería local de Zulia.','Festival con las mejores cervezas de Zulia.','Cena de maridaje con cervezas y platos típicos de Zulia.','Taller práctico de elaboración de cerveza en Zulia.'
-],
+'Cata guiada de cervezas artesanales de Amazonas','Recorrido por la cervecería local de Amazonas','Festival con las mejores cervezas de Amazonas','Cena de maridaje con cervezas y platos típicos de Amazonas','Taller práctico de elaboración de cerveza en Amazonas',
+'Cata guiada de cervezas artesanales de Anzoategui','Recorrido por la cervecería local de Anzoategui','Festival con las mejores cervezas de Anzoategui','Cena de maridaje con cervezas y platos típicos de Anzoategui','Taller práctico de elaboración de cerveza en Anzoategui',
+'Cata guiada de cervezas artesanales de Apure','Recorrido por la cervecería local de Apure','Festival con las mejores cervezas de Apure','Cena de maridaje con cervezas y platos típicos de Apure','Taller práctico de elaboración de cerveza en Apure',
+'Cata guiada de cervezas artesanales de Aragua','Recorrido por la cervecería local de Aragua','Festival con las mejores cervezas de Aragua','Cena de maridaje con cervezas y platos típicos de Aragua','Taller práctico de elaboración de cerveza en Aragua',
+'Cata guiada de cervezas artesanales de Barinas','Recorrido por la cervecería local de Barinas','Festival con las mejores cervezas de Barinas','Cena de maridaje con cervezas y platos típicos de Barinas','Taller práctico de elaboración de cerveza en Barinas',
+'Cata guiada de cervezas artesanales de Bolivar','Recorrido por la cervecería local de Bolivar','Festival con las mejores cervezas de Bolivar','Cena de maridaje con cervezas y platos típicos de Bolivar','Taller práctico de elaboración de cerveza en Bolivar',
+'Cata guiada de cervezas artesanales de Carabobo','Recorrido por la cervecería local de Carabobo','Festival con las mejores cervezas de Carabobo','Cena de maridaje con cervezas y platos típicos de Carabobo','Taller práctico de elaboración de cerveza en Carabobo',
+'Cata guiada de cervezas artesanales de Cojedes','Recorrido por la cervecería local de Cojedes','Festival con las mejores cervezas de Cojedes','Cena de maridaje con cervezas y platos típicos de Cojedes','Taller práctico de elaboración de cerveza en Cojedes',
+'Cata guiada de cervezas artesanales de Delta Amacuro','Recorrido por la cervecería local de Delta Amacuro','Festival con las mejores cervezas de Delta Amacuro','Cena de maridaje con cervezas y platos típicos de Delta Amacuro','Taller práctico de elaboración de cerveza en Delta Amacuro',
+'Cata guiada de cervezas artesanales de Distrito Capital','Recorrido por la cervecería local de Distrito Capital','Festival con las mejores cervezas de Distrito Capital','Cena de maridaje con cervezas y platos típicos de Distrito Capital','Taller práctico de elaboración de cerveza en Distrito Capital',
+'Cata guiada de cervezas artesanales de Falcon','Recorrido por la cervecería local de Falcon','Festival con las mejores cervezas de Falcon','Cena de maridaje con cervezas y platos típicos de Falcon','Taller práctico de elaboración de cerveza en Falcon',
+'Cata guiada de cervezas artesanales de Guarico','Recorrido por la cervecería local de Guarico','Festival con las mejores cervezas de Guarico','Cena de maridaje con cervezas y platos típicos de Guarico','Taller práctico de elaboración de cerveza en Guarico',
+'Cata guiada de cervezas artesanales de La Guaira','Recorrido por la cervecería local de La Guaira','Festival con las mejores cervezas de La Guaira','Cena de maridaje con cervezas y platos típicos de La Guaira','Taller práctico de elaboración de cerveza en La Guaira',
+'Cata guiada de cervezas artesanales de Lara','Recorrido por la cervecería local de Lara','Festival con las mejores cervezas de Lara','Cena de maridaje con cervezas y platos típicos de Lara','Taller práctico de elaboración de cerveza en Lara',
+'Cata guiada de cervezas artesanales de Merida','Recorrido por la cervecería local de Merida','Festival con las mejores cervezas de Merida','Cena de maridaje con cervezas y platos típicos de Merida','Taller práctico de elaboración de cerveza en Merida',
+'Cata guiada de cervezas artesanales de Miranda','Recorrido por la cervecería local de Miranda','Festival con las mejores cervezas de Miranda','Cena de maridaje con cervezas y platos típicos de Miranda','Taller práctico de elaboración de cerveza en Miranda',
+'Cata guiada de cervezas artesanales de Monagas','Recorrido por la cervecería local de Monagas','Festival con las mejores cervezas de Monagas','Cena de maridaje con cervezas y platos típicos de Monagas','Taller práctico de elaboración de cerveza en Monagas',
+'Cata guiada de cervezas artesanales de Nueva Esparta','Recorrido por la cervecería local de Nueva Esparta','Festival con las mejores cervezas de Nueva Esparta','Cena de maridaje con cervezas y platos típicos de Nueva Esparta','Taller práctico de elaboración de cerveza en Nueva Esparta',
+'Cata guiada de cervezas artesanales de Portuguesa','Recorrido por la cervecería local de Portuguesa','Festival con las mejores cervezas de Portuguesa','Cena de maridaje con cervezas y platos típicos de Portuguesa','Taller práctico de elaboración de cerveza en Portuguesa',
+'Cata guiada de cervezas artesanales de Sucre','Recorrido por la cervecería local de Sucre','Festival con las mejores cervezas de Sucre','Cena de maridaje con cervezas y platos típicos de Sucre','Taller práctico de elaboración de cerveza en Sucre',
+'Cata guiada de cervezas artesanales de Tachira','Recorrido por la cervecería local de Tachira','Festival con las mejores cervezas de Tachira','Cena de maridaje con cervezas y platos típicos de Tachira','Taller práctico de elaboración de cerveza en Tachira',
+'Cata guiada de cervezas artesanales de Trujillo','Recorrido por la cervecería local de Trujillo','Festival con las mejores cervezas de Trujillo','Cena de maridaje con cervezas y platos típicos de Trujillo','Taller práctico de elaboración de cerveza en Trujillo',
+'Cata guiada de cervezas artesanales de Yaracuy','Recorrido por la cervecería local de Yaracuy','Festival con las mejores cervezas de Yaracuy','Cena de maridaje con cervezas y platos típicos de Yaracuy','Taller práctico de elaboración de cerveza en Yaracuy',
+'Cata guiada de cervezas artesanales de Zulia','Recorrido por la cervecería local de Zulia','Festival con las mejores cervezas de Zulia','Cena de maridaje con cervezas y platos típicos de Zulia','Taller práctico de elaboración de cerveza en Zulia'
+] :: text[],
 
 -- Precios de entradas
 ARRAY[
 15.00,20.00,25.00,30.00,18.00,16.00,21.00,26.00,31.00,19.00,35.00,40.00,45.00,50.00,38.00,17.00,22.00,27.00,32.00,20.00,18.50,23.00,28.00,33.00,21.00,19.50,24.00,29.00,34.00,22.00,20.50,25.00,30.00,35.00,23.00,21.50,26.00,31.00,36.00,24.00,22.50,27.00,32.00,37.00,25.00,23.50,28.00,33.00,38.00,26.00,24.50,29.00,34.00,39.00,27.00,25.50,30.00,35.00,40.00,28.00,26.50,31.00,36.00,41.00,29.00,27.50,32.00,37.00,42.00,30.00,28.50,33.00,38.00,43.00,31.00,29.50,34.00,39.00,44.00,32.00,30.50,35.00,40.00,45.00,33.00,31.50,36.00,41.00,46.00,34.00,32.50,37.00,42.00,47.00,35.00,33.50,38.00,43.00,48.00,36.00,34.50,39.00,44.00,49.00,37.00,35.50,40.00,45.00,50.00,38.00,36.50,41.00,46.00,51.00,39.00,37.50,42.00,47.00,52.00,40.00,38.50,43.00,48.00,53.00,41.00,39.50,44.00,49.00,54.00,42.00,40.50,45.00,50.00,55.00
-],
+] :: numeric (8,2) [],
 
 -- Cantidad máxima de entradas (igual que capacidad)
 ARRAY[
 100,120,80,150,90,110,130,85,140,95,200,180,160,220,170,105,125,95,155,100,115,135,90,145,98,108,128,88,138,93,112,132,92,142,97,107,127,87,137,91,109,129,89,139,94,106,126,86,136,99,111,131,91,141,96,104,124,84,134,101,113,133,83,143,102,114,134,82,144,103,116,136,81,146,104,117,137,80,147,105,118,138,79,148,106,119,139,78,149,107,120,140,77,150,108,121,141,76,151,109,122,142,75,152,110,123,143,74,153,111,124,144,73,154,112,125,145,72,155,113,126,146,71,156,114,127,147,70,157,115,128,148,69,158,116,129,149,68,159,117,130,150,67,160,118,131,151,66,161,119,132,152,65,162,120,133,153,64,163,121,134,154,63,164,122,135,155,62,165,123,136,156,61,166,124,137,157,60,167,125,138,158,59,168,126,139,159,58,169,127,140,160
-],
+] :: integer[],
 
 -- Tipos de eventos (alternando los 10 tipos)
 ARRAY[
@@ -3402,40 +3512,40 @@ ARRAY[
 'Fiesta de Lanzamiento de Cervezas de Temporada','Noche de Musica en Vivo','Noche de Trivia','Evento de Cerveza y Arte','Evento de Networking Para Cerveceros',
 'Cata de cervezas','Recorrido por cerveceria','Festival de Cervezas','Cena de Maridaje','Taller de Elaboracion de Cerveza',
 'Fiesta de Lanzamiento de Cervezas de Temporada','Noche de Musica en Vivo','Noche de Trivia','Evento de Cerveza y Arte','Evento de Networking Para Cerveceros'
-],
+] :: varchar(60)[],
 
 -- Parroquias (cada 5 de un estado distinto)
 ARRAY[
 'Fernando Giron Tovar','Luis Alberto Gomez','Parhueña','Platanillal','La Esmeralda',
 'Anaco','San Joaquin','Cachipo','Aragua de Barcelona','Lecheria',
 'Achaguas','Apurito','El Yagual','Guachara','Mucuritas',
-'Maracay','Las Delicias','Cagua','Turmero','La Victoria',
-'Barinas','Industrial','Libertad','Obispos','Sabaneta',
-'Angostura','Libertador','Upata','Tumeremo','El Callao',
-'Valencia','Bolivar','Naguanagua','Guacara','San Diego',
-'Tinaquillo','San Carlos','Tinaco','El Baul','Las Vegas',
-'Tucupita','Pedernales','Curiapo','Capure','Araguaimujo',
-'La Pastora','San Juan','El Valle','La Vega','Antimano',
-'Coro','Zamora','Punto Fijo','Chichiriviche','Tucacas',
-'San Juan de los Morros','Calabozo','Zaraza','Valle de la Pascua','Altagracia de Orituco',
-'Macuto','La Playa','Catia La Mar','Maiquetia','Caraballeda',
-'Barquisimeto','Lara','Cabudare','El Tocuyo','Quibor',
-'Merida','Los Andes','Ejido','Tovar','Lagunillas',
-'Los Teques','Miranda','Guarenas','Guatire','Charallave',
-'Maturin','Bolivar','Punta de Mata','Caripito','Temblador',
-'Porlamar','4 de Mayo','Pampatar','Juan Griego','La Asuncion',
-'Guanare','Portuguesa','Acarigua','Araure','Biscucuy',
-'Cumana','Sucre','Carupano','Rio Caribe','Guiria',
-'San Cristobal','Tachira','Rubio','La Grita','Colon',
-'Trujillo','Bolivar','Boconó','Valera','Carache',
-'San Felipe','Yaracuy','Yaritagua','Chivacoa','Nirgua',
-'Maracaibo','Bella Vista','Cabimas','Ciudad Ojeda','San Francisco'
-],
+'Choroni','Las Delicias','Cagua','Turmero','Jose Felix Ribas',
+'Barinas','Alfredo Arvelo Larriva','Libertad','Obispos','Sabaneta',
+'Cachamay','Vista al Sol','Upata','Tumeremo','El Callao',
+'Urbana San Blas','Simon Bolivar','Urbana Naguanagua Valencia','Guacara','San Diego Valencia',
+'Cojedes','El Pao','Tinaquillo','Macapo','San Carlos de Austria',
+'Curiapo','Imataca','Pedernales','San Jose','Curiapo',
+'23 de Enero','Antimano','Catedral','El Valle','La Pastora',
+'Capadare','Aracua','Bariro','Norte','La Vela de Coro',
+'Camaguan','Chaguaramas','El Socorro','Tucupido','San Juan de los Morros',
+'Caraballeda','Carayaca','Catia La Mar','Maiquetia','Macuto',
+'Quebrada Honda de Guache','Freitez','Anzoategui','Cabudare','Buria',
+'Presidente Betancourt','Santa Cruz de Mora','La Azulita','Aricagua','Fernandez Peña',
+'Aragüita','Cumbo','El Cafetal','Higuerote','Mamporal',
+'San Antonio de Maturin','Aguasay','Caripito','El Tejero','Alto de los Godos',
+'Antolin del Campo','San Juan Bautista','Garcia','Bolivar','Aguirre',
+'Araure','Agua Blanca','Piritu','Cordova','Guanarito',
+'Mariño','San Jose de Areocuar','Rio Caribe','El Pilar','Santa Catalina',
+'Cordero','Virgen del Carmen','San Juan de Colon','Isaias Medina Angarita','Amenodoro Rangel Lamus',
+'Santa Isabel','Bocono','Sabana Grande','Chejende','Carache',
+'Aristides Bastidas','Bolivar','Chivacoa','Cocorote','Independencia',
+'Isla de Toas','San Timoteo','Ambrosio','Encontrados','San Carlos del Zulia'
+] :: varchar(40)[],
 
 -- Estados (24, uno por cada grupo de 5 eventos)
 ARRAY[
 'Amazonas','Anzoategui','Apure','Aragua','Barinas','Bolivar','Carabobo','Cojedes','Delta Amacuro','Distrito Capital','Falcon','Guarico','La Guaira','Lara','Merida','Miranda','Monagas','Nueva Esparta','Portuguesa','Sucre','Tachira','Trujillo','Yaracuy','Zulia'
-]
+] :: varchar(40)[]
 );
 
 --[[ INSERT REGISTRO_EVENTO ]]--
