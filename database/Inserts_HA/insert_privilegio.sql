@@ -1,6 +1,5 @@
 CREATE OR REPLACE PROCEDURE privileges ()
-LANGUAGE plpgsql
-AS $$
+    AS $$
 DECLARE
     x text;
     y text;
@@ -18,7 +17,8 @@ BEGIN
             END LOOP;
         END LOOP;
 END
-$$;
+$$
+LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE admin_privileges ()
     AS $$
@@ -38,7 +38,6 @@ END
 $$
 LANGUAGE plpgsql;
 
-DELETE FROM Privilegio;
-
 CALL privileges ();
+
 CALL admin_privileges ();
