@@ -260,19 +260,6 @@ CALL insert_tipo_cerveza ('Chocolate Stout', 'Stout');
 
 CALL insert_tipo_cerveza ('Red IPA', 'Indian Pale Ale');
 
--- Venezolanas -- NOTE: Potencialmente son Cervezas, no tipo
-CALL insert_tipo_cerveza ('Destilo', 'Ale');
-
-CALL insert_tipo_cerveza ('Dos Leones Latin American Pale Ale', 'American IPA');
-
-CALL insert_tipo_cerveza ('Benitz Pale Ale', 'Pale Ale');
-
-CALL insert_tipo_cerveza ('Cervecería Lago Ángel o Demonio', 'Belgian Golden Strong Ale');
-
-CALL insert_tipo_cerveza ('Barricas Saison Belga', 'Belgian Specialty Ale');
-
-CALL insert_tipo_cerveza ('Aldarra Mantuana', 'Blonde Ale');
-
 INSERT INTO Ingrediente (nombre_ingr)
     VALUES ('Levadura'),
     ('Levadura Saccharomyces Carlsbergenesis'),
@@ -648,32 +635,6 @@ CALL relate_cara ('Belgian Specialty Ale', 'Carbonatacion', 'Usualmente de moder
 
 CALL relate_cara ('Belgian Specialty Ale', 'Aroma', 'Variable, con distintas cantidades de ésteres frutados, fenoles especiados, aromas de levadura, y puede incluir aromas de adiciones de especias');
 
--- Dos Leones Latin American Pale Ale
-CALL relate_cara ('Dos Leones Latin American Pale Ale', 'Sabor', 'Tonos cítricos');
-
--- Benitz Pale Ale
-CALL relate_cara ('Benitz Pale Ale', 'Sabor', 'Dulce de Maltas');
-
-CALL relate_cara ('Benitz Pale Ale', 'Amargor (IBUs)', 'Suave');
-
-CALL relate_cara ('Benitz Pale Ale', 'Acabado', 'Suave y fluido');
-
---Cervecería Lago Ángel o Demonio
-CALL relate_cara ('Cervecería Lago Ángel o Demonio', 'Color', 'Dorado');
-
-CALL relate_cara ('Cervecería Lago Ángel o Demonio', 'Color de Espuma', 'Blanca');
-
--- Aldarra Mantuana
-CALL relate_cara ('Aldarra Mantuana', 'Color', 'Dorado');
-
-CALL relate_cara ('Aldarra Mantuana', 'Sabor', 'Ligero');
-
-CALL relate_cara ('Aldarra Mantuana', 'Cuerpo', 'Liviano, Sin Astringencias');
-
-CALL relate_cara ('Aldarra Mantuana', 'Aroma', 'Recuerda a Frutas Tropicales');
-
-CALL relate_cara ('Aldarra Mantuana', 'Carbonatacion', 'Media');
-
 -- Insert cervezas reales
 -- Pilsen Fuente: https://birrapedia.com/polar-pilsen/f-56d6d147f70fb5ca0c7e71ed
 -- TODO: Relacionar con Polar "J-00041312-6"
@@ -817,3 +778,48 @@ CALL add_inst ('Belgian Dubbel', 'Separa el mosto después de la maceración y l
 CALL add_inst ('Belgian Dubbel', 'Enfría rápidamente el mosto a unos 20-22 °C, transfiérelo a un fermentador y añade la levadura, sellando el fermentador con un airlock.');
 
 CALL add_inst ('Belgian Dubbel', 'Deja fermentar durante 1-2 semanas a temperatura controlada, embotella la cerveza con un poco de azúcar para carbonatación y deja madurar en botella durante al menos 2-4 semanas antes de disfrutar.');
+
+-- Venezolanas -- NOTE: Potencialmente son Cervezas, no tipo
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Destilo', get_tipo_cerv ('Ale'));
+
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Dos Leones Latin American Pale Ale', get_tipo_cerv ('American IPA'));
+
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Benitz Pale Ale', get_tipo_cerv ('Pale Ale'));
+
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Cervecería Lago Ángel o Demonio', get_tipo_cerv ('Belgian Golden Strong Ale'));
+
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Barricas Saison Belga', get_tipo_cerv ('Belgian Specialty Ale'));
+
+INSERT INTO Cerveza (nombre_cerv, fk_tipo_cerv)
+    VALUES ('Aldarra Mantuana', get_tipo_cerv ('Blonde Ale'));
+
+-- Dos Leones Latin American Pale Ale
+CALL relate_cara_cerv ('Dos Leones Latin American Pale Ale', 'Sabor', 'Tonos cítricos');
+
+-- Benitz Pale Ale
+CALL relate_cara_cerv ('Benitz Pale Ale', 'Sabor', 'Dulce de Maltas');
+
+CALL relate_cara_cerv ('Benitz Pale Ale', 'Amargor (IBUs)', 'Suave');
+
+CALL relate_cara_cerv ('Benitz Pale Ale', 'Acabado', 'Suave y fluido');
+
+--Cervecería Lago Ángel o Demonio
+CALL relate_cara_cerv ('Cervecería Lago Ángel o Demonio', 'Color', 'Dorado');
+
+CALL relate_cara_cerv ('Cervecería Lago Ángel o Demonio', 'Color de Espuma', 'Blanca');
+
+-- Aldarra Mantuana
+CALL relate_cara_cerv ('Aldarra Mantuana', 'Color', 'Dorado');
+
+CALL relate_cara_cerv ('Aldarra Mantuana', 'Sabor', 'Ligero');
+
+CALL relate_cara_cerv ('Aldarra Mantuana', 'Cuerpo', 'Liviano, Sin Astringencias');
+
+CALL relate_cara_cerv ('Aldarra Mantuana', 'Aroma', 'Recuerda a Frutas Tropicales');
+
+CALL relate_cara_cerv ('Aldarra Mantuana', 'Carbonatacion', 'Media');
