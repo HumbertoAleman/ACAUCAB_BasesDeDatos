@@ -89,7 +89,7 @@ Bun.serve({
 			}
 		},
 
-		"api/privileges/:id": {
+		"/api/privileges/:id": {
 			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
 			GET: async (req) => {
 				const id = req.params.id;
