@@ -223,24 +223,13 @@ END
 $$
 LANGUAGE plpgsql;
 
---[[ PROCEDURE BENEFICIO, EMPL_BENE ]]--
-CREATE OR REPLACE PROCEDURE create_and_give_benefits ()
+--[[ PROCEDURE EMPL_BENE ]]--
+CREATE OR REPLACE PROCEDURE give_benefits ()
     AS $$
 DECLARE
     bene integer;
     e_c record;
 BEGIN
-    INSERT INTO Beneficio (nombre_bene, cantidad_bene)
-        VALUES ('Salario Competitivo', 50000),
-        ('Seguro de Salud', 2000),
-        ('Vacaciones Pagadas', 3000),
-        ('Bonificaciones Anuales', 5000),
-        ('Capacitación y Desarrollo', 1500),
-        ('Horario Flexible', 0),
-        ('Trabajo Remoto', 0),
-        ('Plan de Jubilación', 3000),
-        ('Días de Enfermedad Pagados', 2000),
-        ('Beneficios de Bienestar', 1000);
     FOR e_c IN (
         SELECT
             *
@@ -309,7 +298,31 @@ END
 $$
 LANGUAGE plpgsql;
 
-
+--[[ PROCEDURE EMPL_HORA ]]--
+CREATE OR REPLACE PROCEDURE insert_empl_hora ()
+    AS $$
+DECLARE
+    rec_horario RECORD;
+    rec_empl_carg RECORD;
+BEGIN
+    FOR rec_horario IN
+    SELECT
+        *
+    FROM
+        Horario
+    LIMIT 7 LOOP
+        FOR rec_empl_carg IN
+        SELECT
+            *
+        FROM
+            EMPL_CARG LOOP
+                INSERT INTO EMPL_HORA (fk_hora, fk_empl_carg_1, fk_empl_carg_2, fk_empl_carg_3)
+                    VALUES (rec_horario.cod_hora, rec_empl_carg.fk_empl, rec_empl_carg.fk_carg, rec_empl_carg.cod_empl_carg);
+            END LOOP;
+    END LOOP;
+END
+$$
+LANGUAGE plpgsql;
 
 --[[[ INSERT BEGIN ]]]--
 
@@ -408,6 +421,32 @@ INSERT INTO Lugar_Tienda (nombre_luga_tien, tipo_luga_tien, fk_luga_tien)
     ('Almacen Secundario', 'Almacen', NULL),
     ('Pasillo 4', 'Pasillo', 8),
     ('Anaquel C1', 'Anaquel', 9);
+
+-- [[ INSERT HORARIO, INDEPENDENT ]]--
+INSERT INTO Horario (hora_ini_hora, hora_fin_hora, dia_hora)
+    VALUES ('08:00', '16:00', 'Lunes'),
+    ('09:00', '17:00', 'Martes'),
+    ('10:00', '18:00', 'Miercoles'),
+    ('07:30', '15:30', 'Jueves'),
+    ('12:00', '20:00', 'Viernes'),
+    ('08:00', '14:00', 'Sabado'),
+    ('09:00', '13:00', 'Domingo'),
+    ('14:00', '22:00', 'Lunes'),
+    ('16:00', '00:00', 'Viernes'),
+    ('18:00', '02:00', 'Sabado');
+
+-- [[ INSERT BENEFICIO, INDEPENDENT ]]--
+INSERT INTO Beneficio (nombre_bene, cantidad_bene)
+	VALUES ('Salario Competitivo', 50000),
+	('Seguro de Salud', 2000),
+	('Vacaciones Pagadas', 3000),
+	('Bonificaciones Anuales', 5000),
+	('Capacitación y Desarrollo', 1500),
+	('Horario Flexible', 0),
+	('Trabajo Remoto', 0),
+	('Plan de Jubilación', 3000),
+	('Días de Enfermedad Pagados', 2000),
+	('Beneficios de Bienestar', 1000);
 
 --[[ INSERT ESTADOS, 
 -- DEPENDENT on PROCEDURE ESTADOS ]]--
@@ -908,9 +947,11 @@ CALL add_empl_carg_to_tien_1 (42233317, 'Empleado', '2024-10-10', NULL, 25000, '
 
 CALL add_empl_carg_to_tien_1 (40959596, 'Empleado', '2024-10-10', NULL, 25000, 'Mantenimiento');
 
---[[ INSERT BENEFICIO, EMPL_BENE, VACACION, ASISTENCIA ]]--
-CALL create_and_give_benefits ();
+--[[ INSERT EMPL_BENE, VACACION, ASISTENCIA, EMPL_HORA ]]--
+CALL give_benefits ();
 
 CALL create_vacaciones ();
 
 CALL generate_asistencia_entries ();
+
+CALL insert_empl_hora ();

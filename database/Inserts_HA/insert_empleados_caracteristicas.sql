@@ -1,20 +1,9 @@
-CREATE OR REPLACE PROCEDURE create_and_give_benefits ()
+CREATE OR REPLACE PROCEDURE give_benefits ()
     AS $$
 DECLARE
     bene integer;
     e_c record;
 BEGIN
-    INSERT INTO Beneficio (nombre_bene, cantidad_bene)
-        VALUES ('Salario Competitivo', 50000),
-        ('Seguro de Salud', 2000),
-        ('Vacaciones Pagadas', 3000),
-        ('Bonificaciones Anuales', 5000),
-        ('Capacitación y Desarrollo', 1500),
-        ('Horario Flexible', 0),
-        ('Trabajo Remoto', 0),
-        ('Plan de Jubilación', 3000),
-        ('Días de Enfermedad Pagados', 2000),
-        ('Beneficios de Bienestar', 1000);
     FOR e_c IN (
         SELECT
             *
@@ -81,7 +70,19 @@ END
 $$
 LANGUAGE plpgsql;
 
-CALL create_and_give_benefits ();
+INSERT INTO Beneficio (nombre_bene, cantidad_bene)
+    VALUES ('Salario Competitivo', 50000),
+    ('Seguro de Salud', 2000),
+    ('Vacaciones Pagadas', 3000),
+    ('Bonificaciones Anuales', 5000),
+    ('Capacitación y Desarrollo', 1500),
+    ('Horario Flexible', 0),
+    ('Trabajo Remoto', 0),
+    ('Plan de Jubilación', 3000),
+    ('Días de Enfermedad Pagados', 2000),
+    ('Beneficios de Bienestar', 1000);
+
+CALL give_benefits ();
 
 CALL create_vacaciones ();
 
