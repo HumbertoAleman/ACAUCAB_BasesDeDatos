@@ -1,5 +1,5 @@
 // Configuración base de la API
-const API_BASE_URL = 'http://localhost:3000/api' // Ajusta según tu configuración del backend
+const API_BASE_URL = 'http://127.0.0.1:3000/api' // Ajusta según tu configuración del backend
 
 // Interfaces para las respuestas de la API
 export interface ApiResponse<T> {
@@ -9,26 +9,14 @@ export interface ApiResponse<T> {
   error?: string
 }
 
-export interface LoginResponse {
+export interface AuthResponse {
+  authenticated: boolean;
+  token: string;
   user: {
-    cod_usua: number
-    username_usua: string
-    fk_rol: number
-    fk_empl?: number | null
-    fk_miem?: string | null
-    fk_clie?: string | null
-  }
-  token?: string
-  role: {
-    cod_rol: number
-    nombre_rol: string
-    descripcion_rol: string
-  }
-  privileges: Array<{
-    cod_priv: number
-    nombre_priv: string
-    descripcion_priv: string
-  }>
+    username: string;
+    rol: string;
+    privileges: string[];
+  };
 }
 
 // Función helper para hacer peticiones HTTP
@@ -68,11 +56,25 @@ async function apiRequest<T>(
 // Servicios de autenticación
 export const authService = {
   // Login de usuario
-  async login(username: string, password: string): Promise<ApiResponse<LoginResponse>> {
-    return apiRequest<LoginResponse>('/auth/login', {
+  async login(username: string, password: string): Promise<ApiResponse<AuthResponse>> {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ username, password }),
-    })
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Error ${response.status}: ${response.statusText}`)
+    }
+
+    if (data.authenticated) {
+      return { success: true, data: data };
+    } else {
+      return { success: false, error: "Authentication failed" };
+    }
   },
 
   // Logout
@@ -83,8 +85,8 @@ export const authService = {
   },
 
   // Verificar token actual
-  async verifyToken(): Promise<ApiResponse<LoginResponse>> {
-    return apiRequest<LoginResponse>('/auth/verify')
+  async verifyToken(): Promise<ApiResponse<AuthResponse>> {
+    return apiRequest<AuthResponse>('/auth/verify')
   },
 }
 
@@ -92,7 +94,7 @@ export const authService = {
 export const userService = {
   // Obtener todos los usuarios
   async getUsers(): Promise<ApiResponse<any[]>> {
-    return apiRequest<any[]>('/users')
+    return apiRequest<any[]>('/users_with_details')
   },
 
   // Obtener usuario por ID
@@ -122,6 +124,13 @@ export const userService = {
       method: 'DELETE',
     })
   },
+
+  // Obtener todos los usuarios con sus roles y privilegios
+  async getUsersWithRoles(): Promise<ApiResponse<any[]>> {
+    // This endpoint needs to be created in the backend.
+    // It should return a list of users, including their roles and current privileges.
+    return apiRequest<any[]>('/users_with_details'); 
+  }
 }
 
 // Servicios de roles
@@ -191,6 +200,16 @@ export const privilegeService = {
       method: 'DELETE',
     })
   },
+
+  // Actualizar los privilegios de un usuario
+  async updateUserPrivileges(userId: number, privileges: string[]): Promise<ApiResponse<void>> {
+    // This endpoint needs to be created in the backend.
+    // It should accept a user ID and a list of privilege names to update.
+    return apiRequest<void>(`/users/${userId}/privileges`, {
+      method: 'PUT',
+      body: JSON.stringify({ privileges }),
+    });
+  }
 }
 
 // Función helper para manejar errores de autenticación

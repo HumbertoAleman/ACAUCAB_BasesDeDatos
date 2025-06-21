@@ -49,6 +49,8 @@ export interface PrivRol {
 
 export interface UsuarioFront {
   username: string;
+  rol: string;
+  privileges: string[];
 }
 
 export interface RolFront {

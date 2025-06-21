@@ -13,6 +13,7 @@ import { PuntoVenta } from "./pages/ventas/PuntoVenta"
 import { GestionInventario } from "./pages/inventario/GestionInventario"
 import { GestionUsuarios } from "./pages/usuarios/GestionUsuarios"
 import { Reportes } from "./pages/reportes/Reportes"
+import PrivilegesManager from "./pages/configuracion/PrivilegesManager"
 
 // Crear cliente de React Query
 const queryClient = new QueryClient({
@@ -123,7 +124,7 @@ function App() {
                         <Route path="/inventario" element={<GestionInventario />} />
                         <Route path="/usuarios" element={<GestionUsuarios />} />
                         <Route path="/reportes" element={<Reportes />} />
-                        <Route path="/configuracion" element={<div>Configuración - En desarrollo</div>} />
+                        <Route path="/configuracion" element={<PrivilegesManager />} />
                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                       </Routes>
                     </Layout>

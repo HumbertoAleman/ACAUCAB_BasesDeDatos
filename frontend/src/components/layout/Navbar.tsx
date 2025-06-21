@@ -6,7 +6,7 @@ import { ExitToApp, Person } from "@mui/icons-material"
 import { useAuth } from "../../contexts/AuthContext"
 
 export const Navbar: React.FC = () => {
-  const { user, role, logout } = useAuth()
+  const { user, logout } = useAuth()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -33,11 +33,11 @@ export const Navbar: React.FC = () => {
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
               <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                {user.username_usua}
+                {user.username}
               </Typography>
-              {role && (
+              {user.rol && (
                 <Chip
-                  label={role.nombre_rol}
+                  label={user.rol}
                   size="small"
                   sx={{
                     backgroundColor: "rgba(255,255,255,0.2)",
@@ -58,7 +58,7 @@ export const Navbar: React.FC = () => {
               color="inherit"
             >
               <Avatar sx={{ width: 32, height: 32, backgroundColor: "#1B5E20" }}>
-                {user.username_usua.charAt(0).toUpperCase()}
+                {user && user.username ? user.username.charAt(0).toUpperCase() : <Person />}
               </Avatar>
             </IconButton>
 
@@ -79,12 +79,12 @@ export const Navbar: React.FC = () => {
             >
               <MenuItem disabled>
                 <Person sx={{ mr: 1 }} />
-                {user.username_usua}
+                {user.username}
               </MenuItem>
-              {role && (
+              {user.rol && (
                 <MenuItem disabled>
                   <Typography variant="caption" color="text.secondary">
-                    {role.nombre_rol}
+                    {user.rol}
                   </Typography>
                 </MenuItem>
               )}
