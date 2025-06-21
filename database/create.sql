@@ -307,7 +307,7 @@ CREATE TABLE Cliente (
     denom_comercial_juri varchar(40),
     capital_juri numeric(8, 2),
     pag_web_juri text,
-    fecha_ingr_clie date DEFAULT CURRENT_DATE;
+    fecha_ingr_clie date DEFAULT CURRENT_DATE,
     PRIMARY KEY (rif_clie),
     CONSTRAINT domiciliado FOREIGN KEY (fk_luga_1) REFERENCES Lugar (cod_luga),
     CONSTRAINT ubicado FOREIGN KEY (fk_luga_2) REFERENCES Lugar (cod_luga),
