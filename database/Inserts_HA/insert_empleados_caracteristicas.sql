@@ -2,7 +2,7 @@ CREATE OR REPLACE PROCEDURE create_and_give_benefits ()
     AS $$
 DECLARE
     bene integer;
-    e_c EMPL_CARG%ROWTYPE;
+    e_c record;
 BEGIN
     INSERT INTO Beneficio (nombre_bene, cantidad_bene)
         VALUES ('Salario Competitivo', 50000),
@@ -39,7 +39,7 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE PROCEDURE create_vacaciones ()
     AS $$
 DECLARE
-    e_c EMPL_CARG%ROWTYPE;
+    e_c record;
 BEGIN
     FOR e_c IN (
         SELECT
@@ -57,7 +57,7 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE PROCEDURE generate_asistencia_entries ()
     AS $$
 DECLARE
-    emp RECORD;
+    emp record;
     start_date date := '2024-10-11';
     business_day date;
     start_hour interval;
@@ -81,7 +81,6 @@ END
 $$
 LANGUAGE plpgsql;
 
--- Call the procedure to generate the entries
 CALL create_and_give_benefits ();
 
 CALL create_vacaciones ();
