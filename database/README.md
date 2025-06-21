@@ -88,6 +88,17 @@ SELECT 100 * SUM(CASE WHEN n_live_tup > 9 THEN 1 ELSE 0 END) / COUNT(*) AS "Porc
 FROM pg_stat_user_tables;
 ```
 
+Funcion rapida para contar eventos por estado
+
+```sql
+select es.nombre_luga, COUNT(*)
+from evento as ev
+join lugar as p on ev.fk_luga = p.cod_luga
+join lugar as m on m.cod_luga = p.fk_luga
+join lugar as es on es.cod_luga = m.fk_luga
+group by es.nombre_luga;
+```
+
 ## Organizacion de Roles
 
 - Miembro:
