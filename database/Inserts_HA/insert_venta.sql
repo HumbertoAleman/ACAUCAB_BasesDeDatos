@@ -1,3 +1,31 @@
+CREATE OR REPLACE FUNCTION create_or_insert_tasa (curr_date date)
+    RETURNS integer
+    AS $$
+DECLARE
+    v_cod_tasa int;
+BEGIN
+    -- Check if a record exists with today's date in fecha_ini_tasa
+    SELECT
+        cod_tasa
+    FROM
+        Tasa
+    WHERE
+        fecha_ini_tasa = curr_date
+    LIMIT 1 INTO v_cod_tasa;
+    -- If a record is found, return the cod_tasa
+    IF v_cod_tasa IS NULL THEN
+        -- Insert a new record with today's date and numeric values increased by 100
+        INSERT INTO Tasa (tasa_dolar_bcv, tasa_punto, fecha_ini_tasa, fecha_fin_tasa)
+            VALUES (100, 10, curr_date, curr_date)
+        RETURNING
+            cod_tasa INTO v_cod_tasa;
+    END IF;
+    -- Return the cod_tasa
+    RETURN v_cod_tasa;
+END
+$$
+LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION get_estatus_by_name (nombre varchar(40))
     RETURNS integer
     AS $$
@@ -120,6 +148,11 @@ END
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE TRIGGER create_punc_canj_on_venta_creation
+    AFTER INSERT ON Venta
+    FOR EACH ROW
+    EXECUTE FUNCTION create_punc_canj_historial_on_new_venta ();
+
 CREATE OR REPLACE FUNCTION create_new_estatus_for_venta ()
     RETURNS TRIGGER
     AS $$
@@ -131,33 +164,10 @@ END
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION create_or_insert_tasa (curr_date date)
-    RETURNS integer
-    AS $$
-DECLARE
-    v_cod_tasa int;
-BEGIN
-    -- Check if a record exists with today's date in fecha_ini_tasa
-    SELECT
-        cod_tasa
-    FROM
-        Tasa
-    WHERE
-        fecha_ini_tasa = curr_date
-    LIMIT 1 INTO v_cod_tasa;
-    -- If a record is found, return the cod_tasa
-    IF v_cod_tasa IS NULL THEN
-        -- Insert a new record with today's date and numeric values increased by 100
-        INSERT INTO Tasa (tasa_dolar_bcv, tasa_punto, fecha_ini_tasa, fecha_fin_tasa)
-            VALUES (100, 10, curr_date, curr_date)
-        RETURNING
-            cod_tasa INTO v_cod_tasa;
-    END IF;
-    -- Return the cod_tasa
-    RETURN v_cod_tasa;
-END
-$$
-LANGUAGE plpgsql;
+CREATE OR REPLACE TRIGGER set_estatus_for_new_venta
+    AFTER INSERT ON Venta
+    FOR EACH ROW
+    EXECUTE FUNCTION create_new_estatus_for_venta ();
 
 CREATE OR REPLACE FUNCTION increment_venta_total ()
     RETURNS TRIGGER
@@ -181,6 +191,11 @@ END;
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE TRIGGER after_insert_detalle_venta
+    AFTER INSERT ON Detalle_Venta
+    FOR EACH ROW
+    EXECUTE FUNCTION increment_venta_total ();
+
 CREATE OR REPLACE FUNCTION remove_from_inventory ()
     RETURNS TRIGGER
     AS $$
@@ -201,10 +216,27 @@ END;
 $$
 LANGUAGE plpgsql;
 
+CREATE OR REPLACE TRIGGER remove_from_inventory_after_detalle
+    AFTER INSERT ON Detalle_Venta
+    FOR EACH ROW
+    EXECUTE FUNCTION remove_from_inventory ();
+
 CREATE OR REPLACE FUNCTION add_points_to_clie ()
     RETURNS TRIGGER
     AS $$
+DECLARE
+    v record;
 BEGIN
+    SELECT
+        *
+    FROM
+        Venta
+    WHERE
+        cod_vent = NEW.fk_vent INTO v;
+    -- If venta not online, user does not win points
+    IF NOT v.online THEN
+        RETURN NEW;
+    END IF;
     UPDATE
         PUNT_CLIE
     SET
@@ -216,6 +248,11 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER add_points_on_venta
+    AFTER INSERT ON Detalle_Venta
+    FOR EACH ROW
+    EXECUTE FUNCTION add_points_to_clie ();
 
 CREATE OR REPLACE FUNCTION substract_points_to_clie ()
     RETURNS TRIGGER
@@ -263,40 +300,11 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER create_punc_canj_on_venta_creation
-    AFTER INSERT ON Venta
-    FOR EACH ROW
-    EXECUTE FUNCTION create_punc_canj_historial_on_new_venta ();
-
-CREATE OR REPLACE TRIGGER after_insert_detalle_venta
-    AFTER INSERT ON Detalle_Venta
-    FOR EACH ROW
-    EXECUTE FUNCTION increment_venta_total ();
-
-CREATE OR REPLACE TRIGGER remove_from_inventory_after_detalle
-    AFTER INSERT ON Detalle_Venta
-    FOR EACH ROW
-    EXECUTE FUNCTION remove_from_inventory ();
-
-CREATE OR REPLACE TRIGGER add_points_on_venta
-    AFTER INSERT ON Detalle_Venta
-    FOR EACH ROW
-    EXECUTE FUNCTION add_points_to_clie ();
-
 CREATE OR REPLACE TRIGGER substract_points_on_venta
     AFTER INSERT ON Pago
     FOR EACH ROW
     EXECUTE FUNCTION substract_points_to_clie ();
 
-CREATE OR REPLACE TRIGGER set_estatus_for_new_venta
-    AFTER INSERT ON Venta
-    FOR EACH ROW
-    EXECUTE FUNCTION create_new_estatus_for_venta ();
-
--- Crear un trigger cuando se cree la venta, en el trigger se revisa si es online u offline,
--- solo se crea PUNT_CLIE cuando la venta es offline
--- Crear otro trigger cuando se cree un pago utilizando el metodo de pago Punto_Canjeo,
--- si PUNT_CLIE
 CREATE OR REPLACE PROCEDURE venta_en_tienda (
 -- Parameters Venta
 p_fecha_vent date, -- Date of Venta
@@ -380,7 +388,7 @@ BEGIN
     FOR i IN 1..10 LOOP
         v_fecha_vent := CURRENT_DATE - (RANDOM() * 30)::int;
         v_base_imponible_vent := ROUND(RANDOM() * 1000);
-        v_online := (RANDOM() < 0.25);
+        v_online := (RANDOM() < 0);
         SELECT
             rif_clie INTO v_fk_clie
         FROM
