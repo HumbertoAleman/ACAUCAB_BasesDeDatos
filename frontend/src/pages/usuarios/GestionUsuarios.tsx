@@ -1,330 +1,245 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import type { SelectChangeEvent } from "@mui/material"
 import {
   Box,
   Paper,
   Typography,
-  TextField,
-  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  Button,
   Grid,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
-  FormControlLabel,
   Checkbox,
   FormGroup,
+  FormControlLabel,
   Alert,
   CircularProgress,
+  Tooltip,
+  TextField,
+  Stack,
 } from "@mui/material"
-import { Search, Add, Edit, Delete, Security, Refresh } from "@mui/icons-material"
-import type { Usuario, Rol, Privilegio } from "../../interfaces"
+import { Security, Refresh, Edit, Delete } from "@mui/icons-material"
 import { useUsers } from "../../hooks/useUsers"
-import { useAuth } from "../../contexts/AuthContext"
+import { privilegeService, roleService } from "../../services/api"
+import type { Rol, Usuario } from "../../interfaces"
+
+// Genera dinámicamente los módulos a partir de las interfaces de negocio
+const businessInterfaces = ["cervezas", "eventos", "miembros", "personal", "tiendas", "ventas", "usuarios"]
+const systemModules = businessInterfaces.map(name => ({
+    key: name,
+    label: name.charAt(0).toUpperCase() + name.slice(1) // Capitaliza el nombre para el UI
+}))
+
+const crudActions = ["create", "read", "update", "delete"]
 
 export const GestionUsuarios: React.FC = () => {
-  const { hasPermission } = useAuth()
-  const {
-    users,
-    roles,
-    privileges,
-    loading,
-    error,
-    createUser,
-    updateUser,
-    deleteUser,
-    refreshUsers,
-  } = useUsers()
+  const { users, loading, error, refreshUsers, updateUser, deleteUser } = useUsers()
+  
+  const [roles, setRoles] = useState<Rol[]>([])
+  const [privilegeModalOpen, setPrivilegeModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<Usuario | null>(null)
+  const [userPrivileges, setUserPrivileges] = useState<Record<string, boolean>>({})
+  const [editedUsername, setEditedUsername] = useState("")
 
-  const [busqueda, setBusqueda] = useState("")
-  const [dialogUsuario, setDialogUsuario] = useState(false)
-  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<Usuario | null>(null)
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    fk_rol: "",
-  })
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const response = await roleService.getRoles()
+      // La API puede devolver un array directamente en caso de éxito.
+      if (Array.isArray(response)) {
+        setRoles(response)
+      } else {
+        console.error("Error al cargar los roles:", (response as any).error)
+      }
+    }
+    fetchRoles()
+  }, [])
+  
+  const employeeUsers = users.filter(user => user.rol && !user.rol.nombre_rol.includes("Cliente"))
 
-  // Verificar permisos
-  if (!hasPermission("usuarios")) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          No tiene permisos para acceder a la gestión de usuarios.
-        </Alert>
-      </Box>
-    )
+  const handleRoleChange = async (userId: number, event: SelectChangeEvent<number>) => {
+    const newRoleId = event.target.value as number
+    await updateUser(userId, { fk_rol: newRoleId })
   }
 
-  const usuariosFiltrados = users.filter((usuario) =>
-    usuario.username_usua.toLowerCase().includes(busqueda.toLowerCase()),
-  )
-
-  const handleNuevoUsuario = () => {
-    setUsuarioSeleccionado(null)
-    setFormData({
-      username: "",
-      password: "",
-      fk_rol: "",
+  const handleOpenPrivilegeModal = (user: Usuario) => {
+    setSelectedUser(user)
+    const initialPrivileges: Record<string, boolean> = {}
+    systemModules.forEach(module => {
+      crudActions.forEach(action => {
+        const privilegeName = `${module.key}_${action}`
+        initialPrivileges[privilegeName] = user.rol.privileges?.some(p => p.nombre_priv === privilegeName) ?? false
+      })
     })
-    setDialogUsuario(true)
+    setUserPrivileges(initialPrivileges)
+    setPrivilegeModalOpen(true)
   }
 
-  const handleEditarUsuario = (usuario: Usuario) => {
-    setUsuarioSeleccionado(usuario)
-    setFormData({
-      username: usuario.username_usua,
-      password: "",
-      fk_rol: usuario.fk_rol.toString(),
+  const handlePrivilegeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUserPrivileges({
+      ...userPrivileges,
+      [event.target.name]: event.target.checked,
     })
-    setDialogUsuario(true)
   }
 
-  const handleEliminarUsuario = async (usuario: Usuario) => {
-    if (window.confirm(`¿Está seguro de eliminar al usuario ${usuario.username_usua}?`)) {
-      await deleteUser(usuario.cod_usua)
+  const handleSavePrivileges = async () => {
+    if (!selectedUser) return
+
+    const updatedPrivileges = Object.keys(userPrivileges).filter(key => userPrivileges[key])
+    
+    console.log("Enviando al backend para el usuario", selectedUser.cod_usua, ":", { privileges: updatedPrivileges })
+    
+    await privilegeService.updateUserPrivileges(selectedUser.cod_usua, updatedPrivileges)
+    
+    setPrivilegeModalOpen(false)
+    setSelectedUser(null)
+    refreshUsers()
+  }
+
+  const handleOpenEditModal = (user: Usuario) => {
+    setSelectedUser(user)
+    setEditedUsername(user.username_usua)
+    setEditModalOpen(true)
+  }
+
+  const handleSaveUsername = async () => {
+    if (!selectedUser) return
+    await updateUser(selectedUser.cod_usua, { username_usua: editedUsername })
+    setEditModalOpen(false)
+    setSelectedUser(null)
+  }
+
+  const handleDeleteUser = async (userId: number) => {
+    if (window.confirm("¿Está seguro de que desea eliminar este usuario? Esta acción es irreversible.")) {
+      await deleteUser(userId)
     }
   }
 
-  const handleGuardarUsuario = async () => {
-    const userData = {
-      username_usua: formData.username,
-      contra_usua: formData.password,
-      fk_rol: parseInt(formData.fk_rol),
-    }
-
-    let success = false
-    if (usuarioSeleccionado) {
-      success = await updateUser(usuarioSeleccionado.cod_usua, userData)
-    } else {
-      success = await createUser(userData)
-    }
-
-    if (success) {
-      setDialogUsuario(false)
-      setFormData({ username: "", password: "", fk_rol: "" })
-    }
-  }
-
-  const getRolNombre = (fk_rol: number) => {
-    const rol = roles.find(r => r.cod_rol === fk_rol)
-    return rol ? rol.nombre_rol : "Sin rol"
-  }
-
-  if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
+  if (loading || roles.length === 0) return <CircularProgress />
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold", color: "#2E7D32" }}>
-        Gestión de Usuarios y Roles
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h4" gutterBottom>Gestión de Usuarios</Typography>
+        <Button variant="outlined" startIcon={<Refresh />} onClick={refreshUsers}>
+          Actualizar
+        </Button>
+      </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <Grid container spacing={3}>
-        {/* Gestión de Usuarios */}
-        <Grid size={{ xs: 12, lg: 8 }}>
-          <Paper sx={{ p: 2 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-              <Typography variant="h6">Usuarios del Sistema</Typography>
-              <Box>
-                <Button
-                  variant="outlined"
-                  startIcon={<Refresh />}
-                  onClick={refreshUsers}
-                  sx={{ mr: 1 }}
-                >
-                  Actualizar
-                </Button>
-                <Button variant="contained" startIcon={<Add />} onClick={handleNuevoUsuario}>
-                  Nuevo Usuario
-                </Button>
-              </Box>
-            </Box>
+      <Paper>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Usuario</TableCell>
+                <TableCell>Rol Asignado</TableCell>
+                <TableCell align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {employeeUsers.map((user) => (
+                <TableRow key={user.cod_usua}>
+                  <TableCell>{user.username_usua}</TableCell>
+                  <TableCell>
+                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                      <Select
+                        value={user.fk_rol}
+                        onChange={(e) => handleRoleChange(user.cod_usua, e)}
+                      >
+                        {roles.map((rol) => (
+                          <MenuItem key={rol.cod_rol} value={rol.cod_rol}>
+                            {rol.nombre_rol}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Stack direction="row" spacing={1} justifyContent="center">
+                      <Tooltip title="Editar Usuario">
+                        <IconButton size="small" onClick={() => handleOpenEditModal(user)}><Edit /></IconButton>
+                      </Tooltip>
+                      <Tooltip title="Gestionar Privilegios">
+                        <IconButton size="small" onClick={() => handleOpenPrivilegeModal(user)}><Security /></IconButton>
+                      </Tooltip>
+                      <Tooltip title="Eliminar Usuario">
+                        <IconButton size="small" color="error" onClick={() => handleDeleteUser(user.cod_usua)}><Delete /></IconButton>
+                      </Tooltip>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
-            <TextField
-              fullWidth
-              placeholder="Buscar usuarios..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              sx={{ mb: 2 }}
-              InputProps={{
-                startAdornment: <Search sx={{ mr: 1, color: "text.secondary" }} />,
-              }}
-            />
-
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Usuario</TableCell>
-                    <TableCell>Rol</TableCell>
-                    <TableCell>Privilegios</TableCell>
-                    <TableCell align="center">Acciones</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {usuariosFiltrados.map((usuario) => (
-                    <TableRow key={usuario.cod_usua}>
-                      <TableCell>
-                        <Typography variant="subtitle2">{usuario.username_usua}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={getRolNombre(usuario.fk_rol)} color="primary" size="small" />
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                          {usuario.privileges?.slice(0, 3).map((priv) => (
-                            <Chip
-                              key={priv.cod_priv}
-                              label={priv.nombre_priv}
-                              color="secondary"
-                              size="small"
-                              variant="outlined"
-                            />
-                          ))}
-                          {usuario.privileges && usuario.privileges.length > 3 && (
-                            <Chip
-                              label={`+${usuario.privileges.length - 3}`}
-                              size="small"
-                              variant="outlined"
-                            />
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton size="small" color="primary" onClick={() => handleEditarUsuario(usuario)}>
-                          <Edit />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          color="error"
-                          onClick={() => handleEliminarUsuario(usuario)}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-
-        {/* Gestión de Roles */}
-        <Grid size={{ xs: 12, lg: 4 }}>
-          <Paper sx={{ p: 2 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-              <Typography variant="h6">Roles del Sistema</Typography>
-              <Button variant="outlined" startIcon={<Security />} size="small">
-                Nuevo Rol
-              </Button>
-            </Box>
-
-            {roles.map((rol) => (
-              <Box key={rol.cod_rol} sx={{ mb: 2, p: 2, border: "1px solid #e0e0e0", borderRadius: 1 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                  <Typography variant="subtitle2">{rol.nombre_rol}</Typography>
-                  <IconButton size="small">
-                    <Edit />
-                  </IconButton>
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  {rol.descripcion_rol}
-                </Typography>
-                <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                  {rol.privileges?.slice(0, 2).map((priv) => (
-                    <Chip
-                      key={priv.cod_priv}
-                      label={priv.nombre_priv}
-                      color="secondary"
-                      size="small"
-                      variant="outlined"
-                    />
-                  ))}
-                  {rol.privileges && rol.privileges.length > 2 && (
-                    <Chip
-                      label={`+${rol.privileges.length - 2}`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  )}
-                </Box>
-              </Box>
-            ))}
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Dialog para crear/editar usuario */}
-      <Dialog open={dialogUsuario} onClose={() => setDialogUsuario(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {usuarioSeleccionado ? "Editar Usuario" : "Nuevo Usuario"}
-        </DialogTitle>
+      {/* Modal de Privilegios */}
+      <Dialog open={privilegeModalOpen} onClose={() => setPrivilegeModalOpen(false)} maxWidth="md">
+        <DialogTitle>Gestionar Privilegios para {selectedUser?.username_usua}</DialogTitle>
         <DialogContent>
-          <Box sx={{ pt: 1 }}>
-            <TextField
-              fullWidth
-              label="Nombre de usuario"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              fullWidth
-              label="Contraseña"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              sx={{ mb: 2 }}
-              helperText={usuarioSeleccionado ? "Dejar vacío para mantener la contraseña actual" : ""}
-            />
-            <FormControl fullWidth>
-              <InputLabel>Rol</InputLabel>
-              <Select
-                value={formData.fk_rol}
-                label="Rol"
-                onChange={(e) => setFormData({ ...formData, fk_rol: e.target.value })}
-              >
-                {roles.map((rol) => (
-                  <MenuItem key={rol.cod_rol} value={rol.cod_rol}>
-                    {rol.nombre_rol}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+          <Grid container spacing={2} sx={{ pt: 1 }}>
+            {systemModules.map((module) => (
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={module.key}>
+                <Typography variant="h6">{module.label}</Typography>
+                <FormGroup>
+                  {crudActions.map((action) => {
+                    const privilegeName = `${module.key}_${action}`
+                    return (
+                      <FormControlLabel
+                        key={privilegeName}
+                        control={
+                          <Checkbox
+                            checked={userPrivileges[privilegeName] ?? false}
+                            onChange={handlePrivilegeChange}
+                            name={privilegeName}
+                          />
+                        }
+                        label={action.charAt(0).toUpperCase() + action.slice(1)}
+                      />
+                    )
+                  })}
+                </FormGroup>
+              </Grid>
+            ))}
+          </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogUsuario(false)}>Cancelar</Button>
-          <Button onClick={handleGuardarUsuario} variant="contained">
-            {usuarioSeleccionado ? "Actualizar" : "Crear"}
-          </Button>
+          <Button onClick={() => setPrivilegeModalOpen(false)}>Cancelar</Button>
+          <Button onClick={handleSavePrivileges} variant="contained">Guardar Cambios</Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Modal de Edición de Usuario */}
+      <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+        <DialogTitle>Editar Usuario</DialogTitle>
+        <DialogContent sx={{ pt: '20px !important' }}>
+          <TextField
+            label="Nombre de Usuario"
+            fullWidth
+            value={editedUsername}
+            onChange={(e) => setEditedUsername(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditModalOpen(false)}>Cancelar</Button>
+          <Button onClick={handleSaveUsername} variant="contained">Guardar</Button>
         </DialogActions>
       </Dialog>
     </Box>

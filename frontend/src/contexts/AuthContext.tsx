@@ -50,7 +50,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error("Failed to initialize auth:", error)
-        // Clear storage if parsing fails
         localStorage.removeItem("acaucab_user")
         localStorage.removeItem("acaucab_token")
       } finally {
@@ -58,34 +57,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
     initializeAuth()
-
-    const handleBeforeUnload = () => {
-      // This will run when the tab is closed, but not on refresh
-      // Note: modern browsers may prevent some async operations here for security
-      // A better approach for "logout on close" is using sessionStorage instead of localStorage
-      // For this implementation, we'll stick to the explicit logout call.
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
   }, [])
 
   const hasPermission = (permission: string): boolean => {
-    if (!user) return false;
-
-    // Special case for role-based permission
+    // La única comprobación de permisos que queda es para el rol de administrador.
+    // El resto de la lógica de privilegios ha sido eliminada.
     if (permission === 'admin_only') {
-      return user.rol === 'Administrador';
+      return user?.rol === 'Administrador'
     }
-
-    if (!user.privileges) {
-      return false;
-    }
-    // The permission check is now against the user's own list of privileges
-    return user.privileges.includes(permission);
+    // Para todo lo demás, se concede el acceso.
+    return true
   };
 
   const login = async (credentials: LoginCredentials) => {
@@ -97,7 +78,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const userToStore: UsuarioFront = {
           username: userData.username,
           rol: userData.rol,
-          privileges: userData.privileges,
         }
         localStorage.setItem("acaucab_token", token)
         localStorage.setItem("acaucab_user", JSON.stringify(userToStore))
@@ -109,7 +89,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Error de conexión"
       console.error("Login failed:", errorMessage)
-      // Here you might want to show a notification to the user
       throw new Error(errorMessage)
     } finally {
       setIsLoading(false)

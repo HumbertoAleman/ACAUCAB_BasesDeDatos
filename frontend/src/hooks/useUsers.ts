@@ -1,96 +1,46 @@
-import { useState, useEffect } from 'react'
-import { userService, roleService, privilegeService, type ApiResponse } from '../services/api'
-import type { Usuario, Rol, Privilegio } from '../interfaces'
-
-export interface UserWithRole extends Usuario {
-  role?: Rol
-  privileges?: Privilegio[]
-}
+import { useState, useEffect, useCallback } from 'react'
+import { userService } from '../services/api'
+import type { Usuario } from '../interfaces'
 
 export interface UseUsersReturn {
-  users: UserWithRole[]
-  roles: Rol[]
-  privileges: Privilegio[]
+  users: Usuario[]
   loading: boolean
   error: string | null
   createUser: (userData: Partial<Usuario>) => Promise<boolean>
   updateUser: (id: number, userData: Partial<Usuario>) => Promise<boolean>
   deleteUser: (id: number) => Promise<boolean>
   refreshUsers: () => Promise<void>
-  refreshRoles: () => Promise<void>
-  refreshPrivileges: () => Promise<void>
 }
 
 export const useUsers = (): UseUsersReturn => {
-  const [users, setUsers] = useState<UserWithRole[]>([])
-  const [roles, setRoles] = useState<Rol[]>([])
-  const [privileges, setPrivileges] = useState<Privilegio[]>([])
+  const [users, setUsers] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const response = await userService.getUsers()
-      if (response.success && response.data) {
-        // Enriquecer usuarios con información de roles
-        const usersWithRoles = await Promise.all(
-          response.data.map(async (user: Usuario) => {
-            try {
-              const roleResponse = await roleService.getRoleById(user.fk_rol)
-              const privilegesResponse = await roleService.getRolePrivileges(user.fk_rol)
-              
-              return {
-                ...user,
-                role: roleResponse.success ? roleResponse.data : undefined,
-                privileges: privilegesResponse.success ? privilegesResponse.data : []
-              }
-            } catch (error) {
-              console.error(`Error fetching role for user ${user.cod_usua}:`, error)
-              return user
-            }
-          })
-        )
-        
-        setUsers(usersWithRoles)
+      const response: any = await userService.getUsersWithRoles() // Usar el endpoint que trae todo
+      
+      // La API puede devolver un array directamente en caso de éxito.
+      if (Array.isArray(response)) {
+        setUsers(response)
       } else {
-        setError(response.error || 'Error al cargar usuarios')
+        // Si no es un array, es un objeto de error de nuestra envoltura de API.
+        const errorMessage = `Error al cargar usuarios: ${response.error || 'Respuesta inesperada del servidor.'}`
+        setError(errorMessage)
+        console.error(errorMessage, response)
       }
     } catch (error) {
-      setError('Error de conexión al cargar usuarios')
-      console.error('Error fetching users:', error)
+      const errorMessage = `Error de conexión: ${error instanceof Error ? error.message : String(error)}`
+      setError(errorMessage)
+      console.error(errorMessage, error)
     } finally {
       setLoading(false)
     }
-  }
-
-  const fetchRoles = async () => {
-    try {
-      const response = await roleService.getRoles()
-      if (response.success && response.data) {
-        setRoles(response.data)
-      } else {
-        console.error('Error loading roles:', response.error)
-      }
-    } catch (error) {
-      console.error('Error fetching roles:', error)
-    }
-  }
-
-  const fetchPrivileges = async () => {
-    try {
-      const response = await privilegeService.getPrivileges()
-      if (response.success && response.data) {
-        setPrivileges(response.data)
-      } else {
-        console.error('Error loading privileges:', response.error)
-      }
-    } catch (error) {
-      console.error('Error fetching privileges:', error)
-    }
-  }
+  }, [])
 
   const createUser = async (userData: Partial<Usuario>): Promise<boolean> => {
     try {
@@ -153,37 +103,17 @@ export const useUsers = (): UseUsersReturn => {
     await fetchUsers()
   }
 
-  const refreshRoles = async () => {
-    await fetchRoles()
-  }
-
-  const refreshPrivileges = async () => {
-    await fetchPrivileges()
-  }
-
   useEffect(() => {
-    const initializeData = async () => {
-      await Promise.all([
-        fetchUsers(),
-        fetchRoles(),
-        fetchPrivileges()
-      ])
-    }
-    
-    initializeData()
-  }, [])
+    fetchUsers()
+  }, [fetchUsers])
 
   return {
     users,
-    roles,
-    privileges,
     loading,
     error,
     createUser,
     updateUser,
     deleteUser,
     refreshUsers,
-    refreshRoles,
-    refreshPrivileges
   }
 } 

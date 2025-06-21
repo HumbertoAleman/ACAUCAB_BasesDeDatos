@@ -7,6 +7,7 @@ export interface Rol {
   cod_rol: number;
   nombre_rol: string;
   descripcion_rol: string;
+  privileges: Privilegio[];
 }
 
 /**
@@ -33,6 +34,7 @@ export interface Usuario {
   fk_empl?: number | null; // Arc to Empleado
   fk_miem?: string | null; // Arc to Miembro
   fk_clie?: string | null; // Arc to Cliente (changed to string to match DB)
+  rol: Rol;
 }
 
 // Interfaces para tablas de relación Muchos a Muchos (M-M) en este dominio
@@ -50,7 +52,6 @@ export interface PrivRol {
 export interface UsuarioFront {
   username: string;
   rol: string;
-  privileges: string[];
 }
 
 export interface RolFront {

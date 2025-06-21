@@ -36,29 +36,17 @@ export const ROUTES: RouteConfig[] = [
     title: "Usuarios",
     description: "Gestión de usuarios y roles",
   },
-  {
-    path: "/configuracion",
-    title: "Configuración",
-    description: "Configuración del sistema",
-    permission: "admin_only"
-  },
 ]
 
-export const getAccessibleRoutes = (hasPermission: (permission: string) => boolean): RouteConfig[] => {
-  return ROUTES.filter(route => {
-    if (!route.permission) return true
-    return hasPermission(route.permission)
-  })
+export const getAccessibleRoutes = (): RouteConfig[] => {
+  return ROUTES
 }
 
-export const getFirstAccessibleRoute = (hasPermission: (permission: string) => boolean): string => {
-  const accessibleRoutes = getAccessibleRoutes(hasPermission)
+export const getFirstAccessibleRoute = (): string => {
+  const accessibleRoutes = ROUTES
   return accessibleRoutes.length > 0 ? accessibleRoutes[0].path : "/dashboard"
 }
 
-export const checkRouteAccess = (path: string, hasPermission: (permission: string) => boolean): boolean => {
-  const route = ROUTES.find(r => r.path === path)
-  if (!route) return true // Rutas no configuradas permitidas por defecto
-  if (!route.permission) return true
-  return hasPermission(route.permission)
+export const checkRouteAccess = (): boolean => {
+  return true
 } 

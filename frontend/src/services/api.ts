@@ -181,11 +181,6 @@ export const privilegeService = {
     return apiRequest<any[]>('/privileges')
   },
 
-  // Obtener privilegio por ID
-  async getPrivilegeById(id: number): Promise<ApiResponse<any>> {
-    return apiRequest<any>(`/privileges/${id}`)
-  },
-
   // Asignar privilegio a rol
   async assignPrivilegeToRole(roleId: number, privilegeId: number): Promise<ApiResponse<void>> {
     return apiRequest<void>(`/roles/${roleId}/privileges`, {
@@ -203,8 +198,6 @@ export const privilegeService = {
 
   // Actualizar los privilegios de un usuario
   async updateUserPrivileges(userId: number, privileges: string[]): Promise<ApiResponse<void>> {
-    // This endpoint needs to be created in the backend.
-    // It should accept a user ID and a list of privilege names to update.
     return apiRequest<void>(`/users/${userId}/privileges`, {
       method: 'PUT',
       body: JSON.stringify({ privileges }),
