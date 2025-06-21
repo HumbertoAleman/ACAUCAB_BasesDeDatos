@@ -84,7 +84,7 @@ DECLARE
 BEGIN
     CALL add_metodo_pago (fk_metodo);
     INSERT INTO Cheque (fk_meto_pago, numero_cheque, numero_cuenta_cheque, fk_banc)
-        VALUES (fk_metodo, numero, numero_cuenta, get_banco_random());
+        VALUES (fk_metodo, numero, numero_cuenta, get_banco_random ());
 END
 $$
 LANGUAGE plpgsql;
@@ -98,7 +98,7 @@ DECLARE
 BEGIN
     CALL add_metodo_pago (fk_metodo);
     INSERT INTO Cheque (fk_meto_pago, numero_cheque, numero_cuenta_cheque, fk_banc)
-        VALUES (fk_metodo, numero, numero_cuenta, get_banco(nombre_banco));
+        VALUES (fk_metodo, numero, numero_cuenta, get_banco (nombre_banco));
 END
 $$
 LANGUAGE plpgsql;
@@ -175,3 +175,23 @@ CALL add_efectivo ('BRL');
 CALL add_efectivo ('MXN');
 
 CALL add_efectivo ('VES');
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
+
+CALL add_punto_canjeo ();
