@@ -20,7 +20,7 @@ const CORS_HEADERS = {
 	headers: {
 		'Access-Control-Allow-Origin': '*',
 		'Access-Control-Allow-Methods': 'OPTIONS, POST',
-		'Access-Control-Allow-Headers': '*',
+		'Access-Control-Allow-Headers': '*, Authorization',
 	},
 };
 
@@ -35,6 +35,69 @@ Bun.serve({
 		},
 		"/rol": { GET: getRol, },
 		"/usuario": { GET: getUsuario, },
+
+		"/api/roles": {
+			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
+			GET: async _ => {
+				const res = await sql`SELECT * FROM Rol`;
+				return Response.json(res, CORS_HEADERS)
+			}
+		},
+
+		"/api/roles/:id": {
+			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
+			GET: async (req) => {
+				const id = req.params.id;
+				const res = await sql`SELECT * FROM Rol WHERE cod_rol = ${id} LIMIT 1`;
+				return Response.json(res, CORS_HEADERS)
+			}
+		},
+
+		"/api/roles/:id/privileges": {
+			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
+			GET: async (req) => {
+				const id = req.params.id;
+				const res = await sql`
+					SELECT P.cod_priv, P.nombre_priv, P.descripcion_priv
+					FROM Privilegio AS P
+					JOIN PRIV_ROL AS RP ON RP.fk_priv = P.cod_priv
+					JOIN Rol AS R ON RP.fk_rol = ${id}
+					group by P.cod_priv
+					order by P.cod_priv`;
+				return Response.json(res, CORS_HEADERS)
+			},
+			POST: async (req, _) => {
+				const fk_rol = req.params.id;
+				const fk_priv = await req.json()
+				const priv_rol = { fk_rol, fk_priv }
+				const res = await sql`INSERT INTO PRIV_ROL ${priv_rol} RETURNING *`
+				return Response.json(res, CORS_HEADERS);
+			},
+			DELETE: async (req, _) => {
+				const fk_rol = req.params.id;
+				const fk_priv = await req.json()
+				const res = await sql`DELETE FROM PRIV_ROL WHERE fk_rol = ${fk_rol} AND fk_priv = ${fk_priv} RETURNING *`
+				return Response.json(res, CORS_HEADERS);
+			},
+		},
+
+		"/api/privileges": {
+			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
+			GET: async _ => {
+				const res = await sql`SELECT * FROM Privilegio`;
+				return Response.json(res, CORS_HEADERS)
+			}
+		},
+
+		"api/privileges/:id": {
+			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
+			GET: async (req) => {
+				const id = req.params.id;
+				const res = await sql`SELECT * FROM Privilegio WHERE cod_priv = ${id} LIMIT 1`;
+				return Response.json(res, CORS_HEADERS)
+			}
+		},
+
 		"/api/auth/verify": {
 			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
 			GET: (req, _) => {
@@ -44,6 +107,7 @@ Bun.serve({
 		},
 
 		"/api/users_with_details": {
+			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
 			GET: async (req, _) => {
 				const users = await sql`
 					SELECT U.cod_usua, U.username_usua, U.fk_rol, R.cod_rol, R.nombre_rol, R.descripcion_rol
