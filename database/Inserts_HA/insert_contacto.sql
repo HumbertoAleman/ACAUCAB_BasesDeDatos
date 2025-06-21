@@ -16,8 +16,6 @@ END;
 $$
 LANGUAGE plpgsql;
 
---AGREGAR FUNCIÓN QUE GENERE UN REGISTRO DE UN TELÉFONO AL INSERTAR UN NUEVO REGISTRO EN LA TABLA
-
 CALL insert_contacto_random ('Salmon', 'Ruby', 'Flowerden', 'Aizkovitch');
 
 CALL insert_contacto_random ('Elvina', 'Harlen', 'Crack', 'Hurlestone');
