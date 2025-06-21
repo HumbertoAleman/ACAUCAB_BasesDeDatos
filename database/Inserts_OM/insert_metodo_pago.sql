@@ -1,28 +1,36 @@
 -- Obtener Banco cualquiera
-CREATE OR REPLACE PROCEDURE get_banco_random (out id_banc integer)
+CREATE OR REPLACE FUNCTION get_banco_random ()
+    RETURNS integer
     AS $$
+DECLARE
+    res integer;
 BEGIN
     SELECT
-        cod_banc INTO id_banc
+        cod_banc
     FROM
         Banco
     ORDER BY
         RANDOM()
-    LIMIT 1;
+    LIMIT 1 INTO res;
+    RETURN res;
 END
 $$
 LANGUAGE plpgsql;
 
 -- Obtener Banco por nombre
-CREATE OR REPLACE PROCEDURE get_banco (out id_banc integer, nombre varchar(40))
+CREATE OR REPLACE FUNCTION get_banco (nombre varchar(40))
+    RETURNS integer
     AS $$
+DECLARE
+    res integer;
 BEGIN
     SELECT
-        cod_banc INTO id_banc
+        cod_banc
     FROM
         Banco
     WHERE
-        nombre_banc = nombre;
+        nombre_banc = nombre INTO res;
+    RETURN res;
 END
 $$
 LANGUAGE plpgsql;
@@ -75,9 +83,8 @@ DECLARE
     fk_banco integer;
 BEGIN
     CALL add_metodo_pago (fk_metodo);
-    CALL get_banco_random (fk_banco);
     INSERT INTO Cheque (fk_meto_pago, numero_cheque, numero_cuenta_cheque, fk_banc)
-        VALUES (fk_metodo, numero, numero_cuenta, fk_banco);
+        VALUES (fk_metodo, numero, numero_cuenta, get_banco_random());
 END
 $$
 LANGUAGE plpgsql;
@@ -90,9 +97,8 @@ DECLARE
     fk_banco integer;
 BEGIN
     CALL add_metodo_pago (fk_metodo);
-    CALL get_banco (fk_banco, nombre_banco);
     INSERT INTO Cheque (fk_meto_pago, numero_cheque, numero_cuenta_cheque, fk_banc)
-        VALUES (fk_metodo, numero, numero_cuenta, fk_banco);
+        VALUES (fk_metodo, numero, numero_cuenta, get_banco(nombre_banco));
 END
 $$
 LANGUAGE plpgsql;
