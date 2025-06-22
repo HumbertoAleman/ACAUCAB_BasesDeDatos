@@ -62,17 +62,8 @@ export const Reportes: React.FC = () => {
   const [parametros, setParametros] = useState<{ [key: string]: string }>({})
 
   const handleDescargarReporte = (reporte: Reporte) => {
-    console.log("Descargando reporte:", reporte.id, "con parámetros:", parametros)
-
-    // Simular descarga
-    const link = document.createElement("a")
-    link.href = "#" // Aquí iría la URL del reporte generado
-    link.download = `${reporte.id}-${new Date().toISOString().split("T")[0]}.pdf`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    alert(`Reporte "${reporte.nombre}" descargado exitosamente`)
+    // Aquí iría la lógica para generar y descargar el reporte
+    alert(`Descargando: ${reporte.nombre} con parámetros ${JSON.stringify(parametros)}`)
   }
 
   const handleParametroChange = (parametro: string, valor: string) => {

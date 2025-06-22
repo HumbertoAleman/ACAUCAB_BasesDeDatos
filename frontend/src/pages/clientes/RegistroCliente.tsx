@@ -40,6 +40,7 @@ export const RegistroCliente: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<ClienteFormData>({
     defaultValues: {
       tipo_clie: "Juridico",
@@ -94,9 +95,9 @@ export const RegistroCliente: React.FC = () => {
     name: "correos",
   })
 
-  const onSubmit = (data: ClienteFormData) => {
-    console.log("Datos del cliente:", data)
-    // Aquí iría la lógica para enviar al backend
+  const onSubmit = (data: any) => {
+    alert('Cliente registrado exitosamente (simulado)');
+    reset();
   }
 
   return (

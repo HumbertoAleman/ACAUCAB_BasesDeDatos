@@ -144,7 +144,6 @@ export const PuntoVenta: React.FC = () => {
     const cargarClientes = async () => {
       try {
         const clientesData = await getClientesDetallados();
-        console.log('CLIENTES DATA:', clientesData); // DEPURACIÓN
         // Si viene como array de arrays, aplanar
         const clientesFlat = Array.isArray(clientesData[0]) ? clientesData.flat() : clientesData;
         // Mapeo para asegurar tipos correctos y nombre visible

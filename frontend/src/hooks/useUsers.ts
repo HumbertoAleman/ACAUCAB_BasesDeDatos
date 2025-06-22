@@ -31,12 +31,12 @@ export const useUsers = (): UseUsersReturn => {
         // Si no es un array, es un objeto de error de nuestra envoltura de API.
         const errorMessage = `Error al cargar usuarios: ${response.error || 'Respuesta inesperada del servidor.'}`
         setError(errorMessage)
-        console.error(errorMessage, response)
+        console.error(errorMessage)
       }
     } catch (error) {
       const errorMessage = `Error de conexión: ${error instanceof Error ? error.message : String(error)}`
       setError(errorMessage)
-      console.error(errorMessage, error)
+      console.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -56,7 +56,6 @@ export const useUsers = (): UseUsersReturn => {
       }
     } catch (error) {
       setError('Error de conexión al crear usuario')
-      console.error('Error creating user:', error)
       return false
     }
   }
@@ -75,7 +74,6 @@ export const useUsers = (): UseUsersReturn => {
       }
     } catch (error) {
       setError('Error de conexión al actualizar usuario')
-      console.error('Error updating user:', error)
       return false
     }
   }
@@ -94,7 +92,6 @@ export const useUsers = (): UseUsersReturn => {
       }
     } catch (error) {
       setError('Error de conexión al eliminar usuario')
-      console.error('Error deleting user:', error)
       return false
     }
   }

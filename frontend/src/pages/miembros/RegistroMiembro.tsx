@@ -64,6 +64,7 @@ export const RegistroMiembro: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<MiembroFormData>({
     defaultValues: {
       contactos: [
@@ -106,9 +107,10 @@ export const RegistroMiembro: React.FC = () => {
     setSelectedIngredientes(typeof value === "string" ? value.split(",") : value)
   }
 
-  const onSubmit = (data: MiembroFormData) => {
-    console.log("Datos del miembro:", data)
-    // Aquí iría la lógica para enviar al backend
+  const onSubmit = async (data: any) => {
+    // Aquí iría la lógica para enviar los datos al backend
+    alert('Miembro registrado exitosamente (simulado)');
+    reset();
   }
 
   return (

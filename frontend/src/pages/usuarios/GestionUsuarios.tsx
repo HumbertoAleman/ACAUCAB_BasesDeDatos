@@ -99,7 +99,6 @@ export const GestionUsuarios: React.FC = () => {
   const handleOpenPrivilegeModal = (user: Usuario) => {
     setSelectedUser(user)
     const initialPrivileges: Record<string, boolean> = {}
-    console.log("Privilegios del usuario seleccionado:", user.rol?.privileges)
     privileges.forEach((priv: Privilegio) => {
       initialPrivileges[priv.nombre_priv] = user.rol?.privileges?.some((p: Privilegio) => p.nombre_priv === priv.nombre_priv) ?? false
     })
@@ -140,11 +139,6 @@ export const GestionUsuarios: React.FC = () => {
     if (window.confirm("¿Está seguro de que desea eliminar este usuario? Esta acción es irreversible.")) {
       await deleteUser(userId)
     }
-  }
-
-  // Log para depuración antes del return
-  if (!loadingPrivileges) {
-    console.log("Privilegios a mostrar en el modal:", privileges)
   }
 
   if (loading || roles.length === 0) return <CircularProgress />
@@ -217,8 +211,7 @@ export const GestionUsuarios: React.FC = () => {
           ) : (
             <Grid container spacing={3} sx={{ pt: 1 }}>
               {Object.entries(getGroupedPrivileges()).map(([tableName, actions]) => (
-                <Grid size={{xs:12, sm:6, md:4}} key={tableName}>
-                    
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={tableName}>
                   <Typography variant="h6" sx={{ textTransform: 'capitalize', mb: 1 }}>
                     {tableName.replace(/_/g, ' ')}
                   </Typography>
