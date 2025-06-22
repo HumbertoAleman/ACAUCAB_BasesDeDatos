@@ -64,7 +64,6 @@ export const PuntoVenta: React.FC = () => {
   const [productos, setProductos] = useState<ProductoInventario[]>([])
   const [clientes, setClientes] = useState<ClienteDetallado[]>([])
   const [tasaActual, setTasaActual] = useState<TasaVenta | null>(null)
-  const [metodosPago, setMetodosPago] = useState<MetodoPagoCompleto[]>([])
   
   // Estados para la venta
   const [busquedaProducto, setBusquedaProducto] = useState("")
@@ -103,6 +102,18 @@ export const PuntoVenta: React.FC = () => {
   const TAM_PAGINA = 25;
   const [paginaActual, setPaginaActual] = useState(1);
 
+  // Estado para mostrar el equivalente en Bs y vuelto en efectivo USD
+  const [equivalenteBs, setEquivalenteBs] = useState(0);
+  const [vueltoBs, setVueltoBs] = useState(0);
+
+  // Métodos de pago fijos definidos en el frontend
+  const metodosPagoFijos: MetodoPagoCompleto[] = [
+    { cod_meto_pago: 1, tipo: "Efectivo", denominacion_efec: "USD" },
+    { cod_meto_pago: 2, tipo: "Tarjeta", credito: true },
+    { cod_meto_pago: 3, tipo: "Punto_Canjeo" },
+    { cod_meto_pago: 4, tipo: "Cheque", nombre_banco: "Banco de Venezuela" },
+  ];
+
   // Cargar datos iniciales
   useEffect(() => {
     const cargarProductos = async () => {
@@ -128,6 +139,60 @@ export const PuntoVenta: React.FC = () => {
     cargarProductos();
   }, []);
 
+  // Cargar clientes al montar el componente
+  useEffect(() => {
+    const cargarClientes = async () => {
+      try {
+        const clientesData = await getClientesDetallados();
+        console.log('CLIENTES DATA:', clientesData); // DEPURACIÓN
+        // Si viene como array de arrays, aplanar
+        const clientesFlat = Array.isArray(clientesData[0]) ? clientesData.flat() : clientesData;
+        // Mapeo para asegurar tipos correctos y nombre visible
+        const clientesMapeados = (clientesFlat || []).map(cliente => ({
+          ...cliente,
+          puntos_acumulados: Number(cliente.puntos_acumulados) || 0,
+          telefonos: Array.isArray(cliente.telefonos)
+            ? cliente.telefonos
+            : cliente.telefonos
+              ? [cliente.telefonos]
+              : [],
+          correos: Array.isArray(cliente.correos)
+            ? cliente.correos
+            : cliente.correos
+              ? [cliente.correos]
+              : [],
+          display_name:
+            cliente.tipo_clie === 'Natural'
+              ? `${cliente.primer_nom_natu || ''} ${cliente.primer_ape_natu || ''}`.trim() || cliente.rif_clie
+              : cliente.razon_social_juri || cliente.rif_clie,
+        }));
+        setClientes(clientesMapeados);
+      } catch (error) {
+        setClientes([]);
+      }
+    };
+    cargarClientes();
+  }, []);
+
+  // Cargar tasa al montar el componente
+  useEffect(() => {
+    const cargarTasa = async () => {
+      try {
+        const tasas = await getTasaActual();
+        // Si el endpoint retorna un array, tomar la última tasa (más reciente)
+        const tasa = Array.isArray(tasas) ? tasas[tasas.length - 1] : tasas;
+        setTasaActual({
+          ...tasa,
+          tasa_dolar_bcv: Number(tasa.tasa_dolar_bcv),
+          tasa_punto: Number(tasa.tasa_punto),
+        });
+      } catch (error) {
+        setTasaActual(null);
+      }
+    };
+    cargarTasa();
+  }, []);
+
   useEffect(() => {
     setPaginaActual(1);
   }, [productos, busquedaProducto]);
@@ -147,12 +212,11 @@ export const PuntoVenta: React.FC = () => {
   // Calcular resumen de venta
   useEffect(() => {
     if (tasaActual && itemsVenta.length > 0) {
-      const subtotal = itemsVenta.reduce((total, item) => total + item.subtotal, 0)
-      const iva = subtotal * 0.16
-      const total = subtotal + iva
-      const totalBs = total * tasaActual.tasa_dolar_bcv
-      const puntosGenerados = Math.floor(total * 10) // 10 puntos por USD
-
+      const subtotal = itemsVenta.reduce((total, item) => total + item.subtotal, 0);
+      const iva = subtotal * 0.16;
+      const total = subtotal + iva;
+      const totalBs = total * tasaActual.tasa_dolar_bcv;
+      const puntosGenerados = Math.floor(totalBs); // Puntos = total en Bs
       setResumenVenta({
         subtotal,
         iva,
@@ -161,12 +225,12 @@ export const PuntoVenta: React.FC = () => {
         total_bs: totalBs,
         tasa_actual: tasaActual.tasa_dolar_bcv,
         puntos_generados: puntosGenerados,
-        fecha_venta: new Date().toISOString().split('T')[0]
-      })
+        fecha_venta: tasaActual.fecha_ini_tasa // Fecha de la tasa como fecha de compra
+      });
     } else {
-      setResumenVenta(null)
+      setResumenVenta(null);
     }
-  }, [itemsVenta, tasaActual])
+  }, [itemsVenta, tasaActual]);
 
   // Funciones para manejar productos
   const agregarProducto = (producto: any) => {
@@ -232,22 +296,38 @@ export const PuntoVenta: React.FC = () => {
       nombre_titu_tarj: "",
       credito: false
     })
-    setCamposCheque({
-      numero_cheque: "",
-      numero_cuenta_cheque: "",
-      fk_banc: "",
-      nombre_banco: ""
-    })
+    setCamposCheque({ numero_cheque: "", numero_cuenta_cheque: "", nombre_banco: "", fk_banc: "" })
     setDenominacionEfectivo("USD")
     setPuntosUsar("")
     setDialogPago(true)
   }
 
-  const agregarPago = () => {
-    if (!metodoPagoSeleccionado || !montoPago || parseFloat(montoPago) <= 0) return
+  // Al ingresar monto de efectivo en USD, calcular equivalente en Bs y vuelto
+  useEffect(() => {
+    if (metodoPagoSeleccionado?.tipo === "Efectivo" && denominacionEfectivo === "USD" && montoPago && tasaActual) {
+      const montoUSD = parseFloat(montoPago);
+      const eqBs = montoUSD * tasaActual.tasa_dolar_bcv;
+      setEquivalenteBs(eqBs);
+      const restante = (resumenVenta?.total_bs || 0) - pagos.reduce((total, pago) => total + pago.monto, 0);
+      setVueltoBs(eqBs > restante ? eqBs - restante : 0);
+    } else {
+      setEquivalenteBs(0);
+      setVueltoBs(0);
+    }
+  }, [montoPago, denominacionEfectivo, metodoPagoSeleccionado, tasaActual, resumenVenta, pagos]);
 
-    const monto = parseFloat(montoPago)
-    
+  const agregarPago = () => {
+    if (!metodoPagoSeleccionado || !montoPago || parseFloat(montoPago) <= 0) return;
+    let montoBs = 0;
+    if (metodoPagoSeleccionado.tipo === "Efectivo" && denominacionEfectivo === "USD" && tasaActual) {
+      montoBs = parseFloat(montoPago) * tasaActual.tasa_dolar_bcv;
+    } else {
+      montoBs = parseFloat(montoPago);
+    }
+    // Validar que no se pase del monto restante en Bs
+    const montoTotalPagosBs = pagos.reduce((total, pago) => total + pago.monto, 0);
+    const montoRestanteBs = (resumenVenta?.total_bs || 0) - montoTotalPagosBs;
+    if (montoBs > montoRestanteBs + 0.01) return;
     // Crear método de pago con campos específicos
     const metodoPagoCompleto: MetodoPagoCompleto = {
       ...metodoPagoSeleccionado,
@@ -261,57 +341,32 @@ export const PuntoVenta: React.FC = () => {
       ...(metodoPagoSeleccionado.tipo === "Cheque" && {
         numero_cheque: parseInt(camposCheque.numero_cheque),
         numero_cuenta_cheque: parseInt(camposCheque.numero_cuenta_cheque),
-        fk_banc: parseInt(camposCheque.fk_banc),
         nombre_banco: camposCheque.nombre_banco
       }),
       ...(metodoPagoSeleccionado.tipo === "Efectivo" && {
         denominacion_efec: denominacionEfectivo
       })
-    }
-
+    };
     const nuevoPago: PagoVenta = {
       metodo_pago: metodoPagoCompleto,
-      monto,
+      monto: montoBs,
       fecha_pago: new Date().toISOString().split('T')[0],
       fk_tasa: tasaActual?.cod_tasa || 1
-    }
+    };
+    setPagos([...pagos, nuevoPago]);
+    setMetodoPagoSeleccionado(null);
+    setMontoPago("");
+    setCamposTarjeta({ numero_tarj: "", fecha_venci_tarj: "", cvv_tarj: "", nombre_titu_tarj: "", credito: false });
+    setCamposCheque({ numero_cheque: "", numero_cuenta_cheque: "", nombre_banco: "", fk_banc: "" });
+    setDenominacionEfectivo("USD");
+    setPuntosUsar("");
+  };
 
-    setPagos([...pagos, nuevoPago])
-    
-    // Limpiar campos para el siguiente pago
-    setMetodoPagoSeleccionado(null)
-    setMontoPago("")
-    setCamposTarjeta({
-      numero_tarj: "",
-      fecha_venci_tarj: "",
-      cvv_tarj: "",
-      nombre_titu_tarj: "",
-      credito: false
-    })
-    setCamposCheque({
-      numero_cheque: "",
-      numero_cuenta_cheque: "",
-      fk_banc: "",
-      nombre_banco: ""
-    })
-    setDenominacionEfectivo("USD")
-    setPuntosUsar("")
-    
-    // Solo ir al paso de confirmación si el pago está completo
-    if (montoRestante - monto <= 0.01) {
-      setPasoActual(1)
-    }
-  }
-
-  const eliminarPago = (index: number) => {
-    setPagos(pagos.filter((_, i) => i !== index))
-  }
-
-  const montoTotalPagos = pagos.reduce((total, pago) => total + pago.monto, 0)
-  const montoRestante = (resumenVenta?.total || 0) - montoTotalPagos
+  const montoTotalPagosBs = pagos.reduce((total, pago) => total + pago.monto, 0);
+  const montoRestanteBs = (resumenVenta?.total_bs || 0) - montoTotalPagosBs;
 
   const procesarVentaFinal = async () => {
-    if (!resumenVenta || montoRestante > 0.01) {
+    if (!resumenVenta || montoRestanteBs > 0.01) {
       alert('El monto total de los pagos debe ser igual al total de la venta')
       return
     }
@@ -354,13 +409,16 @@ export const PuntoVenta: React.FC = () => {
     }
   }
 
+  // Función para mostrar el nombre del cliente o fallback
   const getNombreCliente = (cliente: ClienteDetallado) => {
-    if (cliente.tipo_clie === "Natural") {
-      return `${cliente.primer_nom_natu || ""} ${cliente.primer_ape_natu || ""}`.trim()
+    if (!cliente) return '-';
+    if (cliente.tipo_clie === 'Natural') {
+      const nombre = `${cliente.primer_nom_natu || ''} ${cliente.primer_ape_natu || ''}`.trim();
+      return nombre || cliente.rif_clie || '-';
     } else {
-      return cliente.razon_social_juri || ""
+      return cliente.razon_social_juri || cliente.rif_clie || '-';
     }
-  }
+  };
 
   const getEstadoChip = (estado: ProductoInventario['estado']) => {
     const color = estado === "Disponible" ? "success" : estado === "Bajo Stock" ? "warning" : "error"
@@ -369,6 +427,11 @@ export const PuntoVenta: React.FC = () => {
 
   // Calcula el total del carrito
   const totalCarrito = itemsVenta.reduce((total, item) => total + (typeof item.subtotal === 'number' ? item.subtotal : Number(item.subtotal) || 0), 0);
+
+  // Justo aquí, dentro del componente:
+  const eliminarPago = (index: number) => {
+    setPagos(pagos.filter((_, i) => i !== index));
+  };
 
   if (loading) {
     return (
@@ -472,23 +535,23 @@ export const PuntoVenta: React.FC = () => {
             </Typography>
 
             {/* Selección de Cliente */}
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Cliente (Opcional)</InputLabel>
+            <FormControl fullWidth sx={{ mb: 2 }} required>
+              <InputLabel>Cliente</InputLabel>
               <Select
                 value={clienteSeleccionado?.rif_clie || ""}
                 onChange={(e) => {
                   const cliente = clientes.find((c) => c.rif_clie === e.target.value)
                   setClienteSeleccionado(cliente || null)
                 }}
-                label="Cliente (Opcional)"
+                label="Cliente"
+                error={!clienteSeleccionado}
               >
-                <MenuItem value="">Sin cliente</MenuItem>
                 {clientes.map((cliente) => (
                   <MenuItem key={cliente.rif_clie} value={cliente.rif_clie}>
                     <Box>
-                      <Typography variant="body2">{getNombreCliente(cliente)}</Typography>
+                      <Typography variant="body2">{cliente.display_name || cliente.rif_clie}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {cliente.tipo_clie} | Puntos: {cliente.puntos_acumulados || 0}
+                        {cliente.tipo_clie || 'N/A'} | Puntos: {typeof cliente.puntos_acumulados === 'number' ? cliente.puntos_acumulados : 'N/A'}
                       </Typography>
                     </Box>
                   </MenuItem>
@@ -496,7 +559,35 @@ export const PuntoVenta: React.FC = () => {
               </Select>
             </FormControl>
 
-            <Divider sx={{ mb: 2 }} />
+            {/* Tarjeta con datos del cliente seleccionado */}
+            {clienteSeleccionado && (
+              <Paper elevation={2} sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  Datos del Cliente
+                </Typography>
+                <Typography variant="body2">
+                  <b>Nombre/Razón Social:</b> {clienteSeleccionado.display_name || clienteSeleccionado.rif_clie}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Tipo:</b> {clienteSeleccionado.tipo_clie || 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>RIF:</b> {clienteSeleccionado.rif_clie || 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Dirección Fiscal:</b> {clienteSeleccionado.direccion_fiscal_clie || 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Teléfonos:</b> {clienteSeleccionado.telefonos && clienteSeleccionado.telefonos.length > 0 ? clienteSeleccionado.telefonos.join(', ') : 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Correos:</b> {clienteSeleccionado.correos && clienteSeleccionado.correos.length > 0 ? clienteSeleccionado.correos.join(', ') : 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Puntos acumulados:</b> {typeof clienteSeleccionado.puntos_acumulados === 'number' ? clienteSeleccionado.puntos_acumulados : 'N/A'}
+                </Typography>
+              </Paper>
+            )}
 
             {/* Items de Venta */}
             <Box sx={{ maxHeight: 300, overflowY: "auto", mb: 2 }}>
@@ -516,7 +607,20 @@ export const PuntoVenta: React.FC = () => {
                         <IconButton size="small" onClick={() => modificarCantidad(item, item.cantidad - 1)}>
                           <Remove />
                         </IconButton>
-                        <Typography>{item.cantidad}</Typography>
+                        <TextField
+                          type="number"
+                          size="small"
+                          value={item.cantidad}
+                          onChange={e => {
+                            let val = parseInt(e.target.value);
+                            if (isNaN(val)) val = 1;
+                            if (val < 1) val = 1;
+                            if (val > item.producto.cant_pres) val = item.producto.cant_pres;
+                            modificarCantidad(item, val);
+                          }}
+                          inputProps={{ min: 1, max: item.producto.cant_pres, style: { width: 40, textAlign: 'center' } }}
+                          sx={{ mx: 1, width: 60 }}
+                        />
                         <IconButton 
                           size="small" 
                           onClick={() => modificarCantidad(item, item.cantidad + 1)}
@@ -565,11 +669,16 @@ export const PuntoVenta: React.FC = () => {
                   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                     <Typography>Puntos a generar:</Typography>
                     <Typography variant="body2" color="success.main">
-                      +{typeof resumenVenta.puntos_generados === 'number' ? resumenVenta.puntos_generados.toFixed(2) : (Number(resumenVenta.puntos_generados) ? Number(resumenVenta.puntos_generados).toFixed(2) : resumenVenta.puntos_generados)} pts
+                      +{typeof resumenVenta.puntos_generados === 'number' ? resumenVenta.puntos_generados.toFixed(0) : (Number(resumenVenta.puntos_generados) ? Number(resumenVenta.puntos_generados).toFixed(0) : resumenVenta.puntos_generados)} pts
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                    <Typography>Fecha de compra:</Typography>
+                    <Typography variant="body2">
+                      {resumenVenta.fecha_venta ? new Date(resumenVenta.fecha_venta).toLocaleDateString() : 'N/A'}
                     </Typography>
                   </Box>
                 </Box>
-
                 <Button
                   fullWidth
                   variant="contained"
@@ -577,8 +686,9 @@ export const PuntoVenta: React.FC = () => {
                   startIcon={<Payment />}
                   onClick={iniciarPago}
                   sx={{ backgroundColor: "#2E7D32", "&:hover": { backgroundColor: "#1B5E20" } }}
+                  disabled={!clienteSeleccionado}
                 >
-                  Procesar Venta
+                  Pagar
                 </Button>
               </>
             )}
@@ -604,7 +714,7 @@ export const PuntoVenta: React.FC = () => {
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="h6">Total a Pagar: ${typeof resumenVenta?.total === 'number' ? resumenVenta?.total.toFixed(2) : (Number(resumenVenta?.total) ? Number(resumenVenta?.total).toFixed(2) : resumenVenta?.total)}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Monto restante: ${typeof montoRestante === 'number' ? montoRestante.toFixed(2) : (Number(montoRestante) ? Number(montoRestante).toFixed(2) : montoRestante)}
+                    Monto restante: {typeof montoRestanteBs === 'number' ? montoRestanteBs.toFixed(2) : (Number(montoRestanteBs) ? Number(montoRestanteBs).toFixed(2) : montoRestanteBs)} Bs
                   </Typography>
                 </Box>
 
@@ -615,12 +725,12 @@ export const PuntoVenta: React.FC = () => {
                       <Select 
                         value={metodoPagoSeleccionado?.cod_meto_pago || ""} 
                         onChange={(e) => {
-                          const metodo = metodosPago.find(m => m.cod_meto_pago === e.target.value)
+                          const metodo = metodosPagoFijos.find(m => m.cod_meto_pago === e.target.value)
                           setMetodoPagoSeleccionado(metodo || null)
                         }}
                         label="Método de Pago"
                       >
-                        {metodosPago.map((metodo) => (
+                        {metodosPagoFijos.map((metodo) => (
                           <MenuItem key={metodo.cod_meto_pago} value={metodo.cod_meto_pago}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               {metodo.tipo === "Efectivo" && <AttachMoney />}
@@ -641,10 +751,24 @@ export const PuntoVenta: React.FC = () => {
                       type="number"
                       value={montoPago}
                       onChange={(e) => setMontoPago(e.target.value)}
-                      inputProps={{ min: 0, max: montoRestante, step: 0.01 }}
+                      inputProps={{ min: 0, max: montoRestanteBs, step: 0.01 }}
                     />
                   </Grid>
                 </Grid>
+
+                {/* En el modal de pago, debajo del input de monto para efectivo USD, mostrar el equivalente en Bs y el vuelto si corresponde */}
+                {metodoPagoSeleccionado?.tipo === "Efectivo" && denominacionEfectivo === "USD" && equivalenteBs > 0 && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Equivalente: {equivalenteBs.toFixed(2)} Bs
+                    </Typography>
+                    {vueltoBs > 0 && (
+                      <Typography variant="body2" color="success.main">
+                        Vuelto: {vueltoBs.toFixed(2)} Bs
+                      </Typography>
+                    )}
+                  </Box>
+                )}
 
                 {/* Campos específicos según el método de pago */}
                 {metodoPagoSeleccionado?.tipo === "Tarjeta" && (
@@ -704,63 +828,43 @@ export const PuntoVenta: React.FC = () => {
                 {metodoPagoSeleccionado?.tipo === "Cheque" && (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="h6" gutterBottom>Información de Cheque</Typography>
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                          fullWidth
-                          label="Número de Cheque"
-                          value={camposCheque.numero_cheque}
-                          onChange={(e) => setCamposCheque({...camposCheque, numero_cheque: e.target.value})}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                          fullWidth
-                          label="Número de Cuenta"
-                          value={camposCheque.numero_cuenta_cheque}
-                          onChange={(e) => setCamposCheque({...camposCheque, numero_cuenta_cheque: e.target.value})}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                          fullWidth
-                          label="Banco"
-                          value={camposCheque.nombre_banco}
-                          onChange={(e) => setCamposCheque({...camposCheque, nombre_banco: e.target.value})}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                          fullWidth
-                          label="ID Banco"
-                          type="number"
-                          value={camposCheque.fk_banc}
-                          onChange={(e) => setCamposCheque({...camposCheque, fk_banc: e.target.value})}
-                        />
-                      </Grid>
-                    </Grid>
+                    <TextField
+                      fullWidth
+                      label="Número de Cheque"
+                      value={camposCheque.numero_cheque}
+                      onChange={(e) => setCamposCheque({ ...camposCheque, numero_cheque: e.target.value })}
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Número de Cuenta"
+                      value={camposCheque.numero_cuenta_cheque}
+                      onChange={(e) => setCamposCheque({ ...camposCheque, numero_cuenta_cheque: e.target.value })}
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Banco"
+                      value={camposCheque.nombre_banco}
+                      onChange={(e) => setCamposCheque({ ...camposCheque, nombre_banco: e.target.value })}
+                    />
                   </Box>
                 )}
 
                 {metodoPagoSeleccionado?.tipo === "Efectivo" && (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="h6" gutterBottom>Información de Efectivo</Typography>
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <FormControl fullWidth>
-                          <InputLabel>Denominación</InputLabel>
-                          <Select
-                            value={denominacionEfectivo}
-                            onChange={(e) => setDenominacionEfectivo(e.target.value)}
-                            label="Denominación"
-                          >
-                            <MenuItem value="USD">Dólares (USD)</MenuItem>
-                            <MenuItem value="BS">Bolívares (BS)</MenuItem>
-                            <MenuItem value="EUR">Euros (EUR)</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
+                    <FormControl fullWidth>
+                      <InputLabel>Denominación</InputLabel>
+                      <Select
+                        value={denominacionEfectivo}
+                        onChange={(e) => setDenominacionEfectivo(e.target.value)}
+                        label="Denominación"
+                      >
+                        <MenuItem value="USD">Dólares (USD)</MenuItem>
+                        <MenuItem value="BS">Bolívares (BS)</MenuItem>
+                      </Select>
+                    </FormControl>
                   </Box>
                 )}
 
@@ -770,23 +874,19 @@ export const PuntoVenta: React.FC = () => {
                     <Alert severity="info" sx={{ mb: 2 }}>
                       Puntos disponibles: {clienteSeleccionado.puntos_acumulados || 0}
                     </Alert>
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                          fullWidth
-                          label="Puntos a usar"
-                          type="number"
-                          value={puntosUsar}
-                          onChange={(e) => setPuntosUsar(e.target.value)}
-                          inputProps={{ max: clienteSeleccionado.puntos_acumulados || 0 }}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <Typography variant="body2" sx={{ mt: 2 }}>
-                          Valor en USD: ${(parseInt(puntosUsar) / 100).toFixed(2)} (100 puntos = $1 USD)
-                        </Typography>
-                      </Grid>
-                    </Grid>
+                    <TextField
+                      fullWidth
+                      label="Puntos a usar"
+                      type="number"
+                      value={puntosUsar}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (Number(val) <= (clienteSeleccionado.puntos_acumulados || 0)) {
+                          setPuntosUsar(val);
+                        }
+                      }}
+                      inputProps={{ max: clienteSeleccionado.puntos_acumulados || 0, min: 0 }}
+                    />
                   </Box>
                 )}
 
@@ -794,7 +894,14 @@ export const PuntoVenta: React.FC = () => {
                   <Button 
                     variant="contained" 
                     onClick={agregarPago}
-                    disabled={!metodoPagoSeleccionado || !montoPago || parseFloat(montoPago) <= 0}
+                    disabled={
+                      !metodoPagoSeleccionado ||
+                      !montoPago ||
+                      parseFloat(montoPago) <= 0 ||
+                      (metodoPagoSeleccionado.tipo === "Efectivo" && denominacionEfectivo === "USD" && (parseFloat(montoPago) * (tasaActual?.tasa_dolar_bcv || 1) > montoRestanteBs + 0.01)) ||
+                      (metodoPagoSeleccionado.tipo === "Efectivo" && denominacionEfectivo === "BS" && parseFloat(montoPago) > montoRestanteBs + 0.01) ||
+                      (metodoPagoSeleccionado.tipo === "Punto_Canjeo" && parseFloat(montoPago) > (clienteSeleccionado?.puntos_acumulados || 0) )
+                    }
                   >
                     Agregar Pago
                   </Button>
@@ -819,7 +926,15 @@ export const PuntoVenta: React.FC = () => {
                   {pagos.map((pago, index) => (
                     <ListItem key={index}>
                       <ListItemText
-                        primary={`${pago.metodo_pago.tipo} - $${typeof pago.monto === 'number' ? pago.monto.toFixed(2) : (Number(pago.monto) ? Number(pago.monto).toFixed(2) : pago.monto)}`}
+                        primary={
+                          pago.metodo_pago.tipo === "Efectivo" && pago.metodo_pago.denominacion_efec === "USD"
+                            ? `Efectivo (USD) - $${(pago.monto / (tasaActual?.tasa_dolar_bcv || 1)).toFixed(2)} | ${pago.monto.toFixed(2)} Bs`
+                            : pago.metodo_pago.tipo === "Efectivo" && pago.metodo_pago.denominacion_efec === "BS"
+                              ? `Efectivo (BS) - ${pago.monto.toFixed(2)} Bs`
+                              : pago.metodo_pago.tipo === "Punto_Canjeo"
+                                ? `Puntos - ${pago.monto.toFixed(2)} Bs`
+                                : `${pago.metodo_pago.tipo} - ${pago.monto.toFixed(2)} Bs`
+                        }
                         secondary={`Fecha: ${pago.fecha_pago}`}
                       />
                       <ListItemSecondaryAction>
@@ -833,10 +948,10 @@ export const PuntoVenta: React.FC = () => {
 
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="h6">
-                    Total pagos: ${typeof montoTotalPagos === 'number' ? montoTotalPagos.toFixed(2) : (Number(montoTotalPagos) ? Number(montoTotalPagos).toFixed(2) : montoTotalPagos)}
+                    Total pagos: {typeof montoTotalPagosBs === 'number' ? montoTotalPagosBs.toFixed(2) : montoTotalPagosBs} Bs
                   </Typography>
-                  <Typography variant="body2" color={typeof montoRestante === 'number' ? (montoRestante > 0.01 ? "error" : "success.main") : montoRestante > 0.01 ? "error" : "success.main"}>
-                    {typeof montoRestante === 'number' ? (montoRestante > 0.01 ? `Falta: $${montoRestante.toFixed(2)}` : "Pago completo") : montoRestante > 0.01 ? String(montoRestante) : "Pago completo"}
+                  <Typography variant="body2" color={typeof montoRestanteBs === 'number' ? (montoRestanteBs > 0.01 ? "error" : "success.main") : montoRestanteBs > 0.01 ? "error" : "success.main"}>
+                    {typeof montoRestanteBs === 'number' ? (montoRestanteBs > 0.01 ? `Falta: ${montoRestanteBs.toFixed(2)} Bs` : "Pago completo") : montoRestanteBs > 0.01 ? String(montoRestanteBs) : "Pago completo"}
                   </Typography>
                 </Box>
 
@@ -844,7 +959,7 @@ export const PuntoVenta: React.FC = () => {
                   <Button 
                     variant="contained" 
                     onClick={procesarVentaFinal}
-                    disabled={typeof montoRestante === 'number' ? (montoRestante > 0.01 || procesandoVenta) : montoRestante > 0.01 || procesandoVenta}
+                    disabled={typeof montoRestanteBs === 'number' ? (montoRestanteBs > 0.01 || procesandoVenta) : montoRestanteBs > 0.01 || procesandoVenta}
                   >
                     {procesandoVenta ? "Procesando..." : "Confirmar Venta"}
                   </Button>

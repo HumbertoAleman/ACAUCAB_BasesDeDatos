@@ -42,6 +42,14 @@ class PrivilegesService {
 	}
 
 	privilegesRoutes = {
+		"/api/privileges": {
+			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
+			GET: async () => {
+				const res = await sql`SELECT * FROM Privilegio`;
+				return Response.json(res, CORS_HEADERS);
+			}
+		},
+
 		"/api/privileges/:rol": {
 			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
 			GET: async (req: any) => {
@@ -62,6 +70,7 @@ class PrivilegesService {
 		},
 
 		"/api/privileges/:rol/form": {
+			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
 			GET: async (req: any) => {
 				let res = [];
 				if (new URL(req.url).searchParams.get("missing") === "true")
