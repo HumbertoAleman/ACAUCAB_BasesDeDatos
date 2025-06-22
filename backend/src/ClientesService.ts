@@ -1,5 +1,6 @@
 import { sql } from "bun";
 import { LogFunctionExecution } from "./logger/decorators";
+import { CORS_HEADERS } from "../globals";
 
 class ClientesService {
 	@LogFunctionExecution
@@ -31,6 +32,14 @@ class ClientesService {
 			GROUP BY C.rif_clie`;
 	};
 
+	clientesRoutes = {
+		"/api/clientes": {
+			GET: async () => {
+				const res = await this.getAllClientes()
+				return Response.json(res, CORS_HEADERS);
+			}
+		},
+	}
 }
 
 export default new ClientesService();

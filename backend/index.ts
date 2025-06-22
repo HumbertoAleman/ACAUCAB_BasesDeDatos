@@ -9,6 +9,7 @@ import ClientesService from "./src/ClientesService";
 import TasaService from "./src/TasaService";
 import VentaService, { type APIVenta } from "./src/VentaService";
 import AuthService from "./src/AuthService";
+import RolService from "./src/RolService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -24,58 +25,10 @@ Bun.serve({
 			POST: quickInsert,
 			DELETE: quickDelete,
 		},
+
 		"/rol": { GET: getRol, },
+
 		"/usuario": { GET: getUsuario, },
-
-		"/api/roles": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: async _ => {
-				const res = await sql`SELECT * FROM Rol`;
-				return Response.json(res, CORS_HEADERS)
-			},
-			POST: async (req, _) => {
-				const body = await req.json();
-				const res = await sql`INSERT INTO Rol ${sql(body.insert_data)}`
-				return Response.json(res, CORS_HEADERS)
-			},
-		},
-
-		"/api/roles/:id": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: async (req) => {
-				const id = req.params.id;
-				const res = await sql`SELECT * FROM Rol WHERE cod_rol = ${id} LIMIT 1`;
-				return Response.json(res, CORS_HEADERS)
-			}
-		},
-
-		"/api/roles/:id/privileges": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: async (req) => {
-				const id = req.params.id;
-				const res = await sql`
-					SELECT P.cod_priv, P.nombre_priv, P.descripcion_priv
-					FROM Privilegio AS P
-					JOIN PRIV_ROL AS RP ON RP.fk_priv = P.cod_priv
-					JOIN Rol AS R ON RP.fk_rol = ${id}
-					group by P.cod_priv
-					order by P.cod_priv`;
-				return Response.json(res, CORS_HEADERS)
-			},
-			POST: async (req, _) => {
-				const fk_rol = req.params.id;
-				const fk_priv = await req.json()
-				const priv_rol = { fk_rol, fk_priv }
-				const res = await sql`INSERT INTO PRIV_ROL ${priv_rol} RETURNING *`
-				return Response.json(res, CORS_HEADERS);
-			},
-			DELETE: async (req, _) => {
-				const fk_rol = req.params.id;
-				const fk_priv = await req.json()
-				const res = await sql`DELETE FROM PRIV_ROL WHERE fk_rol = ${fk_rol} AND fk_priv = ${fk_priv} RETURNING *`
-				return Response.json(res, CORS_HEADERS);
-			},
-		},
 
 		"/api/form/parroquias": {
 			async GET() {
@@ -123,13 +76,8 @@ Bun.serve({
 
 		...AuthService.authRoutes,
 		...PrivilegesService.privilegesRoutes,
-
-		"/api/clientes": {
-			async GET(req, _) {
-				const res = await ClientesService.getAllClientes()
-				return Response.json(res, CORS_HEADERS);
-			}
-		},
+		...ClientesService.clientesRoutes,
+		...RolService.rolRoutes,
 
 		"/api/tasa": {
 			async GET(req, _) {
