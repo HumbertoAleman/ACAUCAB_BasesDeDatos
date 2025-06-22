@@ -105,29 +105,28 @@ export const PuntoVenta: React.FC = () => {
 
   // Cargar datos iniciales
   useEffect(() => {
-    const cargarDatos = async () => {
+    const cargarProductos = async () => {
       try {
-        setLoading(true)
-        const [productosData, clientesData, tasaData, metodosData] = await Promise.all([
-          getProductosInventario(),
-          getClientesDetallados(),
-          getTasaActual(),
-          getMetodosPago()
-        ])
-        
-        setProductos(productosData)
-        setClientes(clientesData)
-        setTasaActual(tasaData)
-        setMetodosPago(metodosData)
+        setLoading(true);
+        const productosData = await getProductosInventario();
+        // Mapeo de campos para que coincidan con ProductoInventario
+        const productosMapeados = (productosData as any[]).map((item, idx) => ({
+          ...item,
+          nombre_cerv: item.nombre_producto,
+          nombre_pres: item.nombre_presentacion,
+          cant_pres: Number(item.stock_actual),
+          precio_actual_pres: Number(item.precio_usd),
+          _key: `${item.nombre_producto}-${item.nombre_presentacion}-${item.lugar_tienda}-${idx}`
+        }));
+        setProductos(productosMapeados);
       } catch (error) {
-        console.error('Error cargando datos:', error)
+        setProductos([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    
-    cargarDatos()
-  }, [])
+    };
+    cargarProductos();
+  }, []);
 
   useEffect(() => {
     setPaginaActual(1);
@@ -170,21 +169,14 @@ export const PuntoVenta: React.FC = () => {
   }, [itemsVenta, tasaActual])
 
   // Funciones para manejar productos
-  const agregarProducto = (producto: ProductoInventario) => {
-    if (producto.cant_pres <= 0) return
-
-    const itemExistente = itemsVenta.find((item) => 
-      item.producto.fk_cerv_pres_1 === producto.fk_cerv_pres_1 &&
-      item.producto.fk_cerv_pres_2 === producto.fk_cerv_pres_2 &&
-      item.producto.fk_tien === producto.fk_tien &&
-      item.producto.fk_luga_tien === producto.fk_luga_tien
-    )
-
+  const agregarProducto = (producto: any) => {
+    if (producto.cant_pres <= 0) return;
+    const itemExistente = itemsVenta.find((item) => (item.producto as any)._key === (producto as any)._key);
     if (itemExistente) {
       if (itemExistente.cantidad < producto.cant_pres) {
         setItemsVenta(
           itemsVenta.map((item) =>
-            item === itemExistente
+            (item.producto as any)._key === (producto as any)._key
               ? {
                   ...item,
                   cantidad: item.cantidad + 1,
@@ -192,26 +184,26 @@ export const PuntoVenta: React.FC = () => {
                 }
               : item,
           ),
-        )
+        );
       }
     } else {
-      const nuevoItem: ItemVenta = {
+      const nuevoItem = {
         producto,
         cantidad: 1,
         precio_unitario: producto.precio_actual_pres,
         subtotal: producto.precio_actual_pres,
-      }
-      setItemsVenta([...itemsVenta, nuevoItem])
+      };
+      setItemsVenta([...itemsVenta, nuevoItem]);
     }
-  }
+  };
 
-  const modificarCantidad = (item: ItemVenta, nuevaCantidad: number) => {
+  const modificarCantidad = (item: any, nuevaCantidad: number) => {
     if (nuevaCantidad <= 0) {
-      setItemsVenta(itemsVenta.filter((i) => i !== item))
+      setItemsVenta(itemsVenta.filter((i) => (i.producto as any)._key !== (item.producto as any)._key));
     } else if (nuevaCantidad <= item.producto.cant_pres) {
       setItemsVenta(
         itemsVenta.map((i) =>
-          i === item
+          (i.producto as any)._key === (item.producto as any)._key
             ? {
                 ...i,
                 cantidad: nuevaCantidad,
@@ -219,13 +211,13 @@ export const PuntoVenta: React.FC = () => {
               }
             : i,
         ),
-      )
+      );
     }
-  }
+  };
 
-  const eliminarItem = (item: ItemVenta) => {
-    setItemsVenta(itemsVenta.filter((i) => i !== item))
-  }
+  const eliminarItem = (item: any) => {
+    setItemsVenta(itemsVenta.filter((i) => (i.producto as any)._key !== (item.producto as any)._key));
+  };
 
   // Funciones para el proceso de pago
   const iniciarPago = () => {
@@ -375,6 +367,9 @@ export const PuntoVenta: React.FC = () => {
     return <Chip label={estado} color={color} size="small" />
   }
 
+  // Calcula el total del carrito
+  const totalCarrito = itemsVenta.reduce((total, item) => total + (typeof item.subtotal === 'number' ? item.subtotal : Number(item.subtotal) || 0), 0);
+
   if (loading) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -416,8 +411,8 @@ export const PuntoVenta: React.FC = () => {
           </Paper>
 
           <Grid container spacing={2}>
-            {productosPagina.map((producto) => (
-              <Grid size={{ xs: 12, md: 4, sm: 6 }} key={`${producto.fk_cerv_pres_1}-${producto.fk_cerv_pres_2}-${producto.fk_tien}-${producto.fk_luga_tien}`}>
+            {productosPagina.map((producto: any) => (
+              <Grid size={{ xs: 12, md: 4, sm: 6 }} key={(producto as any)._key}>
                 <Card
                   sx={{
                     cursor: producto.cant_pres > 0 ? "pointer" : "default",
@@ -440,7 +435,7 @@ export const PuntoVenta: React.FC = () => {
                     </Box>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                       <Typography variant="h6" color="primary">
-                        ${producto.precio_actual_pres.toFixed(2)}
+                        ${typeof producto.precio_actual_pres === 'number' ? producto.precio_actual_pres.toFixed(2) : (Number(producto.precio_actual_pres) ? Number(producto.precio_actual_pres).toFixed(2) : producto.precio_actual_pres)}
                       </Typography>
                       {getEstadoChip(producto.estado)}
                     </Box>
@@ -510,8 +505,8 @@ export const PuntoVenta: React.FC = () => {
                   No hay productos en el carrito
                 </Typography>
               ) : (
-                itemsVenta.map((item, index) => (
-                  <Box key={index} sx={{ mb: 2, p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}>
+                itemsVenta.map((item: any) => (
+                  <Box key={String((item.producto as any)._key)} sx={{ mb: 2, p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}>
                     <Typography variant="subtitle2" noWrap>{item.producto.nombre_cerv}</Typography>
                     <Typography variant="caption" color="text.secondary" noWrap>
                       {item.producto.nombre_pres}
@@ -531,7 +526,7 @@ export const PuntoVenta: React.FC = () => {
                         </IconButton>
                       </Box>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body2">${item.subtotal.toFixed(2)}</Typography>
+                        <Typography variant="body2">${typeof item.subtotal === 'number' ? item.subtotal.toFixed(2) : (Number(item.subtotal) ? Number(item.subtotal).toFixed(2) : item.subtotal)}</Typography>
                         <IconButton size="small" color="error" onClick={() => eliminarItem(item)}>
                           <Delete />
                         </IconButton>
@@ -549,28 +544,28 @@ export const PuntoVenta: React.FC = () => {
                 <Box sx={{ mb: 2 }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                     <Typography>Subtotal:</Typography>
-                    <Typography>${resumenVenta.subtotal.toFixed(2)}</Typography>
+                    <Typography>${typeof resumenVenta.subtotal === 'number' ? resumenVenta.subtotal.toFixed(2) : (Number(resumenVenta.subtotal) ? Number(resumenVenta.subtotal).toFixed(2) : resumenVenta.subtotal)}</Typography>
                   </Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                     <Typography>IVA (16%):</Typography>
-                    <Typography>${resumenVenta.iva.toFixed(2)}</Typography>
+                    <Typography>${typeof resumenVenta.iva === 'number' ? resumenVenta.iva.toFixed(2) : (Number(resumenVenta.iva) ? Number(resumenVenta.iva).toFixed(2) : resumenVenta.iva)}</Typography>
                   </Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                     <Typography>Total USD:</Typography>
                     <Typography variant="h6" color="primary">
-                      ${resumenVenta.total_usd.toFixed(2)}
+                      ${typeof resumenVenta.total_usd === 'number' ? resumenVenta.total_usd.toFixed(2) : (Number(resumenVenta.total_usd) ? Number(resumenVenta.total_usd).toFixed(2) : resumenVenta.total_usd)}
                     </Typography>
                   </Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                     <Typography>Total Bs:</Typography>
                     <Typography variant="h6" color="secondary">
-                      {resumenVenta.total_bs.toFixed(2)} Bs
+                      {typeof resumenVenta.total_bs === 'number' ? resumenVenta.total_bs.toFixed(2) : (Number(resumenVenta.total_bs) ? Number(resumenVenta.total_bs).toFixed(2) : resumenVenta.total_bs)} Bs
                     </Typography>
                   </Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                     <Typography>Puntos a generar:</Typography>
                     <Typography variant="body2" color="success.main">
-                      +{resumenVenta.puntos_generados} pts
+                      +{typeof resumenVenta.puntos_generados === 'number' ? resumenVenta.puntos_generados.toFixed(2) : (Number(resumenVenta.puntos_generados) ? Number(resumenVenta.puntos_generados).toFixed(2) : resumenVenta.puntos_generados)} pts
                     </Typography>
                   </Box>
                 </Box>
@@ -587,6 +582,13 @@ export const PuntoVenta: React.FC = () => {
                 </Button>
               </>
             )}
+
+            {itemsVenta.length > 0 && (
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Total:</Typography>
+                <Typography variant="h6" color="primary">${typeof totalCarrito === 'number' ? totalCarrito.toFixed(2) : totalCarrito}</Typography>
+              </Box>
+            )}
           </Paper>
         </Grid>
       </Grid>
@@ -600,9 +602,9 @@ export const PuntoVenta: React.FC = () => {
               <StepLabel>Agregar Métodos de Pago</StepLabel>
               <StepContent>
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="h6">Total a Pagar: ${resumenVenta?.total.toFixed(2)}</Typography>
+                  <Typography variant="h6">Total a Pagar: ${typeof resumenVenta?.total === 'number' ? resumenVenta?.total.toFixed(2) : (Number(resumenVenta?.total) ? Number(resumenVenta?.total).toFixed(2) : resumenVenta?.total)}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Monto restante: ${montoRestante.toFixed(2)}
+                    Monto restante: ${typeof montoRestante === 'number' ? montoRestante.toFixed(2) : (Number(montoRestante) ? Number(montoRestante).toFixed(2) : montoRestante)}
                   </Typography>
                 </Box>
 
@@ -817,7 +819,7 @@ export const PuntoVenta: React.FC = () => {
                   {pagos.map((pago, index) => (
                     <ListItem key={index}>
                       <ListItemText
-                        primary={`${pago.metodo_pago.tipo} - $${pago.monto.toFixed(2)}`}
+                        primary={`${pago.metodo_pago.tipo} - $${typeof pago.monto === 'number' ? pago.monto.toFixed(2) : (Number(pago.monto) ? Number(pago.monto).toFixed(2) : pago.monto)}`}
                         secondary={`Fecha: ${pago.fecha_pago}`}
                       />
                       <ListItemSecondaryAction>
@@ -831,13 +833,10 @@ export const PuntoVenta: React.FC = () => {
 
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="h6">
-                    Total pagos: ${montoTotalPagos.toFixed(2)}
+                    Total pagos: ${typeof montoTotalPagos === 'number' ? montoTotalPagos.toFixed(2) : (Number(montoTotalPagos) ? Number(montoTotalPagos).toFixed(2) : montoTotalPagos)}
                   </Typography>
-                  <Typography variant="body2" color={montoRestante > 0.01 ? "error" : "success.main"}>
-                    {montoRestante > 0.01 
-                      ? `Falta: $${montoRestante.toFixed(2)}` 
-                      : "Pago completo"
-                    }
+                  <Typography variant="body2" color={typeof montoRestante === 'number' ? (montoRestante > 0.01 ? "error" : "success.main") : montoRestante > 0.01 ? "error" : "success.main"}>
+                    {typeof montoRestante === 'number' ? (montoRestante > 0.01 ? `Falta: $${montoRestante.toFixed(2)}` : "Pago completo") : montoRestante > 0.01 ? String(montoRestante) : "Pago completo"}
                   </Typography>
                 </Box>
 
@@ -845,7 +844,7 @@ export const PuntoVenta: React.FC = () => {
                   <Button 
                     variant="contained" 
                     onClick={procesarVentaFinal}
-                    disabled={montoRestante > 0.01 || procesandoVenta}
+                    disabled={typeof montoRestante === 'number' ? (montoRestante > 0.01 || procesandoVenta) : montoRestante > 0.01 || procesandoVenta}
                   >
                     {procesandoVenta ? "Procesando..." : "Confirmar Venta"}
                   </Button>
