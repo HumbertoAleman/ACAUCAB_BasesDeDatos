@@ -5,6 +5,7 @@ import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
 import PrivilegesService from "./src/PrivilegesService";
 import ClientesService from "./src/ClientesService";
+import TasaService from "./src/TasaService";
 
 function generateUserToken(length: number = 32): string {
 	const characters = '0123456789abcdef';
@@ -207,6 +208,13 @@ Bun.serve({
 			async GET(req, _) {
 				const res = await ClientesService.getAllClientes()
 				return Response.json(res, CORS_HEADERS);
+			}
+		},
+
+		"/api/tasa": {
+			async GET(req, _) {
+				const res = (await TasaService.getTasaDiaActual())
+				return Response.json(res, CORS_HEADERS)
 			}
 		},
 
