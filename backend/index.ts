@@ -6,6 +6,7 @@ import getUsuario from "./src/query_usuario";
 import PrivilegesService from "./src/PrivilegesService";
 import ClientesService from "./src/ClientesService";
 import TasaService from "./src/TasaService";
+import VentaService, { type APIVenta } from "./src/VentaService";
 
 function generateUserToken(length: number = 32): string {
 	const characters = '0123456789abcdef';
@@ -215,6 +216,13 @@ Bun.serve({
 			async GET(req, _) {
 				const res = (await TasaService.getTasaDiaActual())
 				return Response.json(res, CORS_HEADERS)
+			}
+		},
+
+		"/api/venta": {
+			async POST (req, _) {
+				const res = VentaService.registerVenta((await req.json()) as APIVenta)
+				return Response.json(res, CORS_HEADERS);
 			}
 		},
 
