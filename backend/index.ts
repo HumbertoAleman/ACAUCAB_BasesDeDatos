@@ -1,12 +1,14 @@
 import { sql } from "bun";
 import { quickDelete } from "./src/delete";
 import { quickInsert } from "./src/insert";
+import { CORS_HEADERS } from "./globals";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
 import PrivilegesService from "./src/PrivilegesService";
 import ClientesService from "./src/ClientesService";
 import TasaService from "./src/TasaService";
 import VentaService, { type APIVenta } from "./src/VentaService";
+
 
 function generateUserToken(length: number = 32): string {
 	const characters = '0123456789abcdef';
@@ -19,14 +21,6 @@ function generateUserToken(length: number = 32): string {
 }
 
 const user_tokens: { [key: string]: string } = {};
-
-const CORS_HEADERS = {
-	headers: {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Methods': 'OPTIONS, POST, DELETE',
-		'Access-Control-Allow-Headers': '*, Authorization',
-	},
-};
 
 console.log("Opening Backend on Port 3000");
 
@@ -175,35 +169,7 @@ Bun.serve({
 			}
 		},
 
-		"/api/privileges/:rol": {
-			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
-			async GET(req) {
-				let res = [];
-				res = await PrivilegesService.getPrivilegesFromRol(Number(req.params.rol));
-				return Response.json(res, CORS_HEADERS);
-			},
-			async POST(req, _) {
-				const body: any = await req.json()
-				const res = await PrivilegesService.relatePrivilegeRol(Number(body.info.fk_priv), Number(req.params.rol));
-				return Response.json(res, CORS_HEADERS);
-			},
-			async DELETE(req, _) {
-				const body: any = await req.json()
-				const res = await PrivilegesService.removeRelationPrivilegeRol(Number(body.info.fk_priv), Number(req.params.rol));
-				return Response.json(res, CORS_HEADERS);
-			},
-		},
-
-		"/api/privileges/:rol/form": {
-			async GET(req) {
-				let res = [];
-				if (new URL(req.url).searchParams.get("missing") === "true")
-					res = await PrivilegesService.getMissingPrivilegesForForm(Number(req.params.rol));
-				else
-					res = await PrivilegesService.getPossiblePrivilegesForForm(Number(req.params.rol));
-				return Response.json(res, CORS_HEADERS);
-			},
-		},
+		...PrivilegesService.privilegesRoutes,
 
 		"/api/clientes": {
 			async GET(req, _) {

@@ -1,5 +1,6 @@
 import { sql } from "bun"
 import { LogFunctionExecution } from "./logger/decorators"
+import { CORS_HEADERS } from "../globals";
 
 class PrivilegesService {
 	@LogFunctionExecution
@@ -38,6 +39,38 @@ class PrivilegesService {
 	@LogFunctionExecution
 	async removeRelationPrivilegeRol(fk_priv: Number, fk_rol: Number): Promise<any[]> {
 		return await sql`DELETE FROM PRIV_ROL WHERE fk_rol = ${fk_rol} AND fk_priv = ${fk_priv}`;
+	}
+
+	privilegesRoutes = {
+		"/api/privileges/:rol": {
+			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
+			GET: async (req: any) => {
+				let res = [];
+				res = await this.getPrivilegesFromRol(Number(req.params.rol));
+				return Response.json(res, CORS_HEADERS);
+			},
+			POST: async (req: any) => {
+				const body: any = await req.json()
+				const res = await this.relatePrivilegeRol(Number(body.info.fk_priv), Number(req.params.rol));
+				return Response.json(res, CORS_HEADERS);
+			},
+			DELETE: async (req: any) => {
+				const body: any = await req.json()
+				const res = await this.removeRelationPrivilegeRol(Number(body.info.fk_priv), Number(req.params.rol));
+				return Response.json(res, CORS_HEADERS);
+			},
+		},
+
+		"/api/privileges/:rol/form": {
+			GET: async (req: any) => {
+				let res = [];
+				if (new URL(req.url).searchParams.get("missing") === "true")
+					res = await this.getMissingPrivilegesForForm(Number(req.params.rol));
+				else
+					res = await this.getPossiblePrivilegesForForm(Number(req.params.rol));
+				return Response.json(res, CORS_HEADERS);
+			},
+		},
 	}
 }
 
