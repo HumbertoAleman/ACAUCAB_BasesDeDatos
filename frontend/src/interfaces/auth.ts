@@ -33,6 +33,13 @@ export interface Usuario {
   fk_empl?: number | null; // Arc to Empleado
   fk_miem?: string | null; // Arc to Miembro (cambiado de number a string)
   fk_clie?: string | null; // Arc to Cliente (cambiado de number a string)
+  // Añadido para compatibilidad con backend users_with_details
+  rol?: {
+    cod_rol: number;
+    nombre_rol: string;
+    descripcion_rol: string;
+    privileges?: Privilegio[];
+  }
 }
 
 // Interfaces para tablas de relación Muchos a Muchos (M-M) en este dominio
