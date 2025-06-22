@@ -65,10 +65,13 @@ export const useRoles = (): UseRolesReturn => {
   const fetchPrivileges = async () => {
     try {
       const response = await privilegeService.getPrivileges()
-      if (response.success && response.data) {
-        setPrivileges(response.data)
+
+      // Corregido: Manejar respuesta como array directo
+      if (Array.isArray(response)) {
+        setPrivileges(response)
       } else {
-        console.error('Error loading privileges:', response.error)
+        // Manejar el caso de una respuesta con error envuelta
+        console.error('Error loading privileges:', (response as ApiResponse<any>).error)
       }
     } catch (error) {
       console.error('Error fetching privileges:', error)

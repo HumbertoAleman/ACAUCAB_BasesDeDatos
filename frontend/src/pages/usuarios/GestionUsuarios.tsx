@@ -35,19 +35,20 @@ import {
 import { Security, Refresh, Edit, Delete } from "@mui/icons-material"
 import { useUsers } from "../../hooks/useUsers"
 import { privilegeService, roleService } from "../../services/api"
-import type { Rol, Usuario } from "../../interfaces"
+import { useRoles } from "../../hooks/useRoles"
+import type { Rol, Usuario, Privilegio } from "../../interfaces"
 
-// Genera dinámicamente los módulos a partir de las interfaces de negocio
-const businessInterfaces = ["cervezas", "eventos", "miembros", "personal", "tiendas", "ventas", "usuarios"]
-const systemModules = businessInterfaces.map(name => ({
-    key: name,
-    label: name.charAt(0).toUpperCase() + name.slice(1) // Capitaliza el nombre para el UI
-}))
-
-const crudActions = ["create", "read", "update", "delete"]
+// Interfaz para la nueva estructura de privilegios agrupados
+type GroupedPrivilegeActions = {
+  create?: Privilegio;
+  read?: Privilegio;
+  update?: Privilegio;
+  delete?: Privilegio;
+}
 
 export const GestionUsuarios: React.FC = () => {
   const { users, loading, error, refreshUsers, updateUser, deleteUser } = useUsers()
+  const { privileges, loading: loadingPrivileges } = useRoles()
   
   const [roles, setRoles] = useState<Rol[]>([])
   const [privilegeModalOpen, setPrivilegeModalOpen] = useState(false)
@@ -56,10 +57,29 @@ export const GestionUsuarios: React.FC = () => {
   const [userPrivileges, setUserPrivileges] = useState<Record<string, boolean>>({})
   const [editedUsername, setEditedUsername] = useState("")
 
+  // Lógica mejorada para agrupar privilegios por tabla y acción CRUD
+  const getGroupedPrivileges = (): Record<string, GroupedPrivilegeActions> => {
+    const grouped: Record<string, GroupedPrivilegeActions> = {};
+    const validActions = new Set(['create', 'read', 'update', 'delete']);
+
+    privileges.forEach(priv => {
+      const parts = priv.nombre_priv.split('_');
+      const action = parts.pop(); // La acción es la última parte
+      
+      if (action && validActions.has(action)) {
+        const tableName = parts.join('_'); // La tabla es todo lo demás
+        if (!grouped[tableName]) {
+          grouped[tableName] = {};
+        }
+        grouped[tableName][action as keyof GroupedPrivilegeActions] = priv;
+      }
+    });
+    return grouped;
+  }
+
   useEffect(() => {
     const fetchRoles = async () => {
       const response = await roleService.getRoles()
-      // La API puede devolver un array directamente en caso de éxito.
       if (Array.isArray(response)) {
         setRoles(response)
       } else {
@@ -79,11 +99,8 @@ export const GestionUsuarios: React.FC = () => {
   const handleOpenPrivilegeModal = (user: Usuario) => {
     setSelectedUser(user)
     const initialPrivileges: Record<string, boolean> = {}
-    systemModules.forEach(module => {
-      crudActions.forEach(action => {
-        const privilegeName = `${module.key}_${action}`
-        initialPrivileges[privilegeName] = user.rol.privileges?.some(p => p.nombre_priv === privilegeName) ?? false
-      })
+    privileges.forEach((priv: Privilegio) => {
+      initialPrivileges[priv.nombre_priv] = user.rol?.privileges?.some((p: Privilegio) => p.nombre_priv === priv.nombre_priv) ?? false
     })
     setUserPrivileges(initialPrivileges)
     setPrivilegeModalOpen(true)
@@ -98,13 +115,8 @@ export const GestionUsuarios: React.FC = () => {
 
   const handleSavePrivileges = async () => {
     if (!selectedUser) return
-
     const updatedPrivileges = Object.keys(userPrivileges).filter(key => userPrivileges[key])
-    
-    console.log("Enviando al backend para el usuario", selectedUser.cod_usua, ":", { privileges: updatedPrivileges })
-    
     await privilegeService.updateUserPrivileges(selectedUser.cod_usua, updatedPrivileges)
-    
     setPrivilegeModalOpen(false)
     setSelectedUser(null)
     refreshUsers()
@@ -194,31 +206,38 @@ export const GestionUsuarios: React.FC = () => {
       <Dialog open={privilegeModalOpen} onClose={() => setPrivilegeModalOpen(false)} maxWidth="md">
         <DialogTitle>Gestionar Privilegios para {selectedUser?.username_usua}</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ pt: 1 }}>
-            {systemModules.map((module) => (
-              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={module.key}>
-                <Typography variant="h6">{module.label}</Typography>
-                <FormGroup>
-                  {crudActions.map((action) => {
-                    const privilegeName = `${module.key}_${action}`
-                    return (
-                      <FormControlLabel
-                        key={privilegeName}
-                        control={
-                          <Checkbox
-                            checked={userPrivileges[privilegeName] ?? false}
-                            onChange={handlePrivilegeChange}
-                            name={privilegeName}
-                          />
-                        }
-                        label={action.charAt(0).toUpperCase() + action.slice(1)}
-                      />
-                    )
-                  })}
-                </FormGroup>
-              </Grid>
-            ))}
-          </Grid>
+          {loadingPrivileges ? (
+            <CircularProgress />
+          ) : (
+            <Grid container spacing={3} sx={{ pt: 1 }}>
+              {Object.entries(getGroupedPrivileges()).map(([tableName, actions]) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={tableName}>
+                  <Typography variant="h6" sx={{ textTransform: 'capitalize', mb: 1 }}>
+                    {tableName.replace(/_/g, ' ')}
+                  </Typography>
+                  <FormGroup>
+                    {(['create', 'read', 'update', 'delete'] as const).map(action => {
+                      const priv = actions[action];
+                      return (
+                        <FormControlLabel
+                          key={action}
+                          disabled={!priv}
+                          control={
+                            <Checkbox
+                              checked={priv ? userPrivileges[priv.nombre_priv] ?? false : false}
+                              onChange={handlePrivilegeChange}
+                              name={priv?.nombre_priv || ''}
+                            />
+                          }
+                          label={action}
+                        />
+                      );
+                    })}
+                  </FormGroup>
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPrivilegeModalOpen(false)}>Cancelar</Button>

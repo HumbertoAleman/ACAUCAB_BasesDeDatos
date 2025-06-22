@@ -56,7 +56,8 @@ import {
   getClientesDetallados, 
   getTasaActual, 
   getMetodosPago, 
-  procesarVenta 
+  procesarVenta,
+  getTableData
 } from "../../services/api"
 
 export const PuntoVenta: React.FC = () => {
@@ -119,16 +120,33 @@ export const PuntoVenta: React.FC = () => {
     const cargarProductos = async () => {
       try {
         setLoading(true);
-        const productosData = await getProductosInventario();
-        // Mapeo de campos para que coincidan con ProductoInventario
-        const productosMapeados = (productosData as any[]).map((item, idx) => ({
-          ...item,
-          nombre_cerv: item.nombre_producto,
-          nombre_pres: item.nombre_presentacion,
-          cant_pres: Number(item.stock_actual),
-          precio_actual_pres: Number(item.precio_usd),
-          _key: `${item.nombre_producto}-${item.nombre_presentacion}-${item.lugar_tienda}-${idx}`
-        }));
+
+        const [productosData, cervezas, presentaciones, lugaresTienda] = await Promise.all([
+          getProductosInventario(),
+          getTableData('Cerveza'),
+          getTableData('Presentacion'),
+          getTableData('Lugar_Tienda')
+        ]);
+
+        const productosMapeados = (productosData as any[]).map((item, idx) => {
+          const cerveza = cervezas.find(c => c.nombre_cerv === item.nombre_producto);
+          const presentacion = presentaciones.find(p => p.nombre_pres === item.nombre_presentacion);
+          const lugarTienda = lugaresTienda.find(l => l.nombre_luga_tien === item.lugar_tienda);
+
+          return {
+            ...item,
+            fk_cerv_pres_1: cerveza?.cod_cerv,
+            fk_cerv_pres_2: presentacion?.cod_pres,
+            fk_luga_tien: lugarTienda?.cod_luga_tien,
+            fk_tien: 1, // Hardcodeado porque el inventario es de la tienda 1
+            nombre_cerv: item.nombre_producto,
+            nombre_pres: item.nombre_presentacion,
+            cant_pres: Number(item.stock_actual),
+            precio_actual_pres: Number(item.precio_usd),
+            _key: `${item.nombre_producto}-${item.nombre_presentacion}-${item.lugar_tienda}-${idx}`
+          }
+        });
+
         setProductos(productosMapeados);
       } catch (error) {
         setProductos([]);
@@ -144,7 +162,6 @@ export const PuntoVenta: React.FC = () => {
     const cargarClientes = async () => {
       try {
         const clientesData = await getClientesDetallados();
-        console.log('CLIENTES DATA:', clientesData); // DEPURACIÓN
         // Si viene como array de arrays, aplanar
         const clientesFlat = Array.isArray(clientesData[0]) ? clientesData.flat() : clientesData;
         // Mapeo para asegurar tipos correctos y nombre visible
@@ -366,30 +383,67 @@ export const PuntoVenta: React.FC = () => {
   const montoRestanteBs = (resumenVenta?.total_bs || 0) - montoTotalPagosBs;
 
   const procesarVentaFinal = async () => {
-    if (!resumenVenta || montoRestanteBs > 0.01) {
-      alert('El monto total de los pagos debe ser igual al total de la venta')
+    if (!resumenVenta || !tasaActual || montoRestanteBs > 0.01) {
+      alert('El monto total de los pagos debe ser igual al total de la venta y la tasa debe estar disponible.')
       return
     }
 
     setProcesandoVenta(true)
     try {
-      const ventaCompleta = {
-        fecha_vent: resumenVenta.fecha_venta,
+      const apiItems: {
+        fk_cerv_pres_1: number;
+        fk_cerv_pres_2: number;
+        fk_tien: number;
+        fk_luga_tien: number;
+        cantidad: number;
+      }[] = itemsVenta.map((item) => ({
+        fk_cerv_pres_1: (item.producto as any).fk_cerv_pres_1,
+        fk_cerv_pres_2: (item.producto as any).fk_cerv_pres_2,
+        fk_tien: 1, // Fijo según la especificación
+        fk_luga_tien: (item.producto as any).fk_luga_tien,
+        cantidad: item.cantidad,
+      }));
+
+      const apiPagos: {
+        tipo: "Efectivo" | "Punto_Canjeo" | "Tarjeta" | "Cheque";
+        monto: number;
+        [x: string]: any;
+      }[] = pagos.map((pago) => {
+        const pagoData: any = {
+          tipo: pago.metodo_pago.tipo,
+          monto: pago.monto / tasaActual.tasa_dolar_bcv,
+        };
+
+        // Agregar detalles específicos del método de pago
+        if (pago.metodo_pago.tipo === "Tarjeta") {
+          pagoData.numero_tarj = pago.metodo_pago.numero_tarj;
+          pagoData.fecha_venci_tarj = pago.metodo_pago.fecha_venci_tarj;
+          pagoData.cvv_tarj = pago.metodo_pago.cvv_tarj;
+          pagoData.nombre_titu_tarj = pago.metodo_pago.nombre_titu_tarj;
+          pagoData.credito = pago.metodo_pago.credito;
+        } else if (pago.metodo_pago.tipo === "Cheque") {
+          pagoData.numero_cheque = pago.metodo_pago.numero_cheque;
+          pagoData.numero_cuenta_cheque = pago.metodo_pago.numero_cuenta_cheque;
+          pagoData.fk_banc = pago.metodo_pago.fk_banc;
+        } else if (pago.metodo_pago.tipo === "Efectivo") {
+          pagoData.denominacion_efec = pago.metodo_pago.denominacion_efec;
+        }
+
+        return pagoData;
+      });
+
+      const ventaData = {
+        fecha_vent: new Date().toISOString().split('T')[0],
         iva_vent: resumenVenta.iva,
         base_imponible_vent: resumenVenta.subtotal,
-        total_vent: resumenVenta.total,
         online: false,
-        fk_clie: clienteSeleccionado?.rif_clie,
-        fk_tien: 1, // Tienda por defecto
-        items: itemsVenta,
-        pagos,
-        tasa_dia: tasaActual || undefined,
-        puntos_generados: resumenVenta.puntos_generados,
-        total_usd: resumenVenta.total_usd,
-        total_bs: resumenVenta.total_bs
-      }
+        fk_clie: clienteSeleccionado?.rif_clie || null,
+        fk_tien: 1,
+        items: apiItems,
+        pagos: apiPagos,
+      };
 
-      const resultado = await procesarVenta(ventaCompleta)
+      const resultado = await procesarVenta(ventaData as any)
       
       if (resultado.success) {
         alert(`Venta procesada exitosamente. Código: ${resultado.cod_vent}`)
