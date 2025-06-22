@@ -231,7 +231,7 @@ export const handleAuthError = (error: any) => {
  */
 export const getProductosInventario = async (): Promise<ProductoInventario[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/inventario/productos`);
+    const response = await fetch(`${API_BASE_URL}/inventory`);
     if (!response.ok) {
       throw new Error('Error al obtener productos del inventario');
     }

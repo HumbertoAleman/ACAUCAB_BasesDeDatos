@@ -34,6 +34,7 @@ import {
   Step,
   StepLabel,
   StepContent,
+  Pagination,
 } from "@mui/material"
 import { 
   Add, 
@@ -99,6 +100,9 @@ export const PuntoVenta: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [procesandoVenta, setProcesandoVenta] = useState(false)
 
+  const TAM_PAGINA = 25;
+  const [paginaActual, setPaginaActual] = useState(1);
+
   // Cargar datos iniciales
   useEffect(() => {
     const cargarDatos = async () => {
@@ -125,11 +129,21 @@ export const PuntoVenta: React.FC = () => {
     cargarDatos()
   }, [])
 
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [productos, busquedaProducto]);
+
   // Filtrar productos
   const productosFiltered = productos.filter((producto) =>
-    producto.nombre_cerv.toLowerCase().includes(busquedaProducto.toLowerCase()) ||
-    producto.tipo_cerveza.toLowerCase().includes(busquedaProducto.toLowerCase())
+    (producto.nombre_cerv?.toLowerCase() ?? "").includes(busquedaProducto.toLowerCase()) ||
+    (producto.tipo_cerveza?.toLowerCase() ?? "").includes(busquedaProducto.toLowerCase())
   )
+
+  const totalPaginas = Math.ceil(productosFiltered.length / TAM_PAGINA);
+  const productosPagina = productosFiltered.slice(
+    (paginaActual - 1) * TAM_PAGINA,
+    paginaActual * TAM_PAGINA
+  );
 
   // Calcular resumen de venta
   useEffect(() => {
@@ -402,7 +416,7 @@ export const PuntoVenta: React.FC = () => {
           </Paper>
 
           <Grid container spacing={2}>
-            {productosFiltered.map((producto) => (
+            {productosPagina.map((producto) => (
               <Grid size={{ xs: 12, md: 4, sm: 6 }} key={`${producto.fk_cerv_pres_1}-${producto.fk_cerv_pres_2}-${producto.fk_tien}-${producto.fk_luga_tien}`}>
                 <Card
                   sx={{
@@ -441,6 +455,17 @@ export const PuntoVenta: React.FC = () => {
               </Grid>
             ))}
           </Grid>
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+            <Pagination
+              count={totalPaginas}
+              page={paginaActual}
+              onChange={(_, value) => setPaginaActual(value)}
+              color="primary"
+              shape="rounded"
+              showFirstButton
+              showLastButton
+            />
+          </Box>
         </Grid>
 
         {/* Panel de Venta */}
