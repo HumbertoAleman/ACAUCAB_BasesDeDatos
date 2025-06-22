@@ -80,6 +80,7 @@ Bun.serve({
 		...RolService.rolRoutes,
 
 		"/api/tasa": {
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			async GET(req, _) {
 				const res = (await TasaService.getTasaDiaActual())
 				return Response.json(res, CORS_HEADERS)
@@ -87,6 +88,7 @@ Bun.serve({
 		},
 
 		"/api/venta": {
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			async POST(req, _) {
 				const res = VentaService.registerVenta((await req.json()) as APIVenta)
 				return Response.json(res, CORS_HEADERS);
@@ -94,6 +96,7 @@ Bun.serve({
 		},
 
 		"/api/inventory": {
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			async GET(req, _) {
 				const res = await sql`SELECT C.nombre_cerv AS "nombre_producto", P.nombre_pres AS "nombre_presentacion", SUM(IT.cant_pres) AS "stock_actual", AVG(IT.precio_actual_pres)::numeric(8,2) AS "precio_usd", LT.nombre_luga_tien AS "lugar_tienda", M.razon_social_miem AS "miembro_proveedor"
 					FROM Inventario_Tienda AS IT
