@@ -1,4 +1,5 @@
 import { sql } from "bun"
+import { LogFunctionExecution } from "./logger/decorators"
 
 type APIPago = {
 	[x: string]: any
@@ -26,6 +27,7 @@ type APIVenta = {
 }
 
 class VentaService {
+	@LogFunctionExecution
 	createMetodoPago(pago: APIPago): Bun.SQLQuery<any> {
 		if (pago.tipo === "Tarjeta")
 			return sql`CALL add_tarjeta(${pago.numero}, ${pago.fecha_venci}, ${pago.cvv}, ${pago.nombre_titu}, ${pago.credito})`
@@ -36,6 +38,7 @@ class VentaService {
 		return sql`CALL add_punto_canjeo()`
 	}
 
+	@LogFunctionExecution
 	async registerVenta(venta: APIVenta) {
 		const metodos_de_pago: number[] = [];
 		for (const pago of venta.pagos) {

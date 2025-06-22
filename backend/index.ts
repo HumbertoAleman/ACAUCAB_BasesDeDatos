@@ -1,32 +1,15 @@
 import { sql } from "bun";
 import { quickDelete } from "./src/delete";
 import { quickInsert } from "./src/insert";
+import { CORS_HEADERS } from "./globals";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
 import PrivilegesService from "./src/PrivilegesService";
 import ClientesService from "./src/ClientesService";
 import TasaService from "./src/TasaService";
 import VentaService, { type APIVenta } from "./src/VentaService";
-
-function generateUserToken(length: number = 32): string {
-	const characters = '0123456789abcdef';
-	let token = '';
-	for (let i = 0; i < length; i++) {
-		const randomIndex = Math.floor(Math.random() * characters.length);
-		token += characters[randomIndex];
-	}
-	return token;
-}
-
-const user_tokens: { [key: string]: string } = {};
-
-const CORS_HEADERS = {
-	headers: {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Methods': 'OPTIONS, POST, DELETE',
-		'Access-Control-Allow-Headers': '*, Authorization',
-	},
-};
+import AuthService from "./src/AuthService";
+import RolService from "./src/RolService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -42,58 +25,10 @@ Bun.serve({
 			POST: quickInsert,
 			DELETE: quickDelete,
 		},
+
 		"/rol": { GET: getRol, },
+
 		"/usuario": { GET: getUsuario, },
-
-		"/api/roles": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: async _ => {
-				const res = await sql`SELECT * FROM Rol`;
-				return Response.json(res, CORS_HEADERS)
-			},
-			POST: async (req, _) => {
-				const body = await req.json();
-				const res = await sql`INSERT INTO Rol ${sql(body.insert_data)}`
-				return Response.json(res, CORS_HEADERS)
-			},
-		},
-
-		"/api/roles/:id": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: async (req) => {
-				const id = req.params.id;
-				const res = await sql`SELECT * FROM Rol WHERE cod_rol = ${id} LIMIT 1`;
-				return Response.json(res, CORS_HEADERS)
-			}
-		},
-
-		"/api/roles/:id/privileges": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: async (req) => {
-				const id = req.params.id;
-				const res = await sql`
-					SELECT P.cod_priv, P.nombre_priv, P.descripcion_priv
-					FROM Privilegio AS P
-					JOIN PRIV_ROL AS RP ON RP.fk_priv = P.cod_priv
-					JOIN Rol AS R ON RP.fk_rol = ${id}
-					group by P.cod_priv
-					order by P.cod_priv`;
-				return Response.json(res, CORS_HEADERS)
-			},
-			POST: async (req, _) => {
-				const fk_rol = req.params.id;
-				const fk_priv = await req.json()
-				const priv_rol = { fk_rol, fk_priv }
-				const res = await sql`INSERT INTO PRIV_ROL ${priv_rol} RETURNING *`
-				return Response.json(res, CORS_HEADERS);
-			},
-			DELETE: async (req, _) => {
-				const fk_rol = req.params.id;
-				const fk_priv = await req.json()
-				const res = await sql`DELETE FROM PRIV_ROL WHERE fk_rol = ${fk_rol} AND fk_priv = ${fk_priv} RETURNING *`
-				return Response.json(res, CORS_HEADERS);
-			},
-		},
 
 		"/api/form/parroquias": {
 			async GET() {
@@ -106,17 +41,9 @@ Bun.serve({
 			},
 		},
 
-		"/api/auth/verify": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: (req, _) => {
-				console.log(req.headers)
-				return Response.json({ success: true }, CORS_HEADERS)
-			}
-		},
-
 		"/api/users_with_details": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: async (req, _) => {
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
+			GET: async () => {
 				const users = await sql`
 					SELECT U.cod_usua, U.username_usua, U.fk_rol, R.cod_rol, R.nombre_rol, R.descripcion_rol
 					FROM Usuario AS U
@@ -147,70 +74,10 @@ Bun.serve({
 			}
 		},
 
-		"/api/auth/login": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			POST: async req => {
-				const body = await req.json() as { username: string, password: string };
-				const authorization: Array<any> = await sql`
-					SELECT U.cod_usua, U.username_usua, R.nombre_rol
-					FROM USUARIO AS U
-					JOIN ROL AS R ON R.cod_rol = U.fk_rol
-					WHERE username_usua = ${body.username} AND contra_usua = ${body.password}`
-				if (authorization.length > 0) {
-					const user = authorization[0];
-					const token = generateUserToken();
-					user_tokens[token] = user.cod_usua;
-					return Response.json(
-						{
-							"authenticated": true,
-							"token": token,
-							"user": {
-								"username": user.username_usua,
-								"rol": user.nombre_rol
-							}
-						}
-						, CORS_HEADERS)
-				}
-				return Response.json({ authenticated: false }, CORS_HEADERS)
-			}
-		},
-
-		"/api/privileges/:rol": {
-			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
-			async GET(req) {
-				let res = [];
-				res = await PrivilegesService.getPrivilegesFromRol(Number(req.params.rol));
-				return Response.json(res, CORS_HEADERS);
-			},
-			async POST(req, _) {
-				const body: any = await req.json()
-				const res = await PrivilegesService.relatePrivilegeRol(Number(body.info.fk_priv), Number(req.params.rol));
-				return Response.json(res, CORS_HEADERS);
-			},
-			async DELETE(req, _) {
-				const body: any = await req.json()
-				const res = await PrivilegesService.removeRelationPrivilegeRol(Number(body.info.fk_priv), Number(req.params.rol));
-				return Response.json(res, CORS_HEADERS);
-			},
-		},
-
-		"/api/privileges/:rol/form": {
-			async GET(req) {
-				let res = [];
-				if (new URL(req.url).searchParams.get("missing") === "true")
-					res = await PrivilegesService.getMissingPrivilegesForForm(Number(req.params.rol));
-				else
-					res = await PrivilegesService.getPossiblePrivilegesForForm(Number(req.params.rol));
-				return Response.json(res, CORS_HEADERS);
-			},
-		},
-
-		"/api/clientes": {
-			async GET(req, _) {
-				const res = await ClientesService.getAllClientes()
-				return Response.json(res, CORS_HEADERS);
-			}
-		},
+		...AuthService.authRoutes,
+		...PrivilegesService.privilegesRoutes,
+		...ClientesService.clientesRoutes,
+		...RolService.rolRoutes,
 
 		"/api/tasa": {
 			async GET(req, _) {
@@ -220,7 +87,7 @@ Bun.serve({
 		},
 
 		"/api/venta": {
-			async POST (req, _) {
+			async POST(req, _) {
 				const res = VentaService.registerVenta((await req.json()) as APIVenta)
 				return Response.json(res, CORS_HEADERS);
 			}
