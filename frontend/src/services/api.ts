@@ -294,7 +294,7 @@ export const getProductosInventario = async (): Promise<ProductoInventario[]> =>
  */
 export const getClientesDetallados = async (): Promise<ClienteDetallado[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users_with_details`);
+    const response = await fetch(`${API_BASE_URL}/clientes`);
     if (!response.ok) {
       throw new Error('Error al obtener clientes');
     }

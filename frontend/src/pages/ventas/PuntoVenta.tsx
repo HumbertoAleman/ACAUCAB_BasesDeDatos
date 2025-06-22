@@ -128,6 +128,41 @@ export const PuntoVenta: React.FC = () => {
     cargarProductos();
   }, []);
 
+  // Cargar clientes al montar el componente
+  useEffect(() => {
+    const cargarClientes = async () => {
+      try {
+        const clientesData = await getClientesDetallados();
+        console.log('CLIENTES DATA:', clientesData); // DEPURACIÓN
+        // Si viene como array de arrays, aplanar
+        const clientesFlat = Array.isArray(clientesData[0]) ? clientesData.flat() : clientesData;
+        // Mapeo para asegurar tipos correctos y nombre visible
+        const clientesMapeados = (clientesFlat || []).map(cliente => ({
+          ...cliente,
+          puntos_acumulados: Number(cliente.puntos_acumulados) || 0,
+          telefonos: Array.isArray(cliente.telefonos)
+            ? cliente.telefonos
+            : cliente.telefonos
+              ? [cliente.telefonos]
+              : [],
+          correos: Array.isArray(cliente.correos)
+            ? cliente.correos
+            : cliente.correos
+              ? [cliente.correos]
+              : [],
+          display_name:
+            cliente.tipo_clie === 'Natural'
+              ? `${cliente.primer_nom_natu || ''} ${cliente.primer_ape_natu || ''}`.trim() || cliente.rif_clie
+              : cliente.razon_social_juri || cliente.rif_clie,
+        }));
+        setClientes(clientesMapeados);
+      } catch (error) {
+        setClientes([]);
+      }
+    };
+    cargarClientes();
+  }, []);
+
   useEffect(() => {
     setPaginaActual(1);
   }, [productos, busquedaProducto]);
@@ -354,13 +389,16 @@ export const PuntoVenta: React.FC = () => {
     }
   }
 
+  // Función para mostrar el nombre del cliente o fallback
   const getNombreCliente = (cliente: ClienteDetallado) => {
-    if (cliente.tipo_clie === "Natural") {
-      return `${cliente.primer_nom_natu || ""} ${cliente.primer_ape_natu || ""}`.trim()
+    if (!cliente) return '-';
+    if (cliente.tipo_clie === 'Natural') {
+      const nombre = `${cliente.primer_nom_natu || ''} ${cliente.primer_ape_natu || ''}`.trim();
+      return nombre || cliente.rif_clie || '-';
     } else {
-      return cliente.razon_social_juri || ""
+      return cliente.razon_social_juri || cliente.rif_clie || '-';
     }
-  }
+  };
 
   const getEstadoChip = (estado: ProductoInventario['estado']) => {
     const color = estado === "Disponible" ? "success" : estado === "Bajo Stock" ? "warning" : "error"
@@ -472,23 +510,23 @@ export const PuntoVenta: React.FC = () => {
             </Typography>
 
             {/* Selección de Cliente */}
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Cliente (Opcional)</InputLabel>
+            <FormControl fullWidth sx={{ mb: 2 }} required>
+              <InputLabel>Cliente</InputLabel>
               <Select
                 value={clienteSeleccionado?.rif_clie || ""}
                 onChange={(e) => {
                   const cliente = clientes.find((c) => c.rif_clie === e.target.value)
                   setClienteSeleccionado(cliente || null)
                 }}
-                label="Cliente (Opcional)"
+                label="Cliente"
+                error={!clienteSeleccionado}
               >
-                <MenuItem value="">Sin cliente</MenuItem>
                 {clientes.map((cliente) => (
                   <MenuItem key={cliente.rif_clie} value={cliente.rif_clie}>
                     <Box>
-                      <Typography variant="body2">{getNombreCliente(cliente)}</Typography>
+                      <Typography variant="body2">{cliente.display_name || cliente.rif_clie}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {cliente.tipo_clie} | Puntos: {cliente.puntos_acumulados || 0}
+                        {cliente.tipo_clie || 'N/A'} | Puntos: {typeof cliente.puntos_acumulados === 'number' ? cliente.puntos_acumulados : 'N/A'}
                       </Typography>
                     </Box>
                   </MenuItem>
@@ -496,7 +534,35 @@ export const PuntoVenta: React.FC = () => {
               </Select>
             </FormControl>
 
-            <Divider sx={{ mb: 2 }} />
+            {/* Tarjeta con datos del cliente seleccionado */}
+            {clienteSeleccionado && (
+              <Paper elevation={2} sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  Datos del Cliente
+                </Typography>
+                <Typography variant="body2">
+                  <b>Nombre/Razón Social:</b> {clienteSeleccionado.display_name || clienteSeleccionado.rif_clie}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Tipo:</b> {clienteSeleccionado.tipo_clie || 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>RIF:</b> {clienteSeleccionado.rif_clie || 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Dirección Fiscal:</b> {clienteSeleccionado.direccion_fiscal_clie || 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Teléfonos:</b> {clienteSeleccionado.telefonos && clienteSeleccionado.telefonos.length > 0 ? clienteSeleccionado.telefonos.join(', ') : 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Correos:</b> {clienteSeleccionado.correos && clienteSeleccionado.correos.length > 0 ? clienteSeleccionado.correos.join(', ') : 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <b>Puntos acumulados:</b> {typeof clienteSeleccionado.puntos_acumulados === 'number' ? clienteSeleccionado.puntos_acumulados : 'N/A'}
+                </Typography>
+              </Paper>
+            )}
 
             {/* Items de Venta */}
             <Box sx={{ maxHeight: 300, overflowY: "auto", mb: 2 }}>
@@ -577,6 +643,7 @@ export const PuntoVenta: React.FC = () => {
                   startIcon={<Payment />}
                   onClick={iniciarPago}
                   sx={{ backgroundColor: "#2E7D32", "&:hover": { backgroundColor: "#1B5E20" } }}
+                  disabled={!clienteSeleccionado}
                 >
                   Procesar Venta
                 </Button>

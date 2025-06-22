@@ -331,6 +331,9 @@ export interface ClienteDetallado {
   
   // Puntos acumulados (JOIN con PUNT_CLIE)
   puntos_acumulados?: number;
+
+  // Nombre a mostrar (agregado por el frontend)
+  display_name?: string;
 }
 
 /**
