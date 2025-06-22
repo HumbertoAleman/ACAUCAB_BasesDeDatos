@@ -8,19 +8,7 @@ import PrivilegesService from "./src/PrivilegesService";
 import ClientesService from "./src/ClientesService";
 import TasaService from "./src/TasaService";
 import VentaService, { type APIVenta } from "./src/VentaService";
-
-
-function generateUserToken(length: number = 32): string {
-	const characters = '0123456789abcdef';
-	let token = '';
-	for (let i = 0; i < length; i++) {
-		const randomIndex = Math.floor(Math.random() * characters.length);
-		token += characters[randomIndex];
-	}
-	return token;
-}
-
-const user_tokens: { [key: string]: string } = {};
+import AuthService from "./src/AuthService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -100,17 +88,9 @@ Bun.serve({
 			},
 		},
 
-		"/api/auth/verify": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: (req, _) => {
-				console.log(req.headers)
-				return Response.json({ success: true }, CORS_HEADERS)
-			}
-		},
-
 		"/api/users_with_details": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			GET: async (req, _) => {
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
+			GET: async () => {
 				const users = await sql`
 					SELECT U.cod_usua, U.username_usua, U.fk_rol, R.cod_rol, R.nombre_rol, R.descripcion_rol
 					FROM Usuario AS U
@@ -141,34 +121,7 @@ Bun.serve({
 			}
 		},
 
-		"/api/auth/login": {
-			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
-			POST: async req => {
-				const body = await req.json() as { username: string, password: string };
-				const authorization: Array<any> = await sql`
-					SELECT U.cod_usua, U.username_usua, R.nombre_rol
-					FROM USUARIO AS U
-					JOIN ROL AS R ON R.cod_rol = U.fk_rol
-					WHERE username_usua = ${body.username} AND contra_usua = ${body.password}`
-				if (authorization.length > 0) {
-					const user = authorization[0];
-					const token = generateUserToken();
-					user_tokens[token] = user.cod_usua;
-					return Response.json(
-						{
-							"authenticated": true,
-							"token": token,
-							"user": {
-								"username": user.username_usua,
-								"rol": user.nombre_rol
-							}
-						}
-						, CORS_HEADERS)
-				}
-				return Response.json({ authenticated: false }, CORS_HEADERS)
-			}
-		},
-
+		...AuthService.authRoutes,
 		...PrivilegesService.privilegesRoutes,
 
 		"/api/clientes": {
@@ -186,7 +139,7 @@ Bun.serve({
 		},
 
 		"/api/venta": {
-			async POST (req, _) {
+			async POST(req, _) {
 				const res = VentaService.registerVenta((await req.json()) as APIVenta)
 				return Response.json(res, CORS_HEADERS);
 			}
