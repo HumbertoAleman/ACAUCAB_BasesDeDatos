@@ -1150,7 +1150,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
---[[ PROCEDURE Venta ]]--
+--[[ PROCEDURE VENTA ]]--
 CREATE OR REPLACE PROCEDURE venta_en_tienda (
 -- Parameters Venta
 p_fecha_vent date, -- Date of Venta
