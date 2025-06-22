@@ -38,11 +38,12 @@ CREATE OR REPLACE VIEW rentabilidad_tipo_view AS
 	GROUP BY tc.cod_tipo_cerv, tc.nombre_tipo_cerv, v.fecha_vent;
 
 CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
-    SELECT v.fecha_vent, t.nombre_titu_tarj, t.credito
+    SELECT t.credito, COUNT (t.credito)
     FROM Venta v, Pago p, Metodo_Pago mp, Tarjeta t
     WHERE v.cod_vent = p.fk_vent
         AND p.fk_meto_pago = mp.cod_meto_pago
-        AND mp.cod_meto_pago = t.fk_meto_pago;
+        AND mp.cod_meto_pago = t.fk_meto_pago
+    GROUP BY t.credito;
 
 CREATE OR REPLACE FUNCTION periodo_tipo_cliente (year integer, modalidad text)
 RETURNS TABLE ("Tipo" varchar(40), "Periodo" integer, "Cantidad" bigint, "Año" integer)
@@ -62,6 +63,126 @@ BEGIN
             FROM tipo_cliente_view
             WHERE EXTRACT(YEAR FROM "Fecha de ingreso") = year
             GROUP BY "Tipo de Cliente", EXTRACT(QUARTER from "Fecha de ingreso"), EXTRACT(YEAR FROM "Fecha de ingreso")
+            ORDER BY "Trimestre";
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION consolidar_horas (year integer, month integer, trimonth integer, modalidad text)
+RETURNS TABLE ("Numero de Empleado" integer, "Cedula Empleado" integer, "Horas trabajadas" numeric, "Periodo" date)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF modalidad = 'diario' AND month IS NOT NULL AND year IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", EXTRACT(EPOCH FROM ("Salida" - "Entrada")) / 3600 AS horas_trabajadas, CAST("Entrada" AS date) AS "Fecha"
+            FROM horas_trabajo_view
+            WHERE CAST("Entrada" AS date) = CAST("Salida" AS date)
+                AND EXTRACT(MONTH FROM "Entrada") = month
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado","Cedula", EXTRACT(EPOCH FROM ("Salida" - "Entrada")) / 3600, CAST("Entrada" AS date)
+			ORDER BY "Fecha";
+    ELSIF modalidad = 'diario' AND year IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", EXTRACT(EPOCH FROM ("Salida" - "Entrada")) / 3600 AS horas_trabajadas, CAST("Entrada" AS date) AS "Fecha"
+            FROM horas_trabajo_view
+            WHERE CAST("Entrada" AS date) = CAST("Salida" AS date)
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado","Cedula", EXTRACT(EPOCH FROM ("Salida" - "Entrada")) / 3600, CAST("Entrada" AS date)
+			ORDER BY "Fecha";
+    ELSIF modalidad = 'diario' THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", EXTRACT(EPOCH FROM ("Salida" - "Entrada")) / 3600 AS horas_trabajadas, CAST("Entrada" AS date) AS "Fecha"
+            FROM horas_trabajo_view
+            WHERE CAST("Entrada" AS date) = CAST("Salida" AS date)
+            GROUP BY "Numero Empleado","Cedula", EXTRACT(EPOCH FROM ("Salida" - "Entrada")) / 3600, CAST("Entrada" AS date)
+			ORDER BY "Fecha";
+    ELSIF modalidad = 'semanal' AND month IS NOT NULL AND year IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('week', CAST("Entrada" AS date)) AS date) AS "Semana"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('week', CAST("Entrada" AS date)) = DATE_TRUNC('week', CAST("Salida" AS date))
+                AND EXTRACT(MONTH FROM "Entrada") = month
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('week', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Semana";
+    ELSIF modalidad = 'semanal' AND year IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('week', CAST("Entrada" AS date)) AS date) AS "Semana"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('week', CAST("Entrada" AS date)) = DATE_TRUNC('week', CAST("Salida" AS date))
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('week', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Semana";
+    ELSIF modalidad = 'semanal' THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('week', CAST("Entrada" AS date)) AS date) AS "Semana"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('week', CAST("Entrada" AS date)) = DATE_TRUNC('week', CAST("Salida" AS date))
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('week', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Semana";
+    ELSIF modalidad = 'mensual' AND month IS NOT NULL AND YEAR IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('month', CAST("Entrada" AS date)) AS date) AS "Mes"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('month', CAST("Entrada" AS date)) = DATE_TRUNC('month', CAST("Salida" AS date))
+                AND EXTRACT(MONTH FROM "Entrada") = month
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('month', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Mes";
+    ELSIF modalidad = 'mensual' AND year IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('month', CAST("Entrada" AS date)) AS date) AS "Mes"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('month', CAST("Entrada" AS date)) = DATE_TRUNC('month', CAST("Salida" AS date))
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('month', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Mes";
+    ELSIF modalidad = 'mensual' THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('month', CAST("Entrada" AS date)) AS date) AS "Mes"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('month', CAST("Entrada" AS date)) = DATE_TRUNC('month', CAST("Salida" AS date))
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('month', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Mes";
+    ELSIF modalidad = 'anual' AND year IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('year', CAST("Entrada" AS date)) AS date) AS "Año"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('year', CAST("Entrada" AS date)) = DATE_TRUNC('year', CAST("Salida" AS date))
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('year', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Año";
+    ELSIF modalidad = 'anual' THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('year', CAST("Entrada" AS date)) AS date) AS "Año"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('year', CAST("Entrada" AS date)) = DATE_TRUNC('year', CAST("Salida" AS date))
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('year', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Año";
+    ELSIF modalidad = 'trimestral' AND trimonth IS NOT NULL AND year IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('quarter', CAST("Entrada" AS date)) AS date) as "Trimestre"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('quarter', CAST("Entrada" AS date)) = DATE_TRUNC('quarter', CAST("Salida" AS date))
+                AND EXTRACT(QUARTER FROM "Entrada") = trimonth
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('quarter', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Trimestre";
+    ELSIF modalidad = 'trimestral' AND year IS NOT NULL THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('quarter', CAST("Entrada" AS date)) AS date) as "Trimestre"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('quarter', CAST("Entrada" AS date)) = DATE_TRUNC('quarter', CAST("Salida" AS date))
+                AND EXTRACT(YEAR FROM "Entrada") = year
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('quarter', CAST("Entrada" AS date)) AS date)
+            ORDER BY "Trimestre";
+    ELSIF modalidad = 'trimestral' THEN
+        RETURN QUERY
+            SELECT "Numero Empleado", "Cedula", SUM(EXTRACT(EPOCH FROM ("Salida" - "Entrada"))) / 3600 AS horas_trabajadas, CAST(DATE_TRUNC('quarter', CAST("Entrada" AS date)) AS date) as "Trimestre"
+            FROM horas_trabajo_view
+            WHERE DATE_TRUNC('quarter', CAST("Entrada" AS date)) = DATE_TRUNC('quarter', CAST("Salida" AS date))
+            GROUP BY "Numero Empleado", "Cedula", CAST(DATE_TRUNC('quarter', CAST("Entrada" AS date)) AS date)
             ORDER BY "Trimestre";
     END IF;
 END;
