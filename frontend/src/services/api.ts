@@ -1,3 +1,6 @@
+import type { Usuario, Rol } from '../interfaces/auth'
+import type { ProductoInventario, ClienteDetallado, TasaVenta, MetodoPago, VentaCompleta } from '../interfaces/ventas'
+
 // Configuración base de la API
 const API_BASE_URL = 'http://127.0.0.1:3000/api' // Ajusta según tu configuración del backend
 
@@ -213,4 +216,236 @@ export const handleAuthError = (error: any) => {
     window.location.href = '/login'
   }
   throw error
-} 
+}
+
+// ===== SERVICIOS PARA EL MÓDULO DE VENTAS =====
+
+/**
+ * Obtiene todos los productos del inventario para el punto de venta
+ */
+export const getProductosInventario = async (): Promise<ProductoInventario[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/inventario/productos`);
+    if (!response.ok) {
+      throw new Error('Error al obtener productos del inventario');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching productos inventario:', error);
+    // Datos de ejemplo para desarrollo
+    return [
+      {
+        fk_cerv_pres_1: 1,
+        fk_cerv_pres_2: 1,
+        fk_tien: 1,
+        fk_luga_tien: 1,
+        nombre_cerv: "IPA Artesanal",
+        nombre_pres: "Botella 330ml",
+        capacidad_pres: 330,
+        tipo_cerveza: "IPA",
+        miembro_proveedor: "Cervecería Tovar",
+        cant_pres: 100,
+        precio_actual_pres: 5.50,
+        lugar_tienda: "Estante A1",
+        estado: "Disponible"
+      },
+      {
+        fk_cerv_pres_1: 2,
+        fk_cerv_pres_2: 2,
+        fk_tien: 1,
+        fk_luga_tien: 2,
+        nombre_cerv: "Stout Imperial",
+        nombre_pres: "Lata 473ml",
+        capacidad_pres: 473,
+        tipo_cerveza: "Stout",
+        miembro_proveedor: "Cervecería Destilo",
+        cant_pres: 15,
+        precio_actual_pres: 6.00,
+        lugar_tienda: "Nevera Principal",
+        estado: "Bajo Stock"
+      },
+      {
+        fk_cerv_pres_1: 3,
+        fk_cerv_pres_2: 3,
+        fk_tien: 1,
+        fk_luga_tien: 3,
+        nombre_cerv: "Lager Premium",
+        nombre_pres: "Barril 5L",
+        capacidad_pres: 5000,
+        tipo_cerveza: "Lager",
+        miembro_proveedor: "Cervecería Regional",
+        cant_pres: 0,
+        precio_actual_pres: 45.00,
+        lugar_tienda: "Almacén Frío",
+        estado: "Agotado"
+      }
+    ];
+  }
+};
+
+/**
+ * Obtiene todos los clientes con información detallada
+ */
+export const getClientesDetallados = async (): Promise<ClienteDetallado[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users_with_details`);
+    if (!response.ok) {
+      throw new Error('Error al obtener clientes');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching clientes:', error);
+    // Datos de ejemplo para desarrollo
+    return [
+      {
+        rif_clie: "12345678",
+        tipo_clie: "Natural",
+        primer_nom_natu: "Juan",
+        primer_ape_natu: "Pérez",
+        direccion_fiscal_clie: "Caracas, Venezuela",
+        direccion_fisica_clie: "Caracas, Venezuela",
+        fk_luga_1: 1,
+        fk_luga_2: 1,
+        fecha_ingr_clie: "2024-01-15",
+        telefonos: ["+58-212-555-0123"],
+        correos: ["juan.perez@email.com"],
+        puntos_acumulados: 150
+      },
+      {
+        rif_clie: "87654321",
+        tipo_clie: "Juridico",
+        razon_social_juri: "Restaurante El Parador C.A.",
+        denom_comercial_juri: "El Parador",
+        capital_juri: 50000,
+        direccion_fiscal_clie: "Valencia, Venezuela",
+        direccion_fisica_clie: "Valencia, Venezuela",
+        fk_luga_1: 2,
+        fk_luga_2: 2,
+        fecha_ingr_clie: "2024-02-20",
+        telefonos: ["+58-241-555-0456"],
+        correos: ["contacto@elparador.com"],
+        puntos_acumulados: 500
+      }
+    ];
+  }
+};
+
+/**
+ * Obtiene la tasa de cambio actual
+ */
+export const getTasaActual = async (): Promise<TasaVenta> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/tasa/actual`);
+    if (!response.ok) {
+      throw new Error('Error al obtener tasa actual');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching tasa actual:', error);
+    // Tasa de ejemplo para desarrollo
+    return {
+      cod_tasa: 1,
+      fecha_tasa: new Date().toISOString().split('T')[0],
+      valor_tasa: 35.50,
+      tipo_tasa: "BCV"
+    };
+  }
+};
+
+/**
+ * Obtiene los métodos de pago disponibles
+ */
+export const getMetodosPago = async (): Promise<MetodoPago[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/metodos-pago`);
+    if (!response.ok) {
+      throw new Error('Error al obtener métodos de pago');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching métodos de pago:', error);
+    // Métodos de pago de ejemplo para desarrollo
+    return [
+      {
+        cod_meto_pago: 1,
+        tipo: "Efectivo",
+        denominacion_efec: "USD"
+      },
+      {
+        cod_meto_pago: 2,
+        tipo: "Tarjeta",
+        credito: true
+      },
+      {
+        cod_meto_pago: 3,
+        tipo: "Punto_Canjeo"
+      },
+      {
+        cod_meto_pago: 4,
+        tipo: "Cheque",
+        nombre_banco: "Banco de Venezuela"
+      }
+    ];
+  }
+};
+
+/**
+ * Procesa una venta completa
+ */
+export const procesarVenta = async (venta: VentaCompleta): Promise<{ success: boolean; cod_vent?: number; message?: string }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/ventas/procesar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(venta),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error al procesar la venta');
+    }
+
+    const result = await response.json();
+    return { success: true, cod_vent: result.cod_vent };
+  } catch (error) {
+    console.error('Error processing venta:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Error desconocido al procesar la venta' 
+    };
+  }
+};
+
+/**
+ * Actualiza el stock de un producto después de una venta
+ */
+export const actualizarStockProducto = async (
+  fk_cerv_pres_1: number,
+  fk_cerv_pres_2: number,
+  fk_tien: number,
+  fk_luga_tien: number,
+  cantidad_vendida: number
+): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/inventario/actualizar-stock`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fk_cerv_pres_1,
+        fk_cerv_pres_2,
+        fk_tien,
+        fk_luga_tien,
+        cantidad_vendida
+      }),
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error updating stock:', error);
+    return false;
+  }
+}; 

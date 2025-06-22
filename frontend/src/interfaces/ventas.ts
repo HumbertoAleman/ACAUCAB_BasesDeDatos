@@ -248,3 +248,175 @@ export interface DescCerv {
   fk_cerv_pres_2: number; // Part of composite FK to CERV_PRES (fk_pres)
   porcentaje_desc: number; // numeric(3, 2)
 }
+
+/**
+ * @interface ProductoInventario
+ * @description Interfaz para productos del inventario que se muestran en el punto de venta
+ */
+export interface ProductoInventario {
+  // IDs de la base de datos
+  fk_cerv_pres_1: number; // ID de la cerveza
+  fk_cerv_pres_2: number; // ID de la presentación
+  fk_tien: number; // ID de la tienda
+  fk_luga_tien: number; // ID del lugar en la tienda
+  
+  // Información del producto
+  nombre_cerv: string;
+  nombre_pres: string;
+  capacidad_pres: number;
+  tipo_cerveza: string;
+  miembro_proveedor: string;
+  
+  // Información de inventario
+  cant_pres: number; // Stock disponible
+  precio_actual_pres: number; // Precio en USD
+  
+  // Información de ubicación
+  lugar_tienda: string;
+  
+  // Estado calculado
+  estado: "Disponible" | "Bajo Stock" | "Agotado";
+}
+
+/**
+ * @interface ClienteDetallado
+ * @description Interfaz para clientes con información completa
+ */
+export interface ClienteDetallado {
+  rif_clie: string;
+  tipo_clie: "Natural" | "Juridico";
+  
+  // Campos para persona natural
+  primer_nom_natu?: string;
+  segundo_nom_natu?: string;
+  primer_ape_natu?: string;
+  segundo_ape_natu?: string;
+  ci_natu?: number;
+  
+  // Campos para persona jurídica
+  razon_social_juri?: string;
+  denom_comercial_juri?: string;
+  capital_juri?: number;
+  pag_web_juri?: string;
+  
+  // Campos comunes
+  direccion_fiscal_clie: string;
+  direccion_fisica_clie: string;
+  fk_luga_1: number;
+  fk_luga_2: number;
+  fecha_ingr_clie: string;
+  
+  // Información de contacto
+  telefonos?: string[];
+  correos?: string[];
+  
+  // Puntos acumulados
+  puntos_acumulados?: number;
+}
+
+/**
+ * @interface TasaVenta
+ * @description Interfaz para las tasas de cambio
+ */
+export interface TasaVenta {
+  cod_tasa: number;
+  fecha_tasa: string;
+  valor_tasa: number; // Valor en Bs por USD
+  tipo_tasa: string;
+}
+
+/**
+ * @interface MetodoPago
+ * @description Interfaz para métodos de pago
+ */
+export interface MetodoPago {
+  cod_meto_pago: number;
+  tipo: "Efectivo" | "Tarjeta" | "Punto_Canjeo" | "Cheque";
+  
+  // Campos específicos para tarjeta
+  numero_tarj?: string;
+  fecha_venci_tarj?: string;
+  cvv_tarj?: number;
+  nombre_titu_tarj?: string;
+  credito?: boolean;
+  
+  // Campos específicos para cheque
+  numero_cheque?: string;
+  numero_cuenta_cheque?: string;
+  fk_banc?: number;
+  nombre_banco?: string;
+  
+  // Campos específicos para efectivo
+  denominacion_efec?: string;
+}
+
+/**
+ * @interface ItemVenta
+ * @description Interfaz para items en el carrito de venta
+ */
+export interface ItemVenta {
+  producto: ProductoInventario;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+}
+
+/**
+ * @interface PagoVenta
+ * @description Interfaz para pagos múltiples en una venta
+ */
+export interface PagoVenta {
+  metodo_pago: MetodoPago;
+  monto: number;
+  fecha_pago: string;
+  fk_tasa: number;
+}
+
+/**
+ * @interface VentaCompleta
+ * @description Interfaz para una venta completa
+ */
+export interface VentaCompleta {
+  cod_vent?: number;
+  fecha_vent: string;
+  iva_vent: number;
+  base_imponible_vent: number;
+  total_vent: number;
+  online: boolean;
+  
+  // Cliente o Miembro
+  fk_clie?: string;
+  fk_miem?: string;
+  
+  // Ubicación de la venta
+  fk_tien?: number;
+  fk_even?: number;
+  fk_cuot?: number;
+  
+  // Items de la venta
+  items: ItemVenta[];
+  
+  // Pagos múltiples
+  pagos: PagoVenta[];
+  
+  // Información adicional
+  tasa_dia?: TasaVenta;
+  puntos_generados?: number;
+  total_usd?: number;
+  total_bs?: number;
+}
+
+/**
+ * @interface ResumenVenta
+ * @description Interfaz para el resumen de la venta en el carrito
+ */
+export interface ResumenVenta {
+  subtotal: number;
+  iva: number;
+  total: number;
+  total_usd: number;
+  total_bs: number;
+  tasa_actual: number;
+  puntos_generados: number;
+  fecha_venta: string;
+}
