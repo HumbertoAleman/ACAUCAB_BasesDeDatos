@@ -35,3 +35,10 @@ CREATE OR REPLACE VIEW rentabilidad_tipo_view AS
         AND it.fk_cerv_pres_2 = dv.fk_inve_tien_2
         AND dv.fk_vent = v.cod_vent
 	GROUP BY tc.cod_tipo_cerv, tc.nombre_tipo_cerv, v.fecha_vent;
+
+CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
+    SELECT v.fecha_vent, t.nombre_titu_tarj, t.credito
+    FROM Venta v, Pago p, Metodo_Pago mp, Tarjeta t
+    WHERE v.cod_vent = p.fk_vent
+        AND p.fk_meto_pago = mp.cod_meto_pago
+        AND mp.cod_meto_pago = t.fk_meto_pago;
