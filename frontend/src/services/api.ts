@@ -8,7 +8,8 @@ import type {
 } from '../interfaces/ventas'
 
 // Configuración base de la API
-const API_BASE_URL = 'http://127.0.0.1:3000/api' // Ajusta según tu configuración del backend
+const API_URL = 'http://127.0.0.1:3000' // URL Base para todos los endpoints
+const API_BASE_URL = `${API_URL}/api` // URL para los endpoints bajo /api
 
 // Interfaces para las respuestas de la API
 export interface ApiResponse<T> {
@@ -224,6 +225,25 @@ export const handleAuthError = (error: any) => {
   throw error
 }
 
+// ===== SERVICIOS GENÉRICOS =====
+
+/**
+ * Obtiene todos los datos de una tabla específica usando el endpoint /quick/:table
+ * @param tableName El nombre de la tabla a consultar
+ */
+export const getTableData = async (tableName: string): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_URL}/quick/${tableName}`);
+    if (!response.ok) {
+      throw new Error(`Error al obtener datos de la tabla ${tableName}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching table ${tableName}:`, error);
+    return [];
+  }
+};
+
 // ===== SERVICIOS PARA EL MÓDULO DE VENTAS =====
 
 /**
@@ -401,11 +421,12 @@ export const getMetodosPago = async (): Promise<MetodoPagoCompleto[]> => {
  */
 export const procesarVenta = async (venta: VentaCompleta): Promise<{ success: boolean; cod_vent?: number; message?: string }> => {
   try {
-    console.log("Enviando venta al backend:", venta);
-
     // Lógica para enviar la venta al backend
     // Aquí es donde realizarías la petición POST al endpoint /venta
     // Ejemplo usando fetch:
+    console.log("Enviando venta al backend:", venta);
+
+
     const response = await fetch(`${API_BASE_URL}/venta`, {
       method: 'POST',
       headers: {

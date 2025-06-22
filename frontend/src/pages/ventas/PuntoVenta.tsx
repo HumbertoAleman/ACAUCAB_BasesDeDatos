@@ -56,7 +56,8 @@ import {
   getClientesDetallados, 
   getTasaActual, 
   getMetodosPago, 
-  procesarVenta 
+  procesarVenta,
+  getTableData
 } from "../../services/api"
 
 export const PuntoVenta: React.FC = () => {
@@ -119,16 +120,33 @@ export const PuntoVenta: React.FC = () => {
     const cargarProductos = async () => {
       try {
         setLoading(true);
-        const productosData = await getProductosInventario();
-        // Mapeo de campos para que coincidan con ProductoInventario
-        const productosMapeados = (productosData as any[]).map((item, idx) => ({
-          ...item,
-          nombre_cerv: item.nombre_producto,
-          nombre_pres: item.nombre_presentacion,
-          cant_pres: Number(item.stock_actual),
-          precio_actual_pres: Number(item.precio_usd),
-          _key: `${item.nombre_producto}-${item.nombre_presentacion}-${item.lugar_tienda}-${idx}`
-        }));
+
+        const [productosData, cervezas, presentaciones, lugaresTienda] = await Promise.all([
+          getProductosInventario(),
+          getTableData('Cerveza'),
+          getTableData('Presentacion'),
+          getTableData('Lugar_Tienda')
+        ]);
+
+        const productosMapeados = (productosData as any[]).map((item, idx) => {
+          const cerveza = cervezas.find(c => c.nombre_cerv === item.nombre_producto);
+          const presentacion = presentaciones.find(p => p.nombre_pres === item.nombre_presentacion);
+          const lugarTienda = lugaresTienda.find(l => l.nombre_luga_tien === item.lugar_tienda);
+
+          return {
+            ...item,
+            fk_cerv_pres_1: cerveza?.cod_cerv,
+            fk_cerv_pres_2: presentacion?.cod_pres,
+            fk_luga_tien: lugarTienda?.cod_luga_tien,
+            fk_tien: 1, // Hardcodeado porque el inventario es de la tienda 1
+            nombre_cerv: item.nombre_producto,
+            nombre_pres: item.nombre_presentacion,
+            cant_pres: Number(item.stock_actual),
+            precio_actual_pres: Number(item.precio_usd),
+            _key: `${item.nombre_producto}-${item.nombre_presentacion}-${item.lugar_tienda}-${idx}`
+          }
+        });
+
         setProductos(productosMapeados);
       } catch (error) {
         setProductos([]);
