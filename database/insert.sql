@@ -11,7 +11,7 @@ BEGIN
     FROM
         Tasa
     WHERE
-        fecha_ini_tasa = curr_date
+        fecha_fin_tasa IS NULL
     LIMIT 1 INTO v_cod_tasa;
     -- If a record is found, return the cod_tasa
     IF v_cod_tasa IS NULL THEN
@@ -1382,6 +1382,24 @@ $$;
 
 --[[[ TRIGGER BEGIN ]]]--
 
+-- Trigger to run before inserting on tasa, marks fecha_fin_tasa from latest one to the fecha_ini_tasa from NEW one
+CREATE OR REPLACE FUNCTION mark_fecha_fin_tasa_from_latest_tasa()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	UPDATE Tasa
+	SET fecha_fin_tasa = NEW.fecha_ini_tasa
+	WHERE fecha_fin_tasa IS NULL;
+	RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER before_insert_tasa
+	BEFORE INSERT ON Tasa
+	FOR EACH ROW
+	EXECUTE FUNCTION mark_fecha_fin_tasa_from_latest_tasa();
+
 -- Trigger to run after inserting on event, marks it as 'Pendiente'
 CREATE OR REPLACE FUNCTION insert_into_esta_even ()
     RETURNS TRIGGER
@@ -1740,16 +1758,16 @@ INSERT INTO Rol
 
 --[[ INSERT TASA, INDEPENDENT ]]--
 INSERT INTO Tasa (tasa_dolar_bcv, tasa_punto, fecha_ini_tasa, fecha_fin_tasa)
-    VALUES (36.50, 1.00, '2024-01-01', '2024-01-02'),
-    (36.75, 1.00, '2024-01-02', '2024-01-03'),
-    (37.00, 1.00, '2024-01-03', '2024-01-04'),
-    (37.25, 1.00, '2024-01-04', '2024-01-05'),
-    (37.50, 1.00, '2024-01-05', '2024-01-06'),
-    (37.80, 1.00, '2024-01-06', '2024-01-07'),
-    (38.00, 1.00, '2024-01-07', '2024-01-08'),
-    (38.20, 1.00, '2024-01-08', '2024-01-09'),
-    (38.50, 1.00, '2024-01-09', '2024-01-10'),
-    (38.75, 1.00, '2024-01-10', '2024-01-11');
+    VALUES (36.50, 1.00, '2024-01-01', NULL),
+    (36.75, 1.00, '2024-01-02', NULL),
+    (37.00, 1.00, '2024-01-03', NULL),
+    (37.25, 1.00, '2024-01-04', NULL),
+    (37.50, 1.00, '2024-01-05', NULL),
+    (37.80, 1.00, '2024-01-06', NULL),
+    (38.00, 1.00, '2024-01-07', NULL),
+    (38.20, 1.00, '2024-01-08', NULL),
+    (38.50, 1.00, '2024-01-09', NULL),
+    (38.75, 1.00, '2024-01-10', NULL);
 
 --[[ INSERT CARGO, INDEPENDENT ]]--
 INSERT INTO Cargo (nombre_carg)
