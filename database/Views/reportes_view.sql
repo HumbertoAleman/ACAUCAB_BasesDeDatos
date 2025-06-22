@@ -34,6 +34,7 @@ CREATE OR REPLACE VIEW rentabilidad_tipo_view AS
         AND it.fk_cerv_pres_1 = dv.fk_inve_tien_1
         AND it.fk_cerv_pres_2 = dv.fk_inve_tien_2
         AND dv.fk_vent = v.cod_vent
+        AND v.online = true
 	GROUP BY tc.cod_tipo_cerv, tc.nombre_tipo_cerv, v.fecha_vent;
 
 CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
@@ -42,3 +43,26 @@ CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
     WHERE v.cod_vent = p.fk_vent
         AND p.fk_meto_pago = mp.cod_meto_pago
         AND mp.cod_meto_pago = t.fk_meto_pago;
+
+CREATE OR REPLACE FUNCTION periodo_tipo_cliente (year integer, modalidad text)
+RETURNS TABLE ("Tipo" varchar(40), "Periodo" integer, "Cantidad" bigint, "Año" integer)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF modalidad = 'mensual' THEN
+        RETURN QUERY
+            SELECT "Tipo de Cliente", EXTRACT(MONTH from "Fecha de ingreso"):: integer as "Mes", COUNT ("Tipo de Cliente"), EXTRACT(YEAR FROM "Fecha de ingreso"):: integer as "Año"
+            FROM tipo_cliente_view
+            WHERE EXTRACT(YEAR FROM "Fecha de ingreso") = year 
+            GROUP BY "Tipo de Cliente", EXTRACT(MONTH from "Fecha de ingreso"), EXTRACT(YEAR FROM "Fecha de ingreso")
+			ORDER BY "Mes";
+    ELSE
+        RETURN QUERY
+            SELECT "Tipo de Cliente", EXTRACT(QUARTER from "Fecha de ingreso"):: integer as "Trimestre", COUNT ("Tipo de Cliente"), EXTRACT(YEAR FROM "Fecha de ingreso"):: integer as "Año"
+            FROM tipo_cliente_view
+            WHERE EXTRACT(YEAR FROM "Fecha de ingreso") = year
+            GROUP BY "Tipo de Cliente", EXTRACT(QUARTER from "Fecha de ingreso"), EXTRACT(YEAR FROM "Fecha de ingreso")
+            ORDER BY "Trimestre";
+    END IF;
+END;
+$$;
