@@ -29,7 +29,12 @@ console.log("Opening Backend on Port 3000");
 Bun.serve({
 	routes: {
 		"/ping": () => new Response("pong"),
-		"/quick": {
+		"/quick/:table": {
+			GET: async (req, _) => {
+				const sqlString = `SELECT * FROM ${req.params.table}`;
+				const res = await sql.unsafe(sqlString);
+				return Response.json(res, CORS_HEADERS)
+			},
 			POST: quickInsert,
 			DELETE: quickDelete,
 		},
@@ -41,7 +46,12 @@ Bun.serve({
 			GET: async _ => {
 				const res = await sql`SELECT * FROM Rol`;
 				return Response.json(res, CORS_HEADERS)
-			}
+			},
+			POST: async (req, _) => {
+				const body = await req.json();
+				const res = await sql`INSERT INTO Rol ${sql(body.insert_data)}`
+				return Response.json(res, CORS_HEADERS)
+			},
 		},
 
 		"/api/roles/:id": {
@@ -81,12 +91,23 @@ Bun.serve({
 			},
 		},
 
+		"/api/form/parroquias": {
+			async GET() {
+				const res = await sql`
+				  SELECT p.cod_luga as eid, e.nombre_luga || ', ' || m.nombre_luga || ', ' || p.nombre_luga as "displayName"
+				  FROM Lugar AS e
+				  JOIN Lugar AS m ON e.cod_luga = m.fk_luga
+				  JOIN Lugar AS p ON m.cod_luga = p.fk_luga`
+				return Response.json(res, CORS_HEADERS);
+			},
+		},
+
 		"/api/privileges": {
 			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
 			GET: async _ => {
 				const res = await sql`SELECT * FROM Privilegio`;
 				return Response.json(res, CORS_HEADERS)
-			}
+			},
 		},
 
 		"/api/privileges/:id": {
@@ -139,8 +160,6 @@ Bun.serve({
 			}
 		},
 
-
-
 		"/api/auth/login": {
 			OPTIONS: _ => new Response('Departed', CORS_HEADERS),
 			POST: async req => {
@@ -167,6 +186,40 @@ Bun.serve({
 				}
 				return Response.json({ authenticated: false }, CORS_HEADERS)
 			}
-		}
+		},
+
+		"/api/privileges/:rol": {
+			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
+			async GET(req) {
+				const rol = req.params.rol;
+				const missing = new URL(req.url).searchParams.get("missing");
+				let res;
+				if (missing === "true")
+					res = await sql`
+            SELECT eid as "eid", nombre||': '||descripcion as "displayName"
+            FROM privilegio where eid NOT IN (SELECT fk_priv
+            FROM Privilegio p, ROL_PRIV rp
+            WHERE rp.fk_priv = p.cod_priv AND rp.fk_rol = ${Number(rol)})`
+				else
+					res = await sql`
+            SELECT eid as "eid", nombre||': '||descripcion as "displayName"
+            FROM privilegio WHERE eid IN (SELECT fk_priv
+            FROM Privilegio p, ROL_PRIV rp
+            WHERE rp.fk_priv = p.cod_priv AND rp.fk_rol = ${Number(rol)})`
+				return Response.json(res, CORS_HEADERS);
+			},
+			async POST(req, _) {
+				const body = await req.json()
+				const rol_id = req.params.rol;
+				const res = await RolManagementService.postRolPrivSQL({ fk_priv: body.insert_data.fk_priv, fk_rol: Number(rol_id) })
+				return Response.json(res, CORS_HEADERS);
+			},
+			async DELETE(req, _) {
+				const body = await req.json()
+				const rol_id = req.params.rol;
+				const res = await RolManagementService.deleteRolPrivSQL({ fk_priv: body.insert_data.fk_priv, fk_rol: Number(rol_id) })
+				return Response.json(res, CORS_HEADERS);
+			},
+		},
 	}
 })

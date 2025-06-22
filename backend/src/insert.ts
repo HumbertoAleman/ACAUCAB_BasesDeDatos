@@ -1,6 +1,14 @@
 import { sql } from "bun";
 import Logger from "./logger/logger";
 
+const CORS_HEADERS = {
+	headers: {
+		'Access-Control-Allow-Origin': '*',
+		'Access-Control-Allow-Methods': 'OPTIONS, POST',
+		'Access-Control-Allow-Headers': '*, Authorization',
+	},
+};
+
 function* sqlColumns(obj: Object) {
 	for (const val of Object.keys(obj))
 		yield String(val)
@@ -15,7 +23,7 @@ function* sqlValues(obj: Object) {
 	}
 }
 
-async function quickInsert(req: Bun.BunRequest): Promise<Response> {
+async function quickInsert(req: any): Promise<Response> {
 	Logger.info(`Insert request incoming ${req.method}:${req.url}`)
 	const body: any = await req.json();
 
@@ -30,10 +38,10 @@ async function quickInsert(req: Bun.BunRequest): Promise<Response> {
 	values = values.substring(0, values.length - 2) + ")"
 
 	try {
-		const sqlString = `INSERT INTO ${body.table} ${columns} VALUES ${values} RETURNING *;`;
+		const sqlString = `INSERT INTO ${req.params.table} ${columns} VALUES ${values} RETURNING *;`;
 		Logger.debug(`Generated SQL String: ${sqlString}`)
 		const res = await sql.unsafe(sqlString);
-		return Response.json(res);
+		return Response.json(res, CORS_HEADERS);
 	} catch (e: unknown) {
 		let response: string = 'quickInsert() -> '
 		if (typeof e === 'string')
@@ -41,12 +49,7 @@ async function quickInsert(req: Bun.BunRequest): Promise<Response> {
 		else if (e instanceof Error)
 			response += `An error has occurred: ${e.message}\n`
 		Logger.error(response)
-		return new Response(response, {
-			status: 400,
-			headers: {
-				'Content-Type': 'text/plain',
-			}
-		})
+		return new Response(response, CORS_HEADERS)
 	}
 }
 
