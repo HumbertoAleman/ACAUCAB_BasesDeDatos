@@ -27,64 +27,52 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Pagination,
 } from "@mui/material"
 import { Search, Edit, Delete, ShoppingCart, Refresh, CheckCircle, Warning } from "@mui/icons-material"
-
-// Interfaz para la estructura de datos que esperamos de la API
-export interface InventarioCompleto {
-  id_inventario: number;
-  nombre_producto: string;
-  nombre_presentacion: string;
-  stock_actual: number;
-  precio_usd: number;
-  lugar_tienda: string;
-  miembro_proveedor: string;
-  estado: "Disponible" | "Bajo Stock" | "Agotado";
-}
-
-// TODO: Crear un hook e integrar con la API real
-const fetchInventario = async (): Promise<InventarioCompleto[]> => {
-  // Datos de ejemplo simulando la respuesta de la API
-  return [
-    { id_inventario: 1, nombre_producto: "IPA", nombre_presentacion: "Botella 330ml", stock_actual: 100, precio_usd: 5.50, lugar_tienda: "Estante A1", miembro_proveedor: "Cervecería Tovar", estado: "Disponible" },
-    { id_inventario: 2, nombre_producto: "Stout", nombre_presentacion: "Lata 473ml", stock_actual: 15, precio_usd: 6.00, lugar_tienda: "Nevera Principal", miembro_proveedor: "Cervecería Destilo", estado: "Bajo Stock" },
-    { id_inventario: 3, nombre_producto: "Lager", nombre_presentacion: "Barril 5L", stock_actual: 0, precio_usd: 45.00, lugar_tienda: "Almacén Frío", miembro_proveedor: "Cervecería Regional", estado: "Agotado" },
-  ];
-};
+import { getProductosInventario } from "../../services/api";
+import type { ProductoInventario } from "../../interfaces/ventas";
 
 const updateStock = async (id_inventario: number, nuevo_stock: number) => {
-    console.log(`Enviando al backend - Actualizar stock para ${id_inventario} a ${nuevo_stock}`);
-    // Aquí iría la llamada real a la API, ej: api.put(`/inventario/${id_inventario}`, { stock: nuevo_stock })
     return { success: true };
 }
 
 const deleteInventarioItem = async (id_inventario: number) => {
-    console.log(`Enviando al backend - Eliminar item de inventario ${id_inventario}`);
-    // Aquí iría la llamada real a la API, ej: api.delete(`/inventario/${id_inventario}`)
     return { success: true };
 }
 
 const orderRestock = async (id_inventario: number, cantidad: number) => {
-    console.log(`Enviando al backend - Orden de reposición para item ${id_inventario}, cantidad: ${cantidad}`);
     return { success: true };
 }
 
 export const GestionInventario: React.FC = () => {
-  const [inventario, setInventario] = useState<InventarioCompleto[]>([]);
+  const [inventario, setInventario] = useState<ProductoInventario[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState<string>("");
   
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [restockModalOpen, setRestockModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventarioCompleto | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ProductoInventario | null>(null);
   const [editedStock, setEditedStock] = useState("");
   const [cantidadRestock, setCantidadRestock] = useState("");
 
+  const TAM_PAGINA = 25;
+  const [paginaActual, setPaginaActual] = useState(1);
+
   const cargarInventario = async () => {
     setLoading(true);
-    const data = await fetchInventario();
-    setInventario(data);
+    const data = await getProductosInventario();
+    // Mapeo de campos para que coincidan con ProductoInventario
+    const inventarioMapeado = (data as any[]).map((item, idx) => ({
+      ...item,
+      nombre_cerv: item.nombre_producto,
+      nombre_pres: item.nombre_presentacion,
+      cant_pres: Number(item.stock_actual),
+      precio_actual_pres: Number(item.precio_usd),
+      _key: `${item.nombre_producto}-${item.nombre_presentacion}-${item.lugar_tienda}-${idx}`
+    })) as any[];
+    setInventario(inventarioMapeado as any);
     setLoading(false);
   };
 
@@ -92,23 +80,33 @@ export const GestionInventario: React.FC = () => {
     cargarInventario();
   }, []);
 
+  // Resetear página cuando cambian filtros o búsqueda
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, filtroEstado]);
+
   const inventarioFiltrado = inventario.filter((item) => {
-    const cumpleBusqueda = item.nombre_producto.toLowerCase().includes(busqueda.toLowerCase()) ||
-      item.nombre_presentacion.toLowerCase().includes(busqueda.toLowerCase());
-    
+    const cumpleBusqueda =
+      (item.nombre_cerv?.toLowerCase() ?? "").includes(busqueda.toLowerCase()) ||
+      (item.nombre_pres?.toLowerCase() ?? "").includes(busqueda.toLowerCase());
     const cumpleEstado = filtroEstado === "" || item.estado === filtroEstado;
-    
     return cumpleBusqueda && cumpleEstado;
   });
 
+  const totalPaginas = Math.ceil(inventarioFiltrado.length / TAM_PAGINA);
+  const productosPagina = inventarioFiltrado.slice(
+    (paginaActual - 1) * TAM_PAGINA,
+    paginaActual * TAM_PAGINA
+  );
+
   // --- MANEJO DE MODALES Y ACCIONES ---
-  const handleOpenEditModal = (item: InventarioCompleto) => {
+  const handleOpenEditModal = (item: ProductoInventario) => {
     setSelectedItem(item);
-    setEditedStock(item.stock_actual.toString());
+    setEditedStock(item.cant_pres.toString());
     setEditModalOpen(true);
   };
   
-  const handleOpenRestockModal = (item: InventarioCompleto) => {
+  const handleOpenRestockModal = (item: ProductoInventario) => {
     setSelectedItem(item);
     setCantidadRestock("");
     setRestockModalOpen(true);
@@ -118,7 +116,7 @@ export const GestionInventario: React.FC = () => {
     if (!selectedItem || editedStock === "") return;
     const nuevoStockNum = parseInt(editedStock, 10);
     if (!isNaN(nuevoStockNum)) {
-        await updateStock(selectedItem.id_inventario, nuevoStockNum);
+        await updateStock(selectedItem.fk_cerv_pres_1, nuevoStockNum);
         setEditModalOpen(false);
         await cargarInventario();
     }
@@ -128,9 +126,9 @@ export const GestionInventario: React.FC = () => {
     if (!selectedItem || cantidadRestock === "") return;
     const cantidadNum = parseInt(cantidadRestock, 10);
     if (!isNaN(cantidadNum) && cantidadNum > 0) {
-        await orderRestock(selectedItem.id_inventario, cantidadNum);
+        await orderRestock(selectedItem.fk_cerv_pres_1, cantidadNum);
         setRestockModalOpen(false);
-        alert(`Solicitud de reposición para ${cantidadNum} unidades de ${selectedItem.nombre_producto} enviada.`);
+        alert(`Solicitud de reposición para ${cantidadNum} unidades de ${selectedItem.nombre_cerv} - ${selectedItem.nombre_pres} enviada.`);
     }
   }
 
@@ -141,13 +139,13 @@ export const GestionInventario: React.FC = () => {
     }
   }
   
-  const handleOrderRestock = (item: InventarioCompleto) => {
-    alert(`Se ha iniciado una orden de reposición para: ${item.nombre_producto} - ${item.nombre_presentacion}`);
+  const handleOrderRestock = (item: ProductoInventario) => {
+    alert(`Se ha iniciado una orden de reposición para: ${item.nombre_cerv} - ${item.nombre_pres}`);
     // Aquí se implementaría la lógica para la orden de reposición
   }
 
   // --- HELPERS DE UI ---
-  const getEstadoChip = (estado: InventarioCompleto['estado']) => {
+  const getEstadoChip = (estado: ProductoInventario['estado']) => {
     const color = estado === "Disponible" ? "success" : estado === "Bajo Stock" ? "warning" : "error";
     const icon = estado === "Disponible" ? <CheckCircle /> : <Warning />;
     return <Chip icon={icon} label={estado} color={color} size="small" />;
@@ -200,13 +198,17 @@ export const GestionInventario: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {inventarioFiltrado.map((item) => (
-              <TableRow key={item.id_inventario}>
-                <TableCell sx={{ fontWeight: 'bold' }}>{item.nombre_producto}</TableCell>
-                <TableCell>{item.nombre_presentacion}</TableCell>
+            {productosPagina.map((item: any) => (
+              <TableRow key={item._key}>
+                <TableCell sx={{ fontWeight: 'bold' }}>{item.nombre_cerv}</TableCell>
+                <TableCell>{item.nombre_pres}</TableCell>
                 <TableCell>{item.miembro_proveedor}</TableCell>
-                <TableCell align="center">{item.stock_actual}</TableCell>
-                <TableCell align="right">{item.precio_usd.toFixed(2)}</TableCell>
+                <TableCell align="center">{item.cant_pres}</TableCell>
+                <TableCell align="right">
+                  {typeof item.precio_actual_pres === "number"
+                    ? item.precio_actual_pres.toFixed(2)
+                    : "N/A"}
+                </TableCell>
                 <TableCell>{item.lugar_tienda}</TableCell>
                 <TableCell align="center">{getEstadoChip(item.estado)}</TableCell>
                 <TableCell align="center">
@@ -218,7 +220,7 @@ export const GestionInventario: React.FC = () => {
                       <IconButton size="small" color="primary" onClick={() => handleOpenRestockModal(item)}><ShoppingCart /></IconButton>
                     </Tooltip>
                     <Tooltip title="Eliminar Registro">
-                      <IconButton size="small" color="error" onClick={() => handleDelete(item.id_inventario)}><Delete /></IconButton>
+                      <IconButton size="small" color="error" onClick={() => handleDelete(item.fk_cerv_pres_1)}><Delete /></IconButton>
                     </Tooltip>
                   </Stack>
                 </TableCell>
@@ -228,11 +230,24 @@ export const GestionInventario: React.FC = () => {
         </Table>
       </TableContainer>
 
+      {/* Paginación debajo de la tabla */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+        <Pagination
+          count={totalPaginas}
+          page={paginaActual}
+          onChange={(_, value) => setPaginaActual(value)}
+          color="primary"
+          shape="rounded"
+          showFirstButton
+          showLastButton
+        />
+      </Box>
+
       {/* Modal de Edición de Stock */}
       <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)}>
         <DialogTitle>Editar Stock</DialogTitle>
         <DialogContent sx={{ pt: '20px !important' }}>
-          <Typography variant="h6">{selectedItem?.nombre_producto} - {selectedItem?.nombre_presentacion}</Typography>
+          <Typography variant="h6">{selectedItem?.nombre_cerv} - {selectedItem?.nombre_pres}</Typography>
           <TextField
             autoFocus margin="dense" label="Nuevo Stock" type="number" fullWidth
             value={editedStock} onChange={(e) => setEditedStock(e.target.value)}
@@ -248,8 +263,8 @@ export const GestionInventario: React.FC = () => {
       <Dialog open={restockModalOpen} onClose={() => setRestockModalOpen(false)}>
         <DialogTitle>Ordenar Reposición</DialogTitle>
         <DialogContent sx={{ pt: '20px !important' }}>
-          <Typography variant="h6">{selectedItem?.nombre_producto} - {selectedItem?.nombre_presentacion}</Typography>
-          <Typography variant="body2" color="text.secondary">Stock actual: {selectedItem?.stock_actual}</Typography>
+          <Typography variant="h6">{selectedItem?.nombre_cerv} - {selectedItem?.nombre_pres}</Typography>
+          <Typography variant="body2" color="text.secondary">Stock actual: {selectedItem?.cant_pres}</Typography>
           <TextField autoFocus margin="dense" label="Cantidad a solicitar" type="number" fullWidth value={cantidadRestock} onChange={(e) => setCantidadRestock(e.target.value)} sx={{ mt: 2 }} />
         </DialogContent>
         <DialogActions>
