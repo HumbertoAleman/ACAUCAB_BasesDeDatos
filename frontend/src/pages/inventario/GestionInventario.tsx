@@ -162,12 +162,12 @@ export const GestionInventario: React.FC = () => {
 
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <TextField fullWidth placeholder="Buscar por producto o presentación..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
               InputProps={{ startAdornment: <Search sx={{ mr: 1, color: "text.secondary" }} /> }}
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth>
               <InputLabel>Filtrar por Estado</InputLabel>
               <Select

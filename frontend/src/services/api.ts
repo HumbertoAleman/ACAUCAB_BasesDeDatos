@@ -1,5 +1,11 @@
 import type { Usuario, Rol } from '../interfaces/auth'
-import type { ProductoInventario, ClienteDetallado, TasaVenta, MetodoPago, VentaCompleta } from '../interfaces/ventas'
+import type { 
+  ProductoInventario, 
+  ClienteDetallado, 
+  TasaVenta, 
+  MetodoPagoCompleto, 
+  VentaCompleta 
+} from '../interfaces/ventas'
 
 // Configuración base de la API
 const API_BASE_URL = 'http://127.0.0.1:3000/api' // Ajusta según tu configuración del backend
@@ -345,9 +351,10 @@ export const getTasaActual = async (): Promise<TasaVenta> => {
     // Tasa de ejemplo para desarrollo
     return {
       cod_tasa: 1,
-      fecha_tasa: new Date().toISOString().split('T')[0],
-      valor_tasa: 35.50,
-      tipo_tasa: "BCV"
+      tasa_dolar_bcv: 35.50,
+      tasa_punto: 35.50,
+      fecha_ini_tasa: new Date().toISOString().split('T')[0],
+      fecha_fin_tasa: undefined
     };
   }
 };
@@ -355,7 +362,7 @@ export const getTasaActual = async (): Promise<TasaVenta> => {
 /**
  * Obtiene los métodos de pago disponibles
  */
-export const getMetodosPago = async (): Promise<MetodoPago[]> => {
+export const getMetodosPago = async (): Promise<MetodoPagoCompleto[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}/metodos-pago`);
     if (!response.ok) {

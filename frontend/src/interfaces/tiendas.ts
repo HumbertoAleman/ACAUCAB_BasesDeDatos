@@ -4,13 +4,13 @@ import type { CervPres } from './'; // Import ICervPres
 /**
  * @interface Tienda
  * @description Interfaz para la tabla 'Tienda'.
- * Representa las tiendas físicas.
+ * Almacena información de las tiendas físicas.
  */
 export interface Tienda {
   cod_tien: number;
   nombre_tien: string;
   fecha_apertura_tien?: string | null; // date
-  direccion_tien: string;
+  direccion_tien: string; // text
   fk_luga: number; // Foreign Key to Lugar
 }
 
@@ -27,13 +27,13 @@ export interface Departamento {
 /**
  * @interface LugarTienda
  * @description Interfaz para la tabla 'Lugar_Tienda'.
- * Representa ubicaciones jerárquicas dentro de una tienda.
+ * Define las ubicaciones específicas dentro de una tienda.
  */
 export interface LugarTienda {
   cod_luga_tien: number;
   nombre_luga_tien: string;
-  tipo_luga_tien: string; // e.g., 'Zona', 'Estante'
-  fk_luga_tien?: number | null; // Self-referencing FK for hierarchy
+  tipo_luga_tien: 'Almacen' | 'Pasillo' | 'Anaquel';
+  fk_luga_tien?: number | null; // Self-referencing FK
 }
 
 /**

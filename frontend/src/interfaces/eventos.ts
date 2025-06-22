@@ -5,26 +5,26 @@ import type { CervPres } from './'; // Import ICervPres
 /**
  * @interface TipoEvento
  * @description Interfaz para la tabla 'Tipo_Evento'.
- * Define las categorías de eventos.
+ * Define los tipos de eventos que se pueden realizar.
  */
 export interface TipoEvento {
   cod_tipo_even: number;
-  nombre_tipo_even: string;
+  nombre_tipo_even: string; // varchar(60)
 }
 
 /**
  * @interface Evento
  * @description Interfaz para la tabla 'Evento'.
- * Almacena los detalles de los eventos.
+ * Almacena información de los eventos organizados.
  */
 export interface Evento {
   cod_even: number;
-  nombre_even: string;
+  nombre_even: string; // varchar(255)
   fecha_hora_ini_even: string; // timestamp
   fecha_hora_fin_even: string; // timestamp
-  direccion_even: string;
+  direccion_even: string; // text
   capacidad_even: number; // integer
-  descripcion_even: string;
+  descripcion_even: string; // text
   precio_entrada_even?: number | null; // numeric(8, 2)
   cant_entradas_evento: number; // integer
   fk_tipo_even: number; // Foreign Key to TipoEvento

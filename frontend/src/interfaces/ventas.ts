@@ -38,7 +38,7 @@ export interface DetalleCompra {
  * Almacena información de clientes naturales o jurídicos.
  */
 export interface Cliente {
-  rif_clie: number;
+  rif_clie: string; // varchar(20) - Cambiado de number a string
   direccion_fiscal_clie: string;
   direccion_fisica_clie: string;
   fk_luga_1: number; // Foreign Key to Lugar for fiscal address
@@ -53,6 +53,7 @@ export interface Cliente {
   denom_comercial_juri?: string | null;
   capital_juri?: number | null; // numeric(8, 2)
   pag_web_juri?: string | null;
+  fecha_ingr_clie?: string; // date DEFAULT CURRENT_DATE
 }
 
 /**
@@ -67,7 +68,7 @@ export interface Cuota {
 }
 
 /**
- * @interface IVenta
+ * @interface Venta
  * @description Interfaz para la tabla 'Venta'.
  * Registra las transacciones de venta.
  */
@@ -78,7 +79,7 @@ export interface Venta {
   base_imponible_vent: number; // numeric(8, 2)
   total_vent: number; // numeric(8, 2)
   online?: boolean | null;
-  fk_clie?: number | null; // Arc to Cliente
+  fk_clie?: string | null; // Arc to Cliente (cambiado de number a string)
   fk_miem?: string | null; // Arc to Miembro
   fk_even?: number | null; // Arc to Evento
   fk_tien?: number | null; // Arc to Tienda
@@ -86,7 +87,7 @@ export interface Venta {
 }
 
 /**
- * @interface IDetalleVenta
+ * @interface DetalleVenta
  * @description Interfaz para la tabla 'Detalle_Venta'.
  * Detalla los ítems incluidos en una venta.
  */
@@ -98,13 +99,14 @@ export interface DetalleVenta {
   fk_inve_tien_1?: number | null; // Part of composite FK to InventarioTienda (fk_cerv_pres_1)
   fk_inve_tien_2?: number | null; // Part of composite FK to InventarioTienda (fk_cerv_pres_2)
   fk_inve_tien_3?: number | null; // Part of composite FK to InventarioTienda (fk_tien)
+  fk_inve_tien_4?: number | null; // Part of composite FK to InventarioTienda (fk_luga_tien)
   fk_inve_even_1?: number | null; // Part of composite FK to InventarioEvento (fk_cerv_pres_1)
   fk_inve_even_2?: number | null; // Part of composite FK to InventarioEvento (fk_cerv_pres_2)
   fk_inve_even_3?: number | null; // Part of composite FK to InventarioEvento (fk_even)
 }
 
 /**
- * @interface IMetodoPago
+ * @interface MetodoPago
  * @description Interfaz para la tabla 'Metodo_Pago'.
  * Supertipo para los métodos de pago.
  */
@@ -113,15 +115,15 @@ export interface MetodoPago {
 }
 
 /**
- * @interface ITarjeta
+ * @interface Tarjeta
  * @description Interfaz para la tabla 'Tarjeta'.
  * Subtipo de MetodoPago para pagos con tarjeta.
  */
 export interface Tarjeta {
   fk_meto_pago: number; // PK and FK to MetodoPago
-  numero_tarj: number; // integer (consider storing as string for leading zeros or large numbers)
+  numero_tarj: number; // numeric(21, 0)
   fecha_venci_tarj: string; // date
-  cvv_tarj: number; // integer (should not be stored in real apps)
+  cvv_tarj: number; // integer
   nombre_titu_tarj: string;
   credito?: boolean | null;
 }
@@ -142,9 +144,9 @@ export interface PuntoCanjeo {
  */
 export interface Cheque {
   fk_meto_pago: number; // PK and FK to MetodoPago
-  numero_cheque: number; // integer
-  numero_cuenta_cheque: number; // integer
-  fk_banc: number; // Foreign Key to Banco (defined below)
+  numero_cheque: number; // numeric(21, 0)
+  numero_cuenta_cheque: number; // numeric(21, 0)
+  fk_banc: number; // Foreign Key to Banco
 }
 
 /**
@@ -164,7 +166,7 @@ export interface Banco {
  */
 export interface Efectivo {
   fk_meto_pago: number; // PK and FK to MetodoPago
-  denominacion_efec: string; // char
+  denominacion_efec: string; // varchar(10)
 }
 
 /**
@@ -181,7 +183,7 @@ export interface Pago {
 }
 
 /**
- * @interface IDescuento
+ * @interface Descuento
  * @description Interfaz para la tabla 'Descuento'.
  * Define los descuentos aplicables.
  */
@@ -192,7 +194,6 @@ export interface Descuento {
   fecha_fin_desc: string; // date
 }
 
-// Interfaces para estatus de compras y ventas
 /**
  * @interface EstaComp
  * @description Interfaz para la tabla 'ESTA_COMP'.
@@ -202,6 +203,19 @@ export interface EstaComp {
   cod_esta_comp: number;
   fk_esta: number; // Foreign Key to Estatus (part of composite PK)
   fk_comp: number; // Foreign Key to Compra (part of composite PK)
+  fecha_ini: string; // date
+  fecha_fin?: string | null; // date
+}
+
+/**
+ * @interface EstaEven
+ * @description Interfaz para la tabla 'ESTA_EVEN'.
+ * Registra el historial de estatus de un evento.
+ */
+export interface EstaEven {
+  cod_esta_even: number;
+  fk_esta: number; // Foreign Key to Estatus (part of composite PK)
+  fk_even: number; // Foreign Key to Evento (part of composite PK)
   fecha_ini: string; // date
   fecha_fin?: string | null; // date
 }
@@ -222,56 +236,59 @@ export interface EstaVent {
 /**
  * @interface PuntClie
  * @description Interfaz para la tabla 'PUNT_CLIE'.
- * Registra las transacciones de puntos de lealtad de los clientes.
+ * Registra los puntos de los clientes.
  */
 export interface PuntClie {
   cod_punt_clie: number;
-  fk_clie: number; // Part of composite PK, FK to Cliente
-  fk_meto_pago: number; // Part of composite PK, FK to PuntoCanjeo
+  fk_clie: string; // Part of composite PK, FK to Cliente (cambiado de number a string)
+  fk_meto_pago?: number | null; // FK to PuntoCanjeo
   fk_tasa: number; // Foreign Key to Tasa
   fk_vent: number; // Foreign Key to Venta (unique constraint in DB)
   cant_puntos_acum?: number | null; // numeric(10, 2)
   cant_puntos_canj?: number | null; // numeric(10, 2)
   fecha_transaccion: string; // date
-  canjeado?: boolean | null;
 }
 
-// Interfaces para relaciones M-M de descuento
 /**
  * @interface DescCerv
  * @description Interfaz para la tabla 'DESC_CERV'.
- * Relaciona descuentos con presentaciones de cerveza.
+ * Relaciona descuentos con cervezas y presentaciones.
  */
 export interface DescCerv {
   fk_desc: number; // Foreign Key to Descuento (part of composite PK)
   fk_cerv_pres_1: number; // Part of composite FK to CERV_PRES (fk_cerv)
   fk_cerv_pres_2: number; // Part of composite FK to CERV_PRES (fk_pres)
-  porcentaje_desc: number; // numeric(3, 2)
+  porcentaje_desc: number; // numeric(5, 2)
 }
+
+// ===== INTERFACES ESPECÍFICAS PARA EL FRONTEND =====
 
 /**
  * @interface ProductoInventario
  * @description Interfaz para productos del inventario que se muestran en el punto de venta
+ * Basada en JOIN de Inventario_Tienda, CERV_PRES, Cerveza, Presentacion, Tipo_Cerveza, Miembro, Lugar_Tienda
  */
 export interface ProductoInventario {
-  // IDs de la base de datos
+  // IDs de la base de datos (Inventario_Tienda)
   fk_cerv_pres_1: number; // ID de la cerveza
   fk_cerv_pres_2: number; // ID de la presentación
   fk_tien: number; // ID de la tienda
   fk_luga_tien: number; // ID del lugar en la tienda
   
-  // Información del producto
+  // Información del producto (JOIN con Cerveza, Presentacion, Tipo_Cerveza)
   nombre_cerv: string;
   nombre_pres: string;
   capacidad_pres: number;
   tipo_cerveza: string;
+  
+  // Información del proveedor (JOIN con Miembro)
   miembro_proveedor: string;
   
-  // Información de inventario
+  // Información de inventario (Inventario_Tienda)
   cant_pres: number; // Stock disponible
   precio_actual_pres: number; // Precio en USD
   
-  // Información de ubicación
+  // Información de ubicación (JOIN con Lugar_Tienda)
   lugar_tienda: string;
   
   // Estado calculado
@@ -280,9 +297,11 @@ export interface ProductoInventario {
 
 /**
  * @interface ClienteDetallado
- * @description Interfaz para clientes con información completa
+ * @description Interfaz para clientes con información completa incluyendo contactos y puntos
+ * Basada en JOIN de Cliente, Telefono, Correo, PUNT_CLIE
  */
 export interface ClienteDetallado {
+  // Campos de Cliente
   rif_clie: string;
   tipo_clie: "Natural" | "Juridico";
   
@@ -306,45 +325,48 @@ export interface ClienteDetallado {
   fk_luga_2: number;
   fecha_ingr_clie: string;
   
-  // Información de contacto
+  // Información de contacto (JOIN con Telefono, Correo)
   telefonos?: string[];
   correos?: string[];
   
-  // Puntos acumulados
+  // Puntos acumulados (JOIN con PUNT_CLIE)
   puntos_acumulados?: number;
 }
 
 /**
  * @interface TasaVenta
  * @description Interfaz para las tasas de cambio
+ * Basada en la tabla Tasa
  */
 export interface TasaVenta {
   cod_tasa: number;
-  fecha_tasa: string;
-  valor_tasa: number; // Valor en Bs por USD
-  tipo_tasa: string;
+  tasa_dolar_bcv: number; // numeric(8, 2) - Tasa del BCV
+  tasa_punto: number; // numeric(8, 2) - Tasa del punto
+  fecha_ini_tasa: string; // date
+  fecha_fin_tasa?: string; // date
 }
 
 /**
- * @interface MetodoPago
- * @description Interfaz para métodos de pago
+ * @interface MetodoPagoCompleto
+ * @description Interfaz para métodos de pago con información específica
+ * Basada en Metodo_Pago + subtipos (Tarjeta, Cheque, Efectivo, Punto_Canjeo)
  */
-export interface MetodoPago {
+export interface MetodoPagoCompleto {
   cod_meto_pago: number;
   tipo: "Efectivo" | "Tarjeta" | "Punto_Canjeo" | "Cheque";
   
   // Campos específicos para tarjeta
-  numero_tarj?: string;
+  numero_tarj?: number;
   fecha_venci_tarj?: string;
   cvv_tarj?: number;
   nombre_titu_tarj?: string;
   credito?: boolean;
   
   // Campos específicos para cheque
-  numero_cheque?: string;
-  numero_cuenta_cheque?: string;
+  numero_cheque?: number;
+  numero_cuenta_cheque?: number;
   fk_banc?: number;
-  nombre_banco?: string;
+  nombre_banco?: string; // JOIN con Banco
   
   // Campos específicos para efectivo
   denominacion_efec?: string;
@@ -364,9 +386,10 @@ export interface ItemVenta {
 /**
  * @interface PagoVenta
  * @description Interfaz para pagos múltiples en una venta
+ * Basada en la tabla Pago
  */
 export interface PagoVenta {
-  metodo_pago: MetodoPago;
+  metodo_pago: MetodoPagoCompleto;
   monto: number;
   fecha_pago: string;
   fk_tasa: number;
@@ -375,6 +398,7 @@ export interface PagoVenta {
 /**
  * @interface VentaCompleta
  * @description Interfaz para una venta completa
+ * Basada en Venta + Detalle_Venta + Pago
  */
 export interface VentaCompleta {
   cod_vent?: number;

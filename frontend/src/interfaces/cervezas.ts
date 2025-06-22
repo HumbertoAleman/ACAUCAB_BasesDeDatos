@@ -26,7 +26,7 @@ export interface Receta {
 export interface Instruccion {
   cod_inst: number;
   nombre_inst: string;
-  fk_receta: number; // Foreign Key to Receta
+  fk_rece: number; // Foreign Key to Receta
 }
 
 /**
@@ -37,7 +37,7 @@ export interface Instruccion {
 export interface TipoCerveza {
   cod_tipo_cerv: number;
   nombre_tipo_cerv: string;
-  fk_receta: number; // Foreign Key to Receta
+  fk_rece: number; // Foreign Key to Receta
   fk_tipo_cerv?: number | null; // Self-referencing FK for sub-types
 }
 
@@ -83,7 +83,7 @@ export interface Presentacion {
 export interface ReceIngr {
   fk_rece: number;
   fk_ingr: number;
-  cant_ingr: string; // varchar(50) - asume string para cantidades variadas
+  cant_ingr: string; // varchar(50)
 }
 
 /**
@@ -94,7 +94,7 @@ export interface ReceIngr {
 export interface CervCara {
   fk_cerv: number;
   fk_cara: number;
-  valor_cara: string; // varchar(40)
+  valor_cara: string; // text
 }
 
 /**
@@ -105,7 +105,7 @@ export interface CervCara {
 export interface TipoCara {
   fk_tipo_cerv: number;
   fk_cara: number;
-  valor_cara: string; // varchar(50)
+  valor_cara: string; // text
 }
 
 /**
@@ -117,5 +117,5 @@ export interface CervPres {
   fk_cerv: number;
   fk_pres: number;
   precio_pres_cerv: number; // numeric(8, 2)
-  fk_miem: number; // Foreign Key to Miembro (defined in miembros.ts)
+  fk_miem: string; // Foreign Key to Miembro (varchar(20))
 }

@@ -1,25 +1,24 @@
 import type { Lugar } from './'; // Import ILugar as it's a FK
 
 /**
- * @interface IMiembro
+ * @interface Miembro
  * @description Interfaz para la tabla 'Miembro'.
- * Representa a los miembros de la asociación o socios comerciales.
+ * Almacena información de los miembros de la asociación.
  */
 export interface Miembro {
-  rif_miem: string;
+  rif_miem: string; // varchar(20) - Cambiado de number a string
   razon_social_miem: string;
   denom_comercial_miem: string;
-  direccion_fiscal_miem: string;
-  direccion_fisica_miem: string;
-  pag_web_miem?: string | null;
-  fk_luga_1: number; // Foreign Key to Lugar for primary fiscal address
-  fk_luga_2: number; // Foreign Key to Lugar for primary physical address
+  direccion_fiscal_miem: string; // text
+  pag_web_miem?: string | null; // text
+  fk_luga_1: number; // Foreign Key to Lugar
+  fk_luga_2?: number | null; // Foreign Key to Lugar
 }
 
 /**
- * @interface IContacto
+ * @interface Contacto
  * @description Interfaz para la tabla 'Contacto'.
- * Representa a las personas de contacto asociadas a los miembros.
+ * Almacena información de contacto de los miembros.
  */
 export interface Contacto {
   cod_pers: number;
@@ -27,5 +26,5 @@ export interface Contacto {
   segundo_nom_pers?: string | null;
   primer_ape_pers: string;
   segundo_ape_pers?: string | null;
-  fk_miem?: string | null; // Foreign Key to Miembro
+  fk_miem?: string | null; // Foreign Key to Miembro (cambiado de number a string)
 }

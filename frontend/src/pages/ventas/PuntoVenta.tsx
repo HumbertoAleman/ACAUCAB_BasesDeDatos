@@ -49,7 +49,7 @@ import {
   LocalOffer,
   Receipt
 } from "@mui/icons-material"
-import type { ProductoInventario, ClienteDetallado, TasaVenta, MetodoPago, ItemVenta, PagoVenta, ResumenVenta } from "../../interfaces/ventas"
+import type { ProductoInventario, ClienteDetallado, TasaVenta, MetodoPagoCompleto, ItemVenta, PagoVenta, ResumenVenta } from "../../interfaces/ventas"
 import { 
   getProductosInventario, 
   getClientesDetallados, 
@@ -63,7 +63,7 @@ export const PuntoVenta: React.FC = () => {
   const [productos, setProductos] = useState<ProductoInventario[]>([])
   const [clientes, setClientes] = useState<ClienteDetallado[]>([])
   const [tasaActual, setTasaActual] = useState<TasaVenta | null>(null)
-  const [metodosPago, setMetodosPago] = useState<MetodoPago[]>([])
+  const [metodosPago, setMetodosPago] = useState<MetodoPagoCompleto[]>([])
   
   // Estados para la venta
   const [busquedaProducto, setBusquedaProducto] = useState("")
@@ -75,8 +75,24 @@ export const PuntoVenta: React.FC = () => {
   const [dialogPago, setDialogPago] = useState(false)
   const [pasoActual, setPasoActual] = useState(0)
   const [pagos, setPagos] = useState<PagoVenta[]>([])
-  const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] = useState<MetodoPago | null>(null)
+  const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] = useState<MetodoPagoCompleto | null>(null)
   const [montoPago, setMontoPago] = useState("")
+  
+  // Campos específicos para métodos de pago
+  const [camposTarjeta, setCamposTarjeta] = useState({
+    numero_tarj: "",
+    fecha_venci_tarj: "",
+    cvv_tarj: "",
+    nombre_titu_tarj: "",
+    credito: false
+  })
+  const [camposCheque, setCamposCheque] = useState({
+    numero_cheque: "",
+    numero_cuenta_cheque: "",
+    fk_banc: "",
+    nombre_banco: ""
+  })
+  const [denominacionEfectivo, setDenominacionEfectivo] = useState("USD")
   const [puntosUsar, setPuntosUsar] = useState("")
   
   // Estados de carga
@@ -121,7 +137,7 @@ export const PuntoVenta: React.FC = () => {
       const subtotal = itemsVenta.reduce((total, item) => total + item.subtotal, 0)
       const iva = subtotal * 0.16
       const total = subtotal + iva
-      const totalBs = total * tasaActual.valor_tasa
+      const totalBs = total * tasaActual.tasa_dolar_bcv
       const puntosGenerados = Math.floor(total * 10) // 10 puntos por USD
 
       setResumenVenta({
@@ -130,7 +146,7 @@ export const PuntoVenta: React.FC = () => {
         total,
         total_usd: total,
         total_bs: totalBs,
-        tasa_actual: tasaActual.valor_tasa,
+        tasa_actual: tasaActual.tasa_dolar_bcv,
         puntos_generados: puntosGenerados,
         fecha_venta: new Date().toISOString().split('T')[0]
       })
@@ -201,6 +217,23 @@ export const PuntoVenta: React.FC = () => {
   const iniciarPago = () => {
     setPagos([])
     setPasoActual(0)
+    setMetodoPagoSeleccionado(null)
+    setMontoPago("")
+    setCamposTarjeta({
+      numero_tarj: "",
+      fecha_venci_tarj: "",
+      cvv_tarj: "",
+      nombre_titu_tarj: "",
+      credito: false
+    })
+    setCamposCheque({
+      numero_cheque: "",
+      numero_cuenta_cheque: "",
+      fk_banc: "",
+      nombre_banco: ""
+    })
+    setDenominacionEfectivo("USD")
+    setPuntosUsar("")
     setDialogPago(true)
   }
 
@@ -208,17 +241,60 @@ export const PuntoVenta: React.FC = () => {
     if (!metodoPagoSeleccionado || !montoPago || parseFloat(montoPago) <= 0) return
 
     const monto = parseFloat(montoPago)
+    
+    // Crear método de pago con campos específicos
+    const metodoPagoCompleto: MetodoPagoCompleto = {
+      ...metodoPagoSeleccionado,
+      ...(metodoPagoSeleccionado.tipo === "Tarjeta" && {
+        numero_tarj: parseInt(camposTarjeta.numero_tarj),
+        fecha_venci_tarj: camposTarjeta.fecha_venci_tarj,
+        cvv_tarj: parseInt(camposTarjeta.cvv_tarj),
+        nombre_titu_tarj: camposTarjeta.nombre_titu_tarj,
+        credito: camposTarjeta.credito
+      }),
+      ...(metodoPagoSeleccionado.tipo === "Cheque" && {
+        numero_cheque: parseInt(camposCheque.numero_cheque),
+        numero_cuenta_cheque: parseInt(camposCheque.numero_cuenta_cheque),
+        fk_banc: parseInt(camposCheque.fk_banc),
+        nombre_banco: camposCheque.nombre_banco
+      }),
+      ...(metodoPagoSeleccionado.tipo === "Efectivo" && {
+        denominacion_efec: denominacionEfectivo
+      })
+    }
+
     const nuevoPago: PagoVenta = {
-      metodo_pago: metodoPagoSeleccionado,
+      metodo_pago: metodoPagoCompleto,
       monto,
       fecha_pago: new Date().toISOString().split('T')[0],
       fk_tasa: tasaActual?.cod_tasa || 1
     }
 
     setPagos([...pagos, nuevoPago])
+    
+    // Limpiar campos para el siguiente pago
     setMetodoPagoSeleccionado(null)
     setMontoPago("")
-    setPasoActual(1)
+    setCamposTarjeta({
+      numero_tarj: "",
+      fecha_venci_tarj: "",
+      cvv_tarj: "",
+      nombre_titu_tarj: "",
+      credito: false
+    })
+    setCamposCheque({
+      numero_cheque: "",
+      numero_cuenta_cheque: "",
+      fk_banc: "",
+      nombre_banco: ""
+    })
+    setDenominacionEfectivo("USD")
+    setPuntosUsar("")
+    
+    // Solo ir al paso de confirmación si el pago está completo
+    if (montoRestante - monto <= 0.01) {
+      setPasoActual(1)
+    }
   }
 
   const eliminarPago = (index: number) => {
@@ -303,9 +379,9 @@ export const PuntoVenta: React.FC = () => {
       {tasaActual && (
         <Alert severity="info" sx={{ mb: 2 }}>
           <Typography variant="body2">
-            Tasa del día: {tasaActual.valor_tasa.toFixed(2)} Bs/USD | 
-            Fecha: {tasaActual.fecha_tasa} | 
-            Tipo: {tasaActual.tipo_tasa}
+            Tasa BCV: {tasaActual.tasa_dolar_bcv.toFixed(2)} Bs/USD | 
+            Tasa Punto: {tasaActual.tasa_punto.toFixed(2)} Bs/USD | 
+            Fecha: {tasaActual.fecha_ini_tasa}
           </Typography>
         </Alert>
       )}
@@ -543,6 +619,150 @@ export const PuntoVenta: React.FC = () => {
                   </Grid>
                 </Grid>
 
+                {/* Campos específicos según el método de pago */}
+                {metodoPagoSeleccionado?.tipo === "Tarjeta" && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="h6" gutterBottom>Información de Tarjeta</Typography>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Número de Tarjeta"
+                          value={camposTarjeta.numero_tarj}
+                          onChange={(e) => setCamposTarjeta({...camposTarjeta, numero_tarj: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 3 }}>
+                        <TextField
+                          fullWidth
+                          label="Fecha Vencimiento"
+                          placeholder="MM/YY"
+                          value={camposTarjeta.fecha_venci_tarj}
+                          onChange={(e) => setCamposTarjeta({...camposTarjeta, fecha_venci_tarj: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 3 }}>
+                        <TextField
+                          fullWidth
+                          label="CVV"
+                          value={camposTarjeta.cvv_tarj}
+                          onChange={(e) => setCamposTarjeta({...camposTarjeta, cvv_tarj: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 8 }}>
+                        <TextField
+                          fullWidth
+                          label="Nombre del Titular"
+                          value={camposTarjeta.nombre_titu_tarj}
+                          onChange={(e) => setCamposTarjeta({...camposTarjeta, nombre_titu_tarj: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 4 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Tipo</InputLabel>
+                          <Select
+                            value={camposTarjeta.credito ? "credito" : "debito"}
+                            onChange={(e) => setCamposTarjeta({...camposTarjeta, credito: e.target.value === "credito"})}
+                            label="Tipo"
+                          >
+                            <MenuItem value="debito">Débito</MenuItem>
+                            <MenuItem value="credito">Crédito</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                )}
+
+                {metodoPagoSeleccionado?.tipo === "Cheque" && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="h6" gutterBottom>Información de Cheque</Typography>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Número de Cheque"
+                          value={camposCheque.numero_cheque}
+                          onChange={(e) => setCamposCheque({...camposCheque, numero_cheque: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Número de Cuenta"
+                          value={camposCheque.numero_cuenta_cheque}
+                          onChange={(e) => setCamposCheque({...camposCheque, numero_cuenta_cheque: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Banco"
+                          value={camposCheque.nombre_banco}
+                          onChange={(e) => setCamposCheque({...camposCheque, nombre_banco: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="ID Banco"
+                          type="number"
+                          value={camposCheque.fk_banc}
+                          onChange={(e) => setCamposCheque({...camposCheque, fk_banc: e.target.value})}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                )}
+
+                {metodoPagoSeleccionado?.tipo === "Efectivo" && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="h6" gutterBottom>Información de Efectivo</Typography>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Denominación</InputLabel>
+                          <Select
+                            value={denominacionEfectivo}
+                            onChange={(e) => setDenominacionEfectivo(e.target.value)}
+                            label="Denominación"
+                          >
+                            <MenuItem value="USD">Dólares (USD)</MenuItem>
+                            <MenuItem value="BS">Bolívares (BS)</MenuItem>
+                            <MenuItem value="EUR">Euros (EUR)</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                )}
+
+                {metodoPagoSeleccionado?.tipo === "Punto_Canjeo" && clienteSeleccionado && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="h6" gutterBottom>Canje de Puntos</Typography>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      Puntos disponibles: {clienteSeleccionado.puntos_acumulados || 0}
+                    </Alert>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Puntos a usar"
+                          type="number"
+                          value={puntosUsar}
+                          onChange={(e) => setPuntosUsar(e.target.value)}
+                          inputProps={{ max: clienteSeleccionado.puntos_acumulados || 0 }}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <Typography variant="body2" sx={{ mt: 2 }}>
+                          Valor en USD: ${(parseInt(puntosUsar) / 100).toFixed(2)} (100 puntos = $1 USD)
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                )}
+
                 <Box sx={{ mt: 2 }}>
                   <Button 
                     variant="contained" 
@@ -551,6 +771,15 @@ export const PuntoVenta: React.FC = () => {
                   >
                     Agregar Pago
                   </Button>
+                  {pagos.length > 0 && (
+                    <Button 
+                      variant="outlined" 
+                      onClick={() => setPasoActual(1)}
+                      sx={{ ml: 1 }}
+                    >
+                      Ver Pagos ({pagos.length})
+                    </Button>
+                  )}
                 </Box>
               </StepContent>
             </Step>
@@ -594,6 +823,13 @@ export const PuntoVenta: React.FC = () => {
                     disabled={montoRestante > 0.01 || procesandoVenta}
                   >
                     {procesandoVenta ? "Procesando..." : "Confirmar Venta"}
+                  </Button>
+                  <Button 
+                    variant="outlined" 
+                    onClick={() => setPasoActual(0)}
+                    sx={{ ml: 1 }}
+                  >
+                    Agregar Más Pagos
                   </Button>
                 </Box>
               </StepContent>

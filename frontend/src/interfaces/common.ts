@@ -1,19 +1,19 @@
 /**
  * @interface Lugar
  * @description Interfaz para la tabla 'Lugar'.
- * Representa una ubicación geográfica jerárquica (Estado, Municipio, Parroquia).
+ * Define ubicaciones geográficas jerárquicas.
  */
 export interface Lugar {
   cod_luga: number;
   nombre_luga: string;
-  tipo_luga: "Estado" | "Municipio" | "Parroquia"; // CHECK constraint
-  fk_luga?: number | null; // Self-referencing FK to parent Lugar
+  tipo_luga: 'Estado' | 'Municipio' | 'Parroquia';
+  fk_luga?: number | null; // Self-referencing FK for hierarchy
 }
 
 /**
  * @interface Tasa
  * @description Interfaz para la tabla 'Tasa'.
- * Registra tasas de cambio de divisas.
+ * Almacena las tasas de cambio.
  */
 export interface Tasa {
   cod_tasa: number;
@@ -26,12 +26,47 @@ export interface Tasa {
 /**
  * @interface Estatus
  * @description Interfaz para la tabla 'Estatus'.
- * Define diferentes estados para transacciones, eventos, etc.
+ * Define los diferentes estados de las entidades.
  */
 export interface Estatus {
   cod_esta: number;
   nombre_esta: string;
-  descripcion_esta?: string | null;
+  descripcion_esta?: string | null; // text
+}
+
+/**
+ * @interface Banco
+ * @description Interfaz para la tabla 'Banco'.
+ * Almacena información de bancos.
+ */
+export interface Banco {
+  cod_banc: number;
+  nombre_banc: string;
+}
+
+/**
+ * @interface Cuota
+ * @description Interfaz para la tabla 'Cuota'.
+ * Define planes de pago o cuotas.
+ */
+export interface Cuota {
+  cod_cuot: number;
+  nombre_plan_cuot: string;
+  precio_cuot: number; // numeric(8, 2)
+}
+
+/**
+ * @interface Juez
+ * @description Interfaz para la tabla 'Juez'.
+ * Almacena información de los jueces.
+ */
+export interface Juez {
+  cod_juez: number;
+  primar_nom_juez: string;
+  segundo_nom_juez?: string | null;
+  primar_ape_juez: string;
+  segundo_ape_juez?: string | null;
+  ci_juez: number; // integer
 }
 
 /**

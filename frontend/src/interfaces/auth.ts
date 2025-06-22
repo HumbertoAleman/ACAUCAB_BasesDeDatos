@@ -6,35 +6,33 @@
 export interface Rol {
   cod_rol: number;
   nombre_rol: string;
-  descripcion_rol: string;
-  privileges: Privilegio[];
+  descripcion_rol: string; // text
 }
 
 /**
  * @interface Privilegio
  * @description Interfaz para la tabla 'Privilegio'.
- * Define los privilegios específicos dentro del sistema.
+ * Define los privilegios o permisos del sistema.
  */
 export interface Privilegio {
   cod_priv: number;
   nombre_priv: string;
-  descripcion_priv: string;
+  descripcion_priv: string; // text
 }
 
 /**
  * @interface Usuario
  * @description Interfaz para la tabla 'Usuario'.
- * Almacena las credenciales de los usuarios y su asociación a una entidad.
+ * Almacena información de autenticación de usuarios.
  */
 export interface Usuario {
   cod_usua: number;
-  contra_usua?: string; // Password (optional for security - not sent from backend)
+  contra_usua: string; // text
   username_usua: string;
   fk_rol: number; // Foreign Key to Rol
   fk_empl?: number | null; // Arc to Empleado
-  fk_miem?: string | null; // Arc to Miembro
-  fk_clie?: string | null; // Arc to Cliente (changed to string to match DB)
-  rol: Rol;
+  fk_miem?: string | null; // Arc to Miembro (cambiado de number a string)
+  fk_clie?: string | null; // Arc to Cliente (cambiado de number a string)
 }
 
 // Interfaces para tablas de relación Muchos a Muchos (M-M) en este dominio
@@ -42,11 +40,11 @@ export interface Usuario {
 /**
  * @interface PrivRol
  * @description Interfaz para la tabla 'PRIV_ROL'.
- * Asigna privilegios a roles.
+ * Relaciona roles con privilegios (Muchos a Muchos).
  */
 export interface PrivRol {
-  fk_rol: number;
-  fk_priv: number;
+  fk_rol: number; // Part of composite PK, FK to Rol
+  fk_priv: number; // Part of composite PK, FK to Privilegio
 }
 
 export interface UsuarioFront {
