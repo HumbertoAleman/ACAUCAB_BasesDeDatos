@@ -339,9 +339,9 @@ export const getClientesDetallados = async (): Promise<ClienteDetallado[]> => {
 /**
  * Obtiene la tasa de cambio actual
  */
-export const getTasaActual = async (): Promise<TasaVenta> => {
+export const getTasaActual = async (): Promise<TasaVenta[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/tasa/actual`);
+    const response = await fetch(`${API_BASE_URL}/tasa`);
     if (!response.ok) {
       throw new Error('Error al obtener tasa actual');
     }
@@ -349,13 +349,13 @@ export const getTasaActual = async (): Promise<TasaVenta> => {
   } catch (error) {
     console.error('Error fetching tasa actual:', error);
     // Tasa de ejemplo para desarrollo
-    return {
+    return [{
       cod_tasa: 1,
       tasa_dolar_bcv: 35.50,
       tasa_punto: 35.50,
       fecha_ini_tasa: new Date().toISOString().split('T')[0],
       fecha_fin_tasa: undefined
-    };
+    }];
   }
 };
 
@@ -364,7 +364,7 @@ export const getTasaActual = async (): Promise<TasaVenta> => {
  */
 export const getMetodosPago = async (): Promise<MetodoPagoCompleto[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/metodos-pago`);
+    const response = await fetch(`${API_BASE_URL}/metodos_pago`);
     if (!response.ok) {
       throw new Error('Error al obtener métodos de pago');
     }
