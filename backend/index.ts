@@ -4,6 +4,7 @@ import { quickInsert } from "./src/insert";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
 import PrivilegesService from "./src/PrivilegesService";
+import ClientesService from "./src/ClientesService";
 
 function generateUserToken(length: number = 32): string {
 	const characters = '0123456789abcdef';
@@ -200,6 +201,13 @@ Bun.serve({
 					res = await PrivilegesService.getPossiblePrivilegesForForm(Number(req.params.rol));
 				return Response.json(res, CORS_HEADERS);
 			},
+		},
+
+		"/api/clientes": {
+			async GET(req, _) {
+				const res = await ClientesService.getAllClientes()
+				return Response.json(res, CORS_HEADERS);
+			}
 		},
 
 		"/api/inventory": {
