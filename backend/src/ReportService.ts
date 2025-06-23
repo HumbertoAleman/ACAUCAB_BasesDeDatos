@@ -223,9 +223,11 @@ class ReportService {
 					y -= 20;
 
 					for (const row of data) {
+						let fecha = String(row["Fecha de Venta"]);
+						fecha = fecha.slice(3, 15);
 						page.drawText(String(row["Código Tipo"]), { x: 50, y, size: 10, font });
 						page.drawText(String(row["Nombre Tipo de Cerveza"]), { x: 200, y, size: 10, font });
-						page.drawText(String(row["Fecha de Venta"]), { x: 350, y, size: 12, font });
+						page.drawText(String(fecha), { x: 350, y, size: 12, font });
 						page.drawText(String(row["Ganancia total entre todas las Ventas"]), { x: 500, y, size: 12, font });
 						// Agrega más columnas si tu vista tiene más datos
 						y -= 15;
