@@ -2,17 +2,18 @@ import { sql } from "bun";
 import { quickDelete } from "./src/delete";
 import { quickInsert } from "./src/insert";
 import { CORS_HEADERS } from "./globals";
+
+import AuthService from "./src/AuthService";
+import ClientesService from "./src/ClientesService";
+import InventoryService from "./src/InventoryService";
+import PrivilegesService from "./src/PrivilegesService";
+import ReportService from "./src/ReportService";
+import RolService from "./src/RolService";
+import TasaService from "./src/TasaService";
+import UsuarioService from "./src/UsuarioService";
+import VentaService from "./src/VentaService";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
-import PrivilegesService from "./src/PrivilegesService";
-import ClientesService from "./src/ClientesService";
-import TasaService from "./src/TasaService";
-import VentaService, { type APIVenta } from "./src/VentaService";
-import AuthService from "./src/AuthService";
-import RolService from "./src/RolService";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import InventoryService from "./src/InventoryService";
-import ReportService from "./src/ReportService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -86,5 +87,6 @@ Bun.serve({
 		...VentaService.routes,
 		...InventoryService.routes,
 		...ReportService.routes,
+		...UsuarioService.routes,
 	}
 })

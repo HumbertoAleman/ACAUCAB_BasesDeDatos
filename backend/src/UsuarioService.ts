@@ -7,7 +7,7 @@ class UsuarioService {
 			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			POST: async (req: any) => {
 				const body = await req.json();
-				body.tipo_clie = body.tipo_clie === "Natural" ? 200 : 201;
+				body.fk_rol = body.tipo_clie === "Natural" ? 200 : 201;
 				delete body.tipo_clie;
 				const res = await sql`INSERT INTO Usuario ${sql(body)} RETURNING *`
 				return Response.json(res, CORS_HEADERS);
