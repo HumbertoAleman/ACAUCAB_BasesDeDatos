@@ -31,6 +31,8 @@ import {
   Tooltip,
   TextField,
   Stack,
+  Autocomplete,
+  InputLabel,
 } from "@mui/material"
 import { Security, Refresh, Edit, Delete } from "@mui/icons-material"
 import { useUsers } from "../../hooks/useUsers"
@@ -57,6 +59,16 @@ export const GestionUsuarios: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null)
   const [editedUsername, setEditedUsername] = useState("")
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [newUsername, setNewUsername] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [newTipoUsuario, setNewTipoUsuario] = useState<string>("")
+  const [newRelacionado, setNewRelacionado] = useState<any>(null)
+  // Simulación de listas para cada tipo (luego se reemplaza por fetch real)
+  const listaEmpleados = [ { id: 1, nombre: "Empleado 1" }, { id: 2, nombre: "Empleado 2" } ]
+  const listaMiembros = [ { id: 1, nombre: "Miembro 1" }, { id: 2, nombre: "Miembro 2" } ]
+  const listaJuridicos = [ { id: 1, nombre: "Juridico 1" }, { id: 2, nombre: "Juridico 2" } ]
+  const listaNaturales = [ { id: 1, nombre: "Natural 1" }, { id: 2, nombre: "Natural 2" } ]
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -105,9 +117,14 @@ export const GestionUsuarios: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Typography variant="h4" gutterBottom>Gestión de Usuarios</Typography>
-        <Button variant="outlined" startIcon={<Refresh />} onClick={refreshUsers}>
-          Actualizar
-        </Button>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button variant="outlined" startIcon={<Refresh />} onClick={refreshUsers}>
+            Actualizar
+          </Button>
+          <Button variant="contained" color="primary" onClick={() => setCreateModalOpen(true)}>
+            Crear Usuario
+          </Button>
+        </Box>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -176,6 +193,68 @@ export const GestionUsuarios: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setEditModalOpen(false)}>Cancelar</Button>
           <Button onClick={handleSaveUsername} variant="contained">Guardar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de Creación de Usuario */}
+      <Dialog open={createModalOpen} onClose={() => setCreateModalOpen(false)}>
+        <DialogTitle>Crear Usuario</DialogTitle>
+        <DialogContent sx={{ pt: '20px !important', minWidth: 400 }}>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Nombre de Usuario"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newUsername}
+            onChange={e => setNewUsername(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Contraseña"
+            type="password"
+            fullWidth
+            variant="outlined"
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Tipo de Usuario</InputLabel>
+            <Select
+              value={newTipoUsuario}
+              label="Tipo de Usuario"
+              onChange={e => {
+                setNewTipoUsuario(e.target.value)
+                setNewRelacionado(null)
+              }}
+            >
+              <MenuItem value="empleado">Empleado</MenuItem>
+              <MenuItem value="miembro">Miembro</MenuItem>
+              <MenuItem value="juridico">Juridico</MenuItem>
+              <MenuItem value="natural">Natural</MenuItem>
+            </Select>
+          </FormControl>
+          {newTipoUsuario && (
+            <Autocomplete
+              options={
+                newTipoUsuario === "empleado" ? listaEmpleados :
+                newTipoUsuario === "miembro" ? listaMiembros :
+                newTipoUsuario === "juridico" ? listaJuridicos :
+                newTipoUsuario === "natural" ? listaNaturales : []
+              }
+              getOptionLabel={option => option.nombre}
+              value={newRelacionado}
+              onChange={(_, value) => setNewRelacionado(value)}
+              renderInput={params => <TextField {...params} label={`Seleccionar ${newTipoUsuario.charAt(0).toUpperCase() + newTipoUsuario.slice(1)}`} fullWidth />}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateModalOpen(false)}>Cancelar</Button>
+          <Button variant="contained" disabled>Crear</Button>
         </DialogActions>
       </Dialog>
     </Box>
