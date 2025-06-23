@@ -1,6 +1,14 @@
 import { sql } from "bun";
 import { CORS_HEADERS } from "../globals";
 
+function formatDate(date: Date) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+	const day = String(date.getDate()).padStart(2, '0');
+
+	return `${year}-${month}-${day}`;
+}
+
 class CompraService {
 	routes = {
 		"/api/compra": {
@@ -8,6 +16,7 @@ class CompraService {
 			GET: async () => {
 				const res = await sql`
 					SELECT
+						c.cod_comp,
 						ce.nombre_cerv,
 						c.fecha_comp,
 						dc.cant_deta_comp,
@@ -25,9 +34,10 @@ class CompraService {
 					const status = await sql`SELECT E.nombre_esta
 						FROM ESTA_COMP AS EC
 						JOIN Estatus AS E ON EC.fk_esta = E.cod_esta
-						WHERE EC.fk_comp = 1
+						WHERE EC.fk_comp = ${compra.cod_comp}
 						ORDER BY EC.cod_esta_comp DESC
 						LIMIT 1`
+					delete compra.cod_comp;
 					compra.nombre_estatus = status[0].nombre_esta
 				}
 
@@ -38,8 +48,9 @@ class CompraService {
 			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			POST: async (req: any) => {
 				const body = await req.json();
-				const new_status = { fk_comp: body.fk_comp, fk_rol: 4 }; // HACK: FK_ROL = 4 es compra pagada
-				const res = sql`insert into esta_comp ${sql(new_status)}`
+				const new_status = { fk_comp: body.fk_comp, fk_esta: 4, fecha_ini: formatDate(new Date()) }; // HACK: FK_ROL = 4 es compra pagada
+				const res = await sql`INSERT INTO ESTA_COMP ${sql(new_status)} RETURNING *`
+				console.log(res)
 				return Response.json(res, CORS_HEADERS);
 			}
 		}
