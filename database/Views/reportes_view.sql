@@ -52,7 +52,7 @@ CREATE OR REPLACE VIEW rentabilidad_tipo_total_view AS
 	GROUP BY tc.cod_tipo_cerv, tc.nombre_tipo_cerv;
 
 CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
-    SELECT t.credito::text "Es de Crédito", COUNT (t.credito)
+    SELECT t.credito::text "Es de Crédito", COUNT (t.credito) "Cantidad"
     FROM Venta v, Pago p, Metodo_Pago mp, Tarjeta t
     WHERE v.cod_vent = p.fk_vent
         AND p.fk_meto_pago = mp.cod_meto_pago
