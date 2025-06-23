@@ -9,7 +9,8 @@ class ReportService {
 			"/api/reportes/periodo_tipo_cliente/pdf": {
 				OPTIONS: () => new Response('Departed', CORS_HEADERS),
 				GET: async (req) => {
-					// La url debe verse así /api/reportes/periodo_tipo_cliente/pdf?year=año&modalidad=modalidad donde año y modalidad son parámetros requeridos
+					try {
+						// La url debe verse así /api/reportes/periodo_tipo_cliente/pdf?year=año&modalidad=modalidad donde año y modalidad son parámetros requeridos
 					const url = new URL(req.url);
 					const year = parseInt(url.searchParams.get("year") || "");
 					const modalidad = url.searchParams.get("modalidad") || "";
@@ -68,13 +69,28 @@ class ReportService {
 						"Access-Control-Allow-Headers": "Content-Type, Authorization",
 					},
 					});
+					} catch (error) {
+						console.error(error);
+						return new Response("Error interno del servidor", {
+							status: 500,
+							headers: {
+								"Access-Control-Allow-Origin": "*",
+								"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+								"Access-Control-Allow-Headers": "Content-Type, Authorization",
+								"Content-Type": "text/plain",
+							},
+						});
+						
+					}
+					
 				}
 			},
 
 			"/api/reportes/consolidar_horas/pdf": {
 				OPTIONS: () => new Response('Departed', CORS_HEADERS),
 				GET: async (req) => {
-					// La url debe verse así /api/reportes/consolidar_horas/pdf?year=año&month=mes&trimonth=trimestre&modalidad=modalidad
+					try {
+						// La url debe verse así /api/reportes/consolidar_horas/pdf?year=año&month=mes&trimonth=trimestre&modalidad=modalidad
 					const url = new URL(req.url);
 					const year = parseInt(url.searchParams.get("year") || "");
 					const month = parseInt(url.searchParams.get("month") || "");
@@ -143,13 +159,28 @@ class ReportService {
 						"Access-Control-Allow-Headers": "Content-Type, Authorization",
 					},
 					});
+					} catch (error) {
+						console.error(error);
+						return new Response("Error interno del servidor", {
+							status: 500,
+							headers: {
+								"Access-Control-Allow-Origin": "*",
+								"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+								"Access-Control-Allow-Headers": "Content-Type, Authorization",
+								"Content-Type": "text/plain",
+							},
+						});
+						
+					}
+					
 				}
 			},
 
 			"/api/reportes/productos_reposicion/pdf": {
 				OPTIONS: () => new Response('Departed', CORS_HEADERS),
 				GET: async () => {
-					// La url debe verse así /api/reportes/productos_reposicion/pdf
+					try {
+						// La url debe verse así /api/reportes/productos_reposicion/pdf
 					const data = await sql`SELECT * FROM productos_generan_repo_view`;
 					const pdfDoc = await PDFDocument.create();
 					let page = pdfDoc.addPage([780, 800]);
@@ -196,13 +227,27 @@ class ReportService {
 						"Access-Control-Allow-Headers": "Content-Type, Authorization",
 					},
 					});
+					} catch (error) {
+						console.error(error);
+						return new Response("Error interno del servidor", {
+						status: 500,
+						headers: {
+							"Access-Control-Allow-Origin": "*",
+							"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+							"Access-Control-Allow-Headers": "Content-Type, Authorization",
+							"Content-Type": "text/plain",
+						},
+						});
+					}
+					
 				}
 			},
 
 			"/api/reportes/rentabilidad_por_tipo/pdf": {
 				OPTIONS: () => new Response('Departed', CORS_HEADERS),
 				GET: async () => {
-					// La url debe verse así /api/reportes/rentabilidad_por_tipo/pdfd
+					try {
+						// La url debe verse así /api/reportes/rentabilidad_por_tipo/pdfd
 					const data = await sql`SELECT * FROM rentabilidad_tipo_view`;
 					const pdfDoc = await PDFDocument.create();
 					let page = pdfDoc.addPage([780, 800]);
@@ -282,13 +327,27 @@ class ReportService {
 							"Access-Control-Allow-Headers": "Content-Type, Authorization",
 						},
 					});
+					} catch (error) {
+						console.error(error);
+						return new Response("Error interno del servidor", {
+						status: 500,
+						headers: {
+							"Access-Control-Allow-Origin": "*",
+							"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+							"Access-Control-Allow-Headers": "Content-Type, Authorization",
+							"Content-Type": "text/plain",
+						},
+						});
+					}
+					
 				}
 			},
 
 			"/api/reportes/proporcion_tarjetas/pdf": {
 				OPTIONS: () => new Response('Departed', CORS_HEADERS),
 				GET: async () => {
-					// La url debe verse así /api/reportes/proporcion_tarjetas/pdf
+					try {
+						// La url debe verse así /api/reportes/proporcion_tarjetas/pdf
 					const data = await sql`SELECT * FROM proporcion_tarjetas_view`;
 					const pdfDoc = await PDFDocument.create();
 					let page = pdfDoc.addPage([780, 800]);
@@ -330,6 +389,18 @@ class ReportService {
 							"Access-Control-Allow-Headers": "Content-Type, Authorization",
 						},
 					});
+					} catch (error) {
+						console.error(error);
+						return new Response("Error interno del servidor", {
+						status: 500,
+						headers: {
+							"Access-Control-Allow-Origin": "*",
+							"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+							"Access-Control-Allow-Headers": "Content-Type, Authorization",
+							"Content-Type": "text/plain",
+						},
+						});
+					}
 				}
 			}
 		}
