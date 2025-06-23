@@ -1,13 +1,6 @@
 import { sql } from "bun";
 import Logger from "./logger/logger";
-
-const CORS_HEADERS = {
-	headers: {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Methods': 'OPTIONS, POST',
-		'Access-Control-Allow-Headers': '*, Authorization',
-	},
-};
+import { CORS_HEADERS } from "../globals";
 
 function* sqlColumns(obj: Object) {
 	for (const val of Object.keys(obj))
