@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Box,
   Paper,
@@ -20,10 +20,13 @@ import {
   FormControlLabel,
   Radio,
   RadioGroup,
+  Autocomplete,
 } from "@mui/material"
 import { Add, Delete } from "@mui/icons-material"
 import { useForm, useFieldArray } from "react-hook-form"
 import type { Cliente, Contacto, Telefono, Correo } from "../../interfaces"
+import { getParroquias, registrarClienteNatural, registrarClienteJuridico } from "../../services/api"
+import type { Lugar } from "../../interfaces/common"
 
 interface ClienteFormData extends Omit<Cliente, "rif_clie"> {
   rif_clie: string // Para el formulario usamos string
@@ -34,6 +37,13 @@ interface ClienteFormData extends Omit<Cliente, "rif_clie"> {
 
 export const RegistroCliente: React.FC = () => {
   const [tipoCliente, setTipoCliente] = useState<"Natural" | "Juridico">("Juridico")
+  const [lugares, setLugares] = useState<Lugar[]>([])
+  const [estados, setEstados] = useState<Lugar[]>([])
+  const [parroquias, setParroquias] = useState<Lugar[]>([])
+  const [selectedParroquiaFisica, setSelectedParroquiaFisica] = useState<number | null>(null)
+  const [selectedParroquiaFiscal, setSelectedParroquiaFiscal] = useState<number | null>(null)
+  const [loadingLugares, setLoadingLugares] = useState(false)
+  const [errorDireccion, setErrorDireccion] = useState<string>("")
 
   const {
     control,
@@ -95,9 +105,57 @@ export const RegistroCliente: React.FC = () => {
     name: "correos",
   })
 
-  const onSubmit = (data: any) => {
-    alert('Cliente registrado exitosamente (simulado)');
-    reset();
+  useEffect(() => {
+    setLoadingLugares(true)
+    getParroquias().then((data: any) => {
+      const parroquiasList = Array.isArray(data) ? data : (data?.data ?? [])
+      setParroquias(parroquiasList)
+      setEstados(parroquiasList.filter((l: Lugar) => l.tipo_luga === "Estado"))
+      setLoadingLugares(false)
+    })
+  }, [])
+
+  const onSubmit = async (data: any) => {
+    setErrorDireccion("")
+    if (!selectedParroquiaFisica || !selectedParroquiaFiscal) {
+      setErrorDireccion("Debe seleccionar parroquia para ambas direcciones.")
+      return
+    }
+    // Construir objeto para el backend
+    const clienteBase = {
+      rif_clie: data.rif_clie,
+      direccion_fiscal_clie: data.direccion_fiscal_clie,
+      direccion_fisica_clie: data.direccion_fisica_clie,
+      fk_luga_1: selectedParroquiaFiscal,
+      fk_luga_2: selectedParroquiaFisica,
+      telefonos: data.telefonos?.map((t: any) => ({ cod_area_tele: t.cod_area_tele, num_tele: t.num_tele })),
+      correos: data.correos?.map((c: any) => ({ prefijo_corr: c.prefijo_corr, dominio_corr: c.dominio_corr })),
+    }
+    let response
+    if (tipoCliente === "Natural") {
+      response = await registrarClienteNatural({
+        ...clienteBase,
+        primer_nom_natu: data.primer_nom_natu,
+        segundo_nom_natu: data.segundo_nom_natu,
+        primer_ape_natu: data.primer_ape_natu,
+        segundo_ape_natu: data.segundo_ape_natu,
+        ci_natu: data.ci_natu,
+      })
+    } else {
+      response = await registrarClienteJuridico({
+        ...clienteBase,
+        razon_social_juri: data.razon_social_juri,
+        denom_comercial_juri: data.denom_comercial_juri,
+        capital_juri: data.capital_juri,
+        pag_web_juri: data.pag_web_juri,
+      })
+    }
+    if (response?.success) {
+      alert('Cliente registrado exitosamente')
+      reset()
+    } else {
+      alert('Error al registrar cliente: ' + (response?.error || 'Error desconocido'))
+    }
   }
 
   return (
@@ -184,8 +242,14 @@ export const RegistroCliente: React.FC = () => {
                   <Typography variant="subtitle1" gutterBottom>
                     Direcciones
                   </Typography>
+                  {errorDireccion && (
+                    <Typography color="error" variant="body2" sx={{ mt: 1, mb: 1 }}>
+                      {errorDireccion}
+                    </Typography>
+                  )}
                 </Grid>
 
+                {/* Dirección Física */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
@@ -194,7 +258,20 @@ export const RegistroCliente: React.FC = () => {
                     rows={2}
                     {...register("direccion_fisica_clie")}
                   />
+                  <Autocomplete
+                    options={parroquias}
+                    getOptionLabel={(option) => option.nombre_luga}
+                    value={parroquias.find(p => p.cod_luga === selectedParroquiaFisica) || null}
+                    onChange={(_, value) => setSelectedParroquiaFisica(value ? value.cod_luga : null)}
+                    isOptionEqualToValue={(option, value) => option.cod_luga === value.cod_luga}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Parroquia" fullWidth sx={{ mt: 2 }} />
+                    )}
+                    disabled={loadingLugares}
+                  />
                 </Grid>
+
+                {/* Dirección Fiscal */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
@@ -203,27 +280,17 @@ export const RegistroCliente: React.FC = () => {
                     rows={2}
                     {...register("direccion_fiscal_clie")}
                   />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 3 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Ciudad</InputLabel>
-                    <Select label="Ciudad" {...register("fk_luga_1")}>
-                      <MenuItem value={1}>Caracas</MenuItem>
-                      <MenuItem value={2}>Valencia</MenuItem>
-                      <MenuItem value={3}>Maracay</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid size={{ xs: 12, md: 3 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Estado</InputLabel>
-                    <Select label="Estado" {...register("fk_luga_2")}>
-                      <MenuItem value={1}>Distrito Capital</MenuItem>
-                      <MenuItem value={2}>Carabobo</MenuItem>
-                      <MenuItem value={3}>Aragua</MenuItem>
-                    </Select>
-                  </FormControl>
+                  <Autocomplete
+                    options={parroquias}
+                    getOptionLabel={(option) => option.nombre_luga}
+                    value={parroquias.find(p => p.cod_luga === selectedParroquiaFiscal) || null}
+                    onChange={(_, value) => setSelectedParroquiaFiscal(value ? value.cod_luga : null)}
+                    isOptionEqualToValue={(option, value) => option.cod_luga === value.cod_luga}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Parroquia" fullWidth sx={{ mt: 2 }} />
+                    )}
+                    disabled={loadingLugares}
+                  />
                 </Grid>
               </Grid>
             </Paper>

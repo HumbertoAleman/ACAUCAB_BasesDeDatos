@@ -6,6 +6,7 @@ import type {
   MetodoPagoCompleto, 
   VentaCompleta 
 } from '../interfaces/ventas'
+import type { Lugar } from '../interfaces/common'
 
 // Configuración base de la API
 const API_URL = 'http://127.0.0.1:3000' // URL Base para todos los endpoints
@@ -513,4 +514,42 @@ export const updateUser = async (userData: { cod_usua: number; username_usua?: s
     console.error('Error updating user:', error);
     return false;
   }
+};
+
+// ===== SERVICIOS DE UBICACIÓN =====
+
+/**
+ * Obtiene todas las parroquias y estados desde el endpoint /api/parroquias
+ */
+export const getParroquias = async (): Promise<Lugar[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/parroquias`);
+    if (!response.ok) {
+      throw new Error('Error al obtener parroquias');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching parroquias:', error);
+    return [];
+  }
+};
+
+/**
+ * Registra un cliente natural
+ */
+export const registrarClienteNatural = async (cliente: any): Promise<ApiResponse<any>> => {
+  return apiRequest<any>('/natural', {
+    method: 'POST',
+    body: JSON.stringify(cliente),
+  });
+};
+
+/**
+ * Registra un cliente jurídico
+ */
+export const registrarClienteJuridico = async (cliente: any): Promise<ApiResponse<any>> => {
+  return apiRequest<any>('/juridico', {
+    method: 'POST',
+    body: JSON.stringify(cliente),
+  });
 }; 

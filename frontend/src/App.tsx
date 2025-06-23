@@ -15,6 +15,7 @@ import { GestionUsuarios } from "./pages/usuarios/GestionUsuarios"
 import { Reportes } from "./pages/reportes/Reportes"
 import { GestionPrivilegios } from "./pages/privilegios/GestionPrivilegios"
 import { RegistroMiembro } from "./pages/miembros/RegistroMiembro"
+import { RegistroCliente } from "./pages/clientes/RegistroCliente"
 
 // Crear cliente de React Query
 const queryClient = new QueryClient({
@@ -113,6 +114,7 @@ function App() {
           <AuthProvider>
             <Routes>
               <Route path="/login" element={<LoginForm />} />
+              <Route path="/registro-cliente" element={<RegistroCliente />} />
               <Route
                 path="/*"
                 element={
