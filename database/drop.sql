@@ -1,12 +1,18 @@
-DROP VIEW horas_trabajo_view;
+DROP VIEW tipo_cliente_view
 
-DROP VIEW proporcion_tarjetas_view;
+DROP VIEW horas_trabajo_view
 
-DROP VIEW productos_generan_repo_view;
+DROP VIEW productos_generan_repo_view
 
-DROP VIEW rentabilidad_tipo_view;
+DROP VIEW rentabilidad_tipo_view
 
-DROP VIEW tipo_cliente_view;
+DROP VIEW rentabilidad_tipo_total_view
+
+DROP VIEW proporcion_tarjetas_view 
+
+DROP FUNCTION periodo_tipo_cliente
+
+DROP FUNCTION consolidar_horas
 
 -- DROP Telefonos, Correos
 DROP TABLE Telefono;
@@ -138,19 +144,3 @@ DROP TABLE Miembro;
 
 -- DROP Lugar
 DROP TABLE Lugar;
-
-DROP VIEW tipo_cliente_view
-
-DROP VIEW horas_trabajo_view
-
-DROP VIEW productos_generan_repo_view
-
-DROP VIEW rentabilidad_tipo_view
-
-DROP VIEW rentabilidad_tipo_total_view
-
-DROP VIEW proporcion_tarjetas_view 
-
-DROP FUNCTION periodo_tipo_cliente
-
-DROP FUNCTION consolidar_horas
