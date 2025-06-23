@@ -44,23 +44,35 @@ class VentaService {
 		for (const pago of venta.pagos) {
 			await this.createMetodoPago(pago)
 			const id_pago = (await sql`SELECT cod_meto_pago FROM Metodo_Pago ORDER BY cod_meto_pago DESC LIMIT 1`)[0];
-			metodos_de_pago.push(id_pago);
+			metodos_de_pago.push(Number(id_pago.cod_meto_pago));
 		}
 
-		const res = await sql`CALL venta_en_tienda(
-			${venta.fecha_vent},
-			${venta.online},
-			${venta.fk_clie},
-			${venta.fk_tien},
-			${metodos_de_pago},
-			${venta.pagos.map(x => x.monto)},
-			${venta.items.map(x => x.cantidad)},
-			${venta.items.map(x => x.fk_cerv_pres_1)},
-			${venta.items.map(x => x.fk_cerv_pres_2)},
-			${venta.items.map(x => x.fk_luga_tien)}
-		)`
+		const montos = venta.pagos.map(x => Math.round(x.monto))
+		const cantidades = venta.items.map(x => x.cantidad)
+		const cervezas = venta.items.map(x => x.fk_cerv_pres_1)
+		const presentaciones = venta.items.map(x => x.fk_cerv_pres_2)
+		const lugares = venta.items.map(x => x.fk_luga_tien)
 
-		return res
+		try {
+			await sql`
+				CALL venta_en_tienda(
+				CAST(${venta.fecha_vent} AS Date),
+				CAST(${venta.online} AS Boolean),
+				CAST(${venta.fk_clie} AS Text),
+				CAST(${venta.fk_tien} AS integer),
+				CAST(ARRAY [ ${metodos_de_pago} ] AS integer[]),
+				CAST(ARRAY [ ${montos} ] AS numeric(32 ,2)[]),
+				ARRAY [ ${cantidades} ],
+				ARRAY [ ${cervezas} ],
+				ARRAY [ ${presentaciones} ] ,
+				ARRAY [ ${lugares} ])`
+			const res = (await sql`SELECT cod_vent FROM Venta ORDER BY cod_vent DESC LIMIT 1`)[0]
+			return res;
+		} catch (e) {
+			const msg = "Could not complete purchase"
+			console.error(e, msg)
+			return { "error": msg }
+		}
 	}
 }
 

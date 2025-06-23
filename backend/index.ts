@@ -90,14 +90,14 @@ Bun.serve({
 		"/api/venta": {
 			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			async POST(req, _) {
-				const res = VentaService.registerVenta((await req.json()) as APIVenta)
+				const res = await VentaService.registerVenta((await req.json()) as APIVenta)
 				return Response.json(res, CORS_HEADERS);
 			}
 		},
 
 		"/api/inventory": {
 			OPTIONS: () => new Response('Departed', CORS_HEADERS),
-			async GET(req, _) {
+			async GET() {
 				const res = await sql`SELECT C.nombre_cerv AS "nombre_producto", P.nombre_pres AS "nombre_presentacion", SUM(IT.cant_pres) AS "stock_actual", AVG(IT.precio_actual_pres)::numeric(8,2) AS "precio_usd", LT.nombre_luga_tien AS "lugar_tienda", M.razon_social_miem AS "miembro_proveedor"
 					FROM Inventario_Tienda AS IT
 					JOIN Cerveza AS C ON C.cod_cerv = IT.fk_cerv_pres_1
