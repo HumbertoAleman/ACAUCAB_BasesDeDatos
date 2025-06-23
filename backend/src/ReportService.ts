@@ -253,7 +253,8 @@ class ReportService {
 					page.drawText("Tipo de Cerveza", { x: 50, y, size: 12, font });
 					page.drawText("Nombre del Tipo", { x: 200, y, size: 12, font });
 					page.drawText("Ganancia por venta($)", { x: 350, y, size: 12, font });
-
+					y -= 20;
+					
 					for (const row of data2) {
 						page.drawText(String(row["Código Tipo"]), { x: 50, y, size: 10, font });
 						page.drawText(String(row["Nombre Tipo de Cerveza"]), { x: 200, y, size: 10, font });
