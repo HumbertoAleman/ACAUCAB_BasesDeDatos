@@ -14,6 +14,7 @@ import UsuarioService from "./src/UsuarioService";
 import VentaService from "./src/VentaService";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
+import CompraService from "./src/CompraService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -88,5 +89,6 @@ Bun.serve({
 		...InventoryService.routes,
 		...ReportService.routes,
 		...UsuarioService.routes,
+		...CompraService.routes,
 	}
 })
