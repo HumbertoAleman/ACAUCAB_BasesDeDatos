@@ -5,205 +5,94 @@ import {
   Card,
   CardContent,
   Typography,
-  Paper,
   Avatar,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Chip,
 } from "@mui/material"
-import { TrendingUp, People, Inventory, ShoppingCart, LocalBar, Event, AttachMoney, Warning } from "@mui/icons-material"
+import { Link as RouterLink } from "react-router-dom"
+import {
+  Dashboard as DashboardIcon,
+  ShoppingCart,
+  Inventory,
+  Assessment,
+  People,
+  Settings,
+  VerifiedUser,
+  Receipt,
+} from "@mui/icons-material"
+import { ROUTES } from "../config/routes"
 
-const StatCard: React.FC<{
-  title: string
-  value: string
-  icon: React.ReactNode
-  color: string
-  subtitle?: string
-}> = ({ title, value, icon, color, subtitle }) => (
-  <Card sx={{ height: "100%" }}>
-    <CardContent>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box>
-          <Typography color="textSecondary" gutterBottom variant="overline">
-            {title}
-          </Typography>
-          <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
-            {value}
-          </Typography>
-          {subtitle && (
-            <Typography variant="body2" color="textSecondary">
-              {subtitle}
-            </Typography>
-          )}
-        </Box>
-        <Avatar sx={{ backgroundColor: color, width: 56, height: 56 }}>{icon}</Avatar>
-      </Box>
-    </CardContent>
-  </Card>
-)
+const routeIcons: Record<string, React.ReactElement> = {
+  "/dashboard": <DashboardIcon />,
+  "/ventas": <ShoppingCart />,
+  "/inventario": <Inventory />,
+  "/compras": <Receipt />,
+  "/reportes": <Assessment />,
+  "/usuarios": <People />,
+  "/privilegios": <VerifiedUser />,
+  "/configuracion": <Settings />,
+}
+
+const routeColors: Record<string, string> = {
+  "/dashboard": "#2E7D32",
+  "/ventas": "#4CAF50",
+  "/inventario": "#FF9800",
+  "/compras": "#9C27B0",
+  "/reportes": "#2196F3",
+  "/usuarios": "#00ACC1",
+  "/privilegios": "#F44336",
+  "/configuracion": "#607D8B",
+}
 
 export const Dashboard: React.FC = () => {
-  const recentSales = [
-    { id: 1, client: "Hotel Caracas", amount: "Bs. 2,500.00", time: "Hace 2 horas" },
-    { id: 2, client: "Restaurante El Parador", amount: "Bs. 1,800.00", time: "Hace 4 horas" },
-    { id: 3, client: "Bodega Central", amount: "Bs. 3,200.00", time: "Hace 6 horas" },
-  ]
-
-  const lowStockItems = [
-    { name: "Destilo Amber Ale", stock: 85, status: "warning" },
-    { name: "Benitz Pale Ale", stock: 45, status: "critical" },
-    { name: "Mito Candileja", stock: 92, status: "warning" },
-  ]
+  // Solo módulos principales (inMenu)
+  const mainRoutes = ROUTES.filter(r => r.inMenu && r.path !== "/dashboard")
 
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: "bold", color: "#2E7D32" }}>
-        Dashboard
+        Bienvenido al Sistema ACAUCAB
       </Typography>
-
+      <Typography variant="body1" sx={{ mb: 4, color: "#555" }}>
+        Accede rápidamente a los módulos principales del sistema:
+      </Typography>
       <Grid container spacing={3}>
-        {/* Estadísticas principales */}
-        <Grid size={{ xs: 12, sm: 6, md:3 }}>
-          <StatCard
-            title="Ventas del Día"
-            value="Bs. 12,450"
-            icon={<AttachMoney />}
-            color="#4CAF50"
-            subtitle="+15% vs ayer"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md:3 }}>
-          <StatCard
-            title="Clientes Activos"
-            value="1,234"
-            icon={<People />}
-            color="#2196F3"
-            subtitle="89 nuevos este mes"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md:3 }}>
-          <StatCard
-            title="Productos en Stock"
-            value="45,678"
-            icon={<Inventory />}
-            color="#FF9800"
-            subtitle="12 productos bajo mínimo"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md:3 }}>
-          <StatCard
-            title="Órdenes Pendientes"
-            value="23"
-            icon={<ShoppingCart />}
-            color="#9C27B0"
-            subtitle="5 para entrega hoy"
-          />
-        </Grid>
-
-        {/* Ventas recientes */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <TrendingUp />
-              Ventas Recientes
-            </Typography>
-            <List>
-              {recentSales.map((sale) => (
-                <ListItem key={sale.id}>
-                  <ListItemAvatar>
-                    <Avatar sx={{ backgroundColor: "#E8F5E8", color: "#2E7D32" }}>
-                      <ShoppingCart />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText primary={sale.client} secondary={sale.time} />
-                  <Typography variant="h6" sx={{ color: "#2E7D32", fontWeight: "bold" }}>
-                    {sale.amount}
-                  </Typography>
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-
-        {/* Alertas de inventario */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Warning />
-              Alertas de Inventario
-            </Typography>
-            <List>
-              {lowStockItems.map((item, index) => (
-                <ListItem key={index}>
-                  <ListItemAvatar>
-                    <Avatar sx={{ backgroundColor: "#FFF3E0", color: "#F57C00" }}>
-                      <LocalBar />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText primary={item.name} secondary={`${item.stock} unidades restantes`} />
-                  <Chip
-                    label={item.status === "critical" ? "Crítico" : "Bajo"}
-                    color={item.status === "critical" ? "error" : "warning"}
-                    size="small"
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-
-        {/* Próximos eventos */}
-        <Grid size={{ xs: 12 }}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Event />
-              Próximos Eventos
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" color="primary">
-                      Festival de Cerveza Artesanal
-                    </Typography>
-                    <Typography color="textSecondary">15 de Abril, 2024</Typography>
-                    <Typography variant="body2">Plaza Venezuela, Caracas</Typography>
-                    <Chip label="Confirmado" color="success" size="small" sx={{ mt: 1 }} />
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" color="primary">
-                      Taller de Cata
-                    </Typography>
-                    <Typography color="textSecondary">22 de Abril, 2024</Typography>
-                    <Typography variant="body2">Sede ACAUCAB</Typography>
-                    <Chip label="Planificando" color="warning" size="small" sx={{ mt: 1 }} />
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" color="primary">
-                      UBirra 2024
-                    </Typography>
-                    <Typography color="textSecondary">5 de Mayo, 2024</Typography>
-                    <Typography variant="body2">Plaza Mickey, Caracas</Typography>
-                    <Chip label="En preparación" color="info" size="small" sx={{ mt: 1 }} />
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
+        {mainRoutes.map(route => (
+          <Grid key={route.path} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+            <Card
+              component={RouterLink}
+              to={route.path}
+              sx={{
+                textDecoration: "none",
+                transition: "box-shadow 0.2s, transform 0.2s",
+                boxShadow: 3,
+                borderRadius: 3,
+                '&:hover': {
+                  boxShadow: 8,
+                  transform: "scale(1.04)",
+                },
+                height: 220,
+                minWidth: 220,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                background: `linear-gradient(135deg, ${routeColors[route.path] || "#2E7D32"}22 0%, #fff 100%)`,
+                p: 3,
+              }}
+            >
+              <Avatar sx={{ bgcolor: routeColors[route.path] || "#2E7D32", width: 64, height: 64, mb: 2, mx: "auto" }}>
+                {routeIcons[route.path] || <Settings />}
+              </Avatar>
+              <CardContent sx={{ textAlign: "center", p: 0, width: "100%" }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: routeColors[route.path] || "#2E7D32", mb: 1 }}>
+                  {route.title}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ px: 1 }}>
+                  {route.description}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
     </Box>
   )
