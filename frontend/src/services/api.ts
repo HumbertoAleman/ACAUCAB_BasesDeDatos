@@ -583,4 +583,40 @@ export const createUsuarioCliente = async (data: {
     method: 'POST',
     body: JSON.stringify(data),
   });
+};
+
+// Obtener todas las compras
+export const getCompras = async (): Promise<any[]> => {
+  try {
+    const token = localStorage.getItem('acaucab_token');
+    const response = await fetch('http://127.0.0.1:3000/api/compra', {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    const data = await response.json();
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.data)) return data.data;
+    return [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
+  try {
+    const token = localStorage.getItem('acaucab_token');
+    const response = await fetch('http://127.0.0.1:3000/api/set_compra_pagada', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ fk_comp }),
+    });
+    return response.ok;
+  } catch (e) {
+    return false;
+  }
 }; 

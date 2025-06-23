@@ -4,6 +4,7 @@ import { Reportes } from "../pages/reportes/Reportes";
 import { GestionUsuarios } from "../pages/usuarios/GestionUsuarios";
 import { PuntoVenta } from "../pages/ventas/PuntoVenta";
 import { GestionPrivilegios } from "../pages/privilegios/GestionPrivilegios";
+import { GestionOrdenes } from "../pages/compras/GestionOrdenes";
 
 export interface RouteConfig {
   path: string
@@ -34,6 +35,13 @@ export const ROUTES: RouteConfig[] = [
     permission: "inventario_read",
     title: "Inventario",
     description: "Gestión de inventario y productos",
+    inMenu: true,
+  },
+  {
+    path: "/compras",
+    permission: "inventario_read",
+    title: "Órdenes de Compra",
+    description: "Gestión de órdenes de reposición",
     inMenu: true,
   },
   {
