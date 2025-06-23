@@ -2,7 +2,7 @@ import { sql } from "bun";
 import { CORS_HEADERS } from "../globals";
 
 class InventoryService {
-	inventoryRoutes = {
+	routes = {
 		"/api/inventory": {
 			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			async GET() {

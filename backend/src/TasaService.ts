@@ -8,7 +8,7 @@ class TasaService {
 		return sql` SELECT * FROM Tasa WHERE fecha_fin_tasa IS NULL LIMIT 1`
 	}
 
-	tasaRoutes = {
+	routes = {
 		"/api/tasa": {
 			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			GET: async () => {

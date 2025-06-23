@@ -41,7 +41,7 @@ class PrivilegesService {
 		return await sql`DELETE FROM PRIV_ROL WHERE fk_rol = ${fk_rol} AND fk_priv = ${fk_priv}`;
 	}
 
-	privilegesRoutes = {
+	routes = {
 		"/api/privileges": {
 			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
 			GET: async () => {

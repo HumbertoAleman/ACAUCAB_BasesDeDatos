@@ -32,7 +32,7 @@ class ClientesService {
 			GROUP BY C.rif_clie`;
 	};
 
-	clientesRoutes = {
+	routes = {
 		"/api/clientes": {
 			GET: async () => {
 				const res = await this.getAllClientes()

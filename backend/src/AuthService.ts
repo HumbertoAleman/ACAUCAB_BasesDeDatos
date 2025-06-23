@@ -14,7 +14,7 @@ class AuthService {
 
 	user_tokens: { [key: string]: string } = {};
 
-	authRoutes = {
+	routes = {
 		"/api/auth/verify": {
 			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			GET: () => { return Response.json({ success: true }, CORS_HEADERS) }

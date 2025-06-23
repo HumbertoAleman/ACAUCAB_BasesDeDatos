@@ -2,7 +2,7 @@ import { sql } from "bun";
 import { CORS_HEADERS } from "../globals";
 
 class RolService {
-	rolRoutes = {
+	routes = {
 		"/api/roles": {
 			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			GET: async () => {
