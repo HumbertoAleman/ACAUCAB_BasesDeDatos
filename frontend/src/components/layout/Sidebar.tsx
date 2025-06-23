@@ -20,6 +20,7 @@ import {
   People,
   Settings,
   VerifiedUser, // Icono para privilegios
+  Receipt, // Icono para compras
 } from "@mui/icons-material"
 import { Link as RouterLink, useLocation } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
@@ -32,6 +33,7 @@ const routeIcons: Record<string, React.ReactElement> = {
   "/dashboard": <Dashboard />,
   "/ventas": <ShoppingCart />,
   "/inventario": <Inventory />,
+  "/compras": <Receipt />,
   "/reportes": <Assessment />,
   "/usuarios": <People />,
   "/privilegios": <VerifiedUser />,
