@@ -11,6 +11,7 @@ import VentaService, { type APIVenta } from "./src/VentaService";
 import AuthService from "./src/AuthService";
 import RolService from "./src/RolService";
 import InventoryService from "./src/InventoryService";
+import UsuarioService from "./src/UsuarioService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -82,6 +83,7 @@ Bun.serve({
 		...InventoryService.routes,
 		...TasaService.routes,
 		...VentaService.routes,
+		...UsuarioService.routes,
 
 
 	}
