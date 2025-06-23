@@ -3,8 +3,9 @@ services:
   # Database service
   db:
     image: postgres:alpine
-    restart: always
+    restart: unless-stopped
     environment:
+      POSTGRES_DB: acaucab_test
       POSTGRES_PASSWORD: admin
     volumes:
       - /var/lib/postgresql/data
@@ -14,7 +15,7 @@ services:
   # Database user interface
   pgadmin:
     image: dpage/pgadmin4
-    restart: always
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
@@ -24,21 +25,23 @@ services:
   # Frontend
   react:
     image: oven/bun
-    restart: always
-    volumes:                   # 1. Create a virtual volume 
-      - type: bind             # and bind it to the real folder
-        source: ./frontend     # 2. Bind ./frontend
-        target: /home/bun/app  # to /front (in the container)
-    working_dir: /home/bun/app # 3. Set workdir to /home/bun/app
-    command: bun run dev       # 4. Run dev script in /home/bun/app
+    restart: unless-stopped
+    volumes:                    # 1. Create a virtual volume 
+      - type: bind              # and bind it to the real folder
+        source: ./frontend      # 2. Bind ./frontend
+        target: /home/bun/app   # to /front (in the container)
+    working_dir: /home/bun/app  # 3. Set workdir to /home/bun/app
+    command: bun run dev --host # 4. Run dev script in /home/bun/app
     ports:
-      - 3000:3000
+      - 5173:5173
 
 
-  # Frontend
+  # Backend
   backend:
     image: oven/bun
-    restart: always
+    restart: unless-stopped
+    environment:
+      POSTGRES_URL: postgres://postgres:admin@db:5432/acaucab_test
     volumes:                   # 1. Create a virtual volume 
       - type: bind             # and bind it to the real folder
         source: ./backend      # 2. Bind ./backend
@@ -46,4 +49,4 @@ services:
     working_dir: /home/bun/app # 3. Set workdir to /home/bun/app
     command: bun run dev       # 4. Run dev script in /home/bun/app
     ports:
-      - 3001:3000
+      - 3000:3000

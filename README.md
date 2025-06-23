@@ -36,8 +36,8 @@ Para desarrollar el proyecto se tiene que correr:
 
 Para correr todo esto sin tener que instalar las dependencias -- para evitar peos de versiones y compatibilidad -- descarguen [Docker Desktop](https://www.docker.com/products/docker-desktop/) y corranlo para que utilice el archivo [compose.yaml](https://github.com/HumbertoAleman/ACAUCAB_BasesDeDatos/blob/main/compose.yaml). Este archivo tiene declarado 4 contenedores, los cuales correran todas las dependencias.
 
-- Frontend corre en el [puerto 3000](127.0.0.1:3000)
-- Backend corre en el [puerto 3001](127.0.0.1:3001)
+- Frontend corre en el [puerto 5173](127.0.0.1:5173)
+- Backend corre en el [puerto 3000](127.0.0.1:3000)
 - Postgres corre en el [puerto 5432](127.0.0.1:5432)
 - PGAdmin corre en el [puerto 8080](127.0.0.1:8080)
 

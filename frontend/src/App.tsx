@@ -1,34 +1,149 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { ThemeProvider, createTheme } from "@mui/material/styles"
+import CssBaseline from "@mui/material/CssBaseline"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 
-import { Box, Typography, Button } from '@mui/material';
+import { AuthProvider } from "./contexts/AuthContext"
+import { ProtectedRoute } from "./components/ProtectedRoute"
+import { Layout } from "./components/layout/Layout"
+import { LoginForm } from "./components/auth/LoginForm"
+import { Dashboard } from "./pages/Dashboard"
+import { PuntoVenta } from "./pages/ventas/PuntoVenta"
+import { GestionInventario } from "./pages/inventario/GestionInventario"
+import { GestionUsuarios } from "./pages/usuarios/GestionUsuarios"
+import { Reportes } from "./pages/reportes/Reportes"
+import { GestionPrivilegios } from "./pages/privilegios/GestionPrivilegios"
+import { RegistroMiembro } from "./pages/miembros/RegistroMiembro"
+import { RegistroCliente } from "./pages/clientes/RegistroCliente"
+import { GestionOrdenes } from "./pages/compras/GestionOrdenes"
+
+// Crear cliente de React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
+// Tema personalizado para ACAUCAB
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#2E7D32",
+      light: "#4CAF50",
+      dark: "#1B5E20",
+    },
+    secondary: {
+      main: "#FF8F00",
+      light: "#FFB74D",
+      dark: "#E65100",
+    },
+    background: {
+      default: "#f8f9fa",
+      paper: "#ffffff",
+    },
+    success: {
+      main: "#4CAF50",
+    },
+    warning: {
+      main: "#FF9800",
+    },
+    error: {
+      main: "#f44336",
+    },
+  },
+  typography: {
+    fontFamily: "Roboto, Arial, sans-serif",
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 500,
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          borderRadius: 8,
+          fontWeight: 500,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+          border: "1px solid rgba(0,0,0,0.05)",
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 8,
+          },
+        },
+      },
+    },
+  },
+})
 
 function App() {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#e0f7fa', // Color de fondo claro
-        textAlign: 'center',
-        p: 3, // Padding
-      }}
-    >
-      <Typography variant="h3" component="h1" gutterBottom>
-        ¡Bienvenido a ACAUCAB!
-      </Typography>
-      <Typography variant="h6" color="text.secondary" paragraph>
-        Esta es la página de inicio de tu aplicación frontend.
-      </Typography>
-      <Typography variant="body1" sx={{ mb: 4 }}>
-        Estamos listos para construir.
-      </Typography>
-      <Button variant="contained" color="primary" size="large">
-        Comenzar
-      </Button>
-    </Box>
-  );
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<LoginForm />} />
+              <Route path="/registro-cliente" element={<RegistroCliente />} />
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Routes>
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/ventas" element={<PuntoVenta />} />
+                        <Route path="/inventario" element={<GestionInventario />} />
+                        <Route path="/compras" element={<GestionOrdenes />} />
+                        <Route path="/usuarios" element={<GestionUsuarios />} />
+                        <Route path="/reportes" element={<Reportes />} />
+                        <Route path="/privilegios" element={<GestionPrivilegios />} />
+                        <Route path="/miembros/registro" element={<RegistroMiembro />} />
+                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                      </Routes>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </AuthProvider>
+        </Router>
+      </ThemeProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  )
 }
 
-export default App;
+export default App

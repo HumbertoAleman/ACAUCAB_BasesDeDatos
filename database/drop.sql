@@ -1,3 +1,13 @@
+DROP VIEW horas_trabajo_view;
+
+DROP VIEW proporcion_tarjetas_view;
+
+DROP VIEW productos_generan_repo_view;
+
+DROP VIEW rentabilidad_tipo_view;
+
+DROP VIEW tipo_cliente_view;
+
 -- DROP Telefonos, Correos
 DROP TABLE Telefono;
 
