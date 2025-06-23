@@ -18,6 +18,17 @@ class InventoryService {
 				for (const item of res)
 					item.estado = (item.stock_actual > 100) ? "Disponible" : ((item.stock_actual === 0) ? "Agotado" : "Bajo Stock")
 				return Response.json(res, CORS_HEADERS);
+			},
+			PUT: async (req: any) => {
+				const body = await req.json();
+				const res = await sql`
+					UPDATE Inventario_Tienda
+					SET cant_pres = ${body.cant_pres}
+					WHERE fk_cerv_pres_1 = ${body.fk_cerv_pres_1}
+						AND fk_cerv_pres_2 = ${body.fk_cerv_pres_2}
+						AND fk_tien = ${body.fk_tien}
+						AND fk_luga_tien = ${body.fk_luga_tien} RETURNING *`
+				return Response.json(res, CORS_HEADERS);
 			}
 		}
 	}
