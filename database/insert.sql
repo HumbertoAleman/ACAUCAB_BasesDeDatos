@@ -3409,8 +3409,6 @@ ARRAY[
 'Cata de Cervezas Yaracuy', 'Recorrido Cerveceria Yaracuy', 'Festival de Cervezas Yaracuy', 'Cena de Maridaje Yaracuy', 'Taller de Elaboracion Yaracuy',
 'Cata de Cervezas Zulia', 'Recorrido Cerveceria Zulia', 'Festival de Cervezas Zulia', 'Cena de Maridaje Zulia', 'Taller de Elaboracion Zulia'
 ] :: varchar(40)[],
-
--- Fechas y horas de inicio
 ARRAY[
 '2025-07-01 16:00:00','2025-07-01 17:00:00','2025-07-01 18:00:00','2025-07-01 19:00:00','2025-07-01 20:00:00',
 '2025-07-02 16:00:00','2025-07-02 17:00:00','2025-07-02 18:00:00','2025-07-02 19:00:00','2025-07-02 20:00:00',
@@ -3437,8 +3435,6 @@ ARRAY[
 '2025-07-23 16:00:00','2025-07-23 17:00:00','2025-07-23 18:00:00','2025-07-23 19:00:00','2025-07-23 20:00:00',
 '2025-07-24 16:00:00','2025-07-24 17:00:00','2025-07-24 18:00:00','2025-07-24 19:00:00','2025-07-24 20:00:00'
 ] :: timestamp[],
-
--- Fechas y horas de fin
 ARRAY[
 '2025-07-01 20:00:00','2025-07-01 21:00:00','2025-07-01 22:00:00','2025-07-01 23:00:00','2025-07-01 23:30:00',
 '2025-07-02 20:00:00','2025-07-02 21:00:00','2025-07-02 22:00:00','2025-07-02 23:00:00','2025-07-02 23:30:00',
@@ -3465,8 +3461,6 @@ ARRAY[
 '2025-07-23 20:00:00','2025-07-23 21:00:00','2025-07-23 22:00:00','2025-07-23 23:00:00','2025-07-23 23:30:00',
 '2025-07-24 20:00:00','2025-07-24 21:00:00','2025-07-24 22:00:00','2025-07-24 23:00:00','2025-07-24 23:30:00'
 ] :: timestamp[],
-
--- Direcciones
 ARRAY[
 'Calle Fernando Giron Tovar, Puerto Ayacucho, Amazonas','Calle Luis Alberto Gomez, Puerto Ayacucho, Amazonas','Calle Parhueña, Puerto Ayacucho, Amazonas','Calle Platanillal, Puerto Ayacucho, Amazonas','Avenida La Esmeralda, Alto Orinoco, Amazonas',
 'Calle Anaco, Anaco, Anzoategui','Avenida San Joaquin, Anaco, Anzoategui','Calle Cachipo, Aragua de Barcelona, Anzoategui','Avenida Lecheria, Lecheria, Anzoategui','Calle El Morro, Lecheria, Anzoategui',
@@ -3493,13 +3487,9 @@ ARRAY[
 'Calle San Felipe, San Felipe, Yaracuy','Avenida Yaracuy, San Felipe, Yaracuy','Calle Yaritagua, Yaritagua, Yaracuy','Calle Chivacoa, Chivacoa, Yaracuy','Calle Nirgua, Nirgua, Yaracuy',
 'Calle Maracaibo, Maracaibo, Zulia','Avenida Bella Vista, Maracaibo, Zulia','Calle Cabimas, Cabimas, Zulia','Calle Ciudad Ojeda, Ciudad Ojeda, Zulia','Calle San Francisco, San Francisco, Zulia'
 ] :: text[],
-
--- Capacidades
 ARRAY[
 100,120,80,150,90,110,130,85,140,95,200,180,160,220,170,105,125,95,155,100,115,135,90,145,98,108,128,88,138,93,112,132,92,142,97,107,127,87,137,91,109,129,89,139,94,106,126,86,136,99,111,131,91,141,96,104,124,84,134,101,113,133,83,143,102,114,134,82,144,103,116,136,81,146,104,117,137,80,147,105,118,138,79,148,106,119,139,78,149,107,120,140,77,150,108,121,141,76,151,109,122,142,75,152,110,123,143,74,153,111,124,144,73,154,112,125,145,72,155,113,126,146,71,156,114,127,147,70,157,115,128,148,69,158,116,129,149,68,159,117,130,150,67,160,118,131,151,66,161,119,132,152,65,162,120,133,153,64,163,121,134,154,63,164,122,135,155,62,165,123,136,156,61,166,124,137,157,60,167,125,138,158,59,168,126,139,159,58,169,127,140,160
 ] :: integer[],
-
--- Descripciones
 ARRAY[
 'Cata guiada de cervezas artesanales de Amazonas','Recorrido por la cervecería local de Amazonas','Festival con las mejores cervezas de Amazonas','Cena de maridaje con cervezas y platos típicos de Amazonas','Taller práctico de elaboración de cerveza en Amazonas',
 'Cata guiada de cervezas artesanales de Anzoategui','Recorrido por la cervecería local de Anzoategui','Festival con las mejores cervezas de Anzoategui','Cena de maridaje con cervezas y platos típicos de Anzoategui','Taller práctico de elaboración de cerveza en Anzoategui',
@@ -3526,18 +3516,12 @@ ARRAY[
 'Cata guiada de cervezas artesanales de Yaracuy','Recorrido por la cervecería local de Yaracuy','Festival con las mejores cervezas de Yaracuy','Cena de maridaje con cervezas y platos típicos de Yaracuy','Taller práctico de elaboración de cerveza en Yaracuy',
 'Cata guiada de cervezas artesanales de Zulia','Recorrido por la cervecería local de Zulia','Festival con las mejores cervezas de Zulia','Cena de maridaje con cervezas y platos típicos de Zulia','Taller práctico de elaboración de cerveza en Zulia'
 ] :: text[],
-
--- Precios de entradas
 ARRAY[
 15.00,20.00,25.00,30.00,18.00,16.00,21.00,26.00,31.00,19.00,35.00,40.00,45.00,50.00,38.00,17.00,22.00,27.00,32.00,20.00,18.50,23.00,28.00,33.00,21.00,19.50,24.00,29.00,34.00,22.00,20.50,25.00,30.00,35.00,23.00,21.50,26.00,31.00,36.00,24.00,22.50,27.00,32.00,37.00,25.00,23.50,28.00,33.00,38.00,26.00,24.50,29.00,34.00,39.00,27.00,25.50,30.00,35.00,40.00,28.00,26.50,31.00,36.00,41.00,29.00,27.50,32.00,37.00,42.00,30.00,28.50,33.00,38.00,43.00,31.00,29.50,34.00,39.00,44.00,32.00,30.50,35.00,40.00,45.00,33.00,31.50,36.00,41.00,46.00,34.00,32.50,37.00,42.00,47.00,35.00,33.50,38.00,43.00,48.00,36.00,34.50,39.00,44.00,49.00,37.00,35.50,40.00,45.00,50.00,38.00,36.50,41.00,46.00,51.00,39.00,37.50,42.00,47.00,52.00,40.00,38.50,43.00,48.00,53.00,41.00,39.50,44.00,49.00,54.00,42.00,40.50,45.00,50.00,55.00
 ] :: numeric (8,2) [],
-
--- Cantidad máxima de entradas (igual que capacidad)
 ARRAY[
 100,120,80,150,90,110,130,85,140,95,200,180,160,220,170,105,125,95,155,100,115,135,90,145,98,108,128,88,138,93,112,132,92,142,97,107,127,87,137,91,109,129,89,139,94,106,126,86,136,99,111,131,91,141,96,104,124,84,134,101,113,133,83,143,102,114,134,82,144,103,116,136,81,146,104,117,137,80,147,105,118,138,79,148,106,119,139,78,149,107,120,140,77,150,108,121,141,76,151,109,122,142,75,152,110,123,143,74,153,111,124,144,73,154,112,125,145,72,155,113,126,146,71,156,114,127,147,70,157,115,128,148,69,158,116,129,149,68,159,117,130,150,67,160,118,131,151,66,161,119,132,152,65,162,120,133,153,64,163,121,134,154,63,164,122,135,155,62,165,123,136,156,61,166,124,137,157,60,167,125,138,158,59,168,126,139,159,58,169,127,140,160
 ] :: integer[],
-
--- Tipos de eventos (alternando los 10 tipos)
 ARRAY[
 'Cata de cervezas','Recorrido por cerveceria','Festival de Cervezas','Cena de Maridaje','Taller de Elaboracion de Cerveza',
 'Fiesta de Lanzamiento de Cervezas de Temporada','Noche de Musica en Vivo','Noche de Trivia','Evento de Cerveza y Arte','Evento de Networking Para Cerveceros',
@@ -3566,8 +3550,6 @@ ARRAY[
 'Cata de cervezas','Recorrido por cerveceria','Festival de Cervezas','Cena de Maridaje','Taller de Elaboracion de Cerveza',
 'Fiesta de Lanzamiento de Cervezas de Temporada','Noche de Musica en Vivo','Noche de Trivia','Evento de Cerveza y Arte','Evento de Networking Para Cerveceros'
 ] :: varchar(60)[],
-
--- Parroquias (cada 5 de un estado distinto)
 ARRAY[
 'Fernando Giron Tovar','Luis Alberto Gomez','Parhueña','Platanillal','La Esmeralda',
 'Anaco','San Joaquin','Cachipo','Aragua de Barcelona','Lecheria',
@@ -3594,8 +3576,6 @@ ARRAY[
 'Aristides Bastidas','Bolivar','Chivacoa','Cocorote','Independencia',
 'Isla de Toas','San Timoteo','Ambrosio','Encontrados','San Carlos del Zulia'
 ] :: varchar(40)[],
-
--- Estados (24, uno por cada grupo de 5 eventos)
 ARRAY[
 'Amazonas','Anzoategui','Apure','Aragua','Barinas','Bolivar','Carabobo','Cojedes','Delta Amacuro','Distrito Capital','Falcon','Guarico','La Guaira','Lara','Merida','Miranda','Monagas','Nueva Esparta','Portuguesa','Sucre','Tachira','Trujillo','Yaracuy','Zulia'
 ] :: varchar(40)[]
