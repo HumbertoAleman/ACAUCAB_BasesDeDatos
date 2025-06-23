@@ -17,7 +17,18 @@ import {
   MenuItem,
   Divider,
 } from "@mui/material"
-import { Download, Assessment, TrendingUp, PieChart, BarChart } from "@mui/icons-material"
+import {
+  Download,
+  Assessment,
+  TrendingUp,
+  PieChart,
+  BarChart,
+  PeopleAlt,
+  AccessTime,
+  Warning,
+  MonetizationOn,
+  CreditCard,
+} from "@mui/icons-material"
 
 interface Reporte {
   id: string
@@ -29,31 +40,40 @@ interface Reporte {
 
 const reportesDisponibles: Reporte[] = [
   {
-    id: "ventas-diarias",
-    nombre: "Reporte de Ventas Diarias",
-    descripcion: "Resumen de ventas por día con detalles de productos y métodos de pago",
-    icono: <TrendingUp />,
-    parametros: ["fecha_inicio", "fecha_fin"],
+    id: "clientes-nuevos",
+    nombre: "Reporte de Registros de Clientes Nuevos",
+    descripcion:
+      "Detalla la cantidad de personas jurídicas y naturales que se han registrado en un período dado (Mensual/Trimestral).",
+    icono: <PeopleAlt />,
+    parametros: ["año", "modalidad_cliente"],
   },
   {
-    id: "inventario-actual",
-    nombre: "Estado Actual del Inventario",
-    descripcion: "Listado completo del inventario con stock actual y alertas",
-    icono: <Assessment />,
+    id: "horas-laboradas",
+    nombre: "Horas Laboradas por Empleado",
+    descripcion:
+      "Consolida las horas de entrada y salida de cada empleado para calcular sus horas trabajadas en un período de tiempo.",
+    icono: <AccessTime />,
+    parametros: ["año", "mes", "modalidad_horas"],
   },
   {
-    id: "productos-mas-vendidos",
-    nombre: "Productos Más Vendidos",
-    descripcion: "Ranking de productos por cantidad vendida en un período",
-    icono: <BarChart />,
-    parametros: ["fecha_inicio", "fecha_fin", "limite"],
+    id: "inventario-critico",
+    nombre: "Productos en Nivel Crítico de Inventario",
+    descripcion:
+      "Lista todos los productos que han alcanzado el umbral de cien (100) unidades disponibles.",
+    icono: <Warning />,
   },
   {
-    id: "clientes-frecuentes",
-    nombre: "Clientes Más Frecuentes",
-    descripcion: "Listado de clientes con mayor frecuencia de compra",
-    icono: <PieChart />,
-    parametros: ["fecha_inicio", "fecha_fin"],
+    id: "rentabilidad-cerveza",
+    nombre: "Rentabilidad por Tipo de Cerveza",
+    descripcion: "Ganancias generadas por cada tipo de cerveza (Lager, Ale, Trigo, Belga, etc.).",
+    icono: <MonetizationOn />,
+  },
+  {
+    id: "metodos-pago-online",
+    nombre: "Análisis de Métodos de Pago Online",
+    descripcion:
+      "Muestra la proporción de uso de cada tipo de tarjeta de crédito en las transacciones de compra a través de internet.",
+    icono: <CreditCard />,
   },
 ]
 
@@ -138,13 +158,29 @@ export const Reportes: React.FC = () => {
                     </Typography>
 
                     {reporteSeleccionado.parametros.map((parametro) => {
-                      if (parametro === "fecha_inicio" || parametro === "fecha_fin") {
+                      if (parametro === "año") {
                         return (
                           <TextField
                             key={parametro}
                             fullWidth
-                            label={parametro === "fecha_inicio" ? "Fecha Inicio" : "Fecha Fin"}
-                            type="date"
+                            label="Año"
+                            type="number"
+                            placeholder="Ej. 2024"
+                            value={parametros[parametro] || ""}
+                            onChange={(e) => handleParametroChange(parametro, e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            sx={{ mb: 2 }}
+                          />
+                        )
+                      }
+                      if (parametro === "mes") {
+                        return (
+                          <TextField
+                            key={parametro}
+                            fullWidth
+                            label="Mes"
+                            type="number"
+                            placeholder="Ej. 7"
                             value={parametros[parametro] || ""}
                             onChange={(e) => handleParametroChange(parametro, e.target.value)}
                             InputLabelProps={{ shrink: true }}
@@ -153,34 +189,42 @@ export const Reportes: React.FC = () => {
                         )
                       }
 
-                      if (parametro === "limite") {
+                      if (parametro === "modalidad_cliente") {
                         return (
                           <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
-                            <InputLabel>Límite de Resultados</InputLabel>
+                            <InputLabel>Modalidad</InputLabel>
                             <Select
-                              value={parametros[parametro] || "10"}
+                              value={parametros[parametro] || "mensual"}
                               onChange={(e) => handleParametroChange(parametro, e.target.value)}
-                              label="Límite de Resultados"
+                              label="Modalidad"
                             >
-                              <MenuItem value="10">10</MenuItem>
-                              <MenuItem value="25">25</MenuItem>
-                              <MenuItem value="50">50</MenuItem>
-                              <MenuItem value="100">100</MenuItem>
+                              <MenuItem value="mensual">Mensual</MenuItem>
+                              <MenuItem value="trimestral">Trimestral</MenuItem>
                             </Select>
                           </FormControl>
                         )
                       }
 
-                      return (
-                        <TextField
-                          key={parametro}
-                          fullWidth
-                          label={parametro}
-                          value={parametros[parametro] || ""}
-                          onChange={(e) => handleParametroChange(parametro, e.target.value)}
-                          sx={{ mb: 2 }}
-                        />
-                      )
+                      if (parametro === "modalidad_horas") {
+                        return (
+                          <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
+                            <InputLabel>Modalidad</InputLabel>
+                            <Select
+                              value={parametros[parametro] || "diaria"}
+                              onChange={(e) => handleParametroChange(parametro, e.target.value)}
+                              label="Modalidad"
+                            >
+                              <MenuItem value="diaria">Diaria</MenuItem>
+                              <MenuItem value="semanal">Semanal</MenuItem>
+                              <MenuItem value="mensual">Mensual</MenuItem>
+                              <MenuItem value="semestral">Semestral</MenuItem>
+                              <MenuItem value="anual">Anual</MenuItem>
+                            </Select>
+                          </FormControl>
+                        )
+                      }
+
+                      return null
                     })}
                   </Box>
                 )}

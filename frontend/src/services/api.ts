@@ -579,7 +579,7 @@ export const createUsuarioCliente = async (data: {
   fk_clie: string,
   tipo_clie: string
 }): Promise<ApiResponse<any>> => {
-  return apiRequest<any>('/clientes', {
+  return apiRequest<any>('/user', {
     method: 'POST',
     body: JSON.stringify(data),
   });
