@@ -552,4 +552,20 @@ export const registrarClienteJuridico = async (cliente: any): Promise<ApiRespons
     method: 'POST',
     body: JSON.stringify(cliente),
   });
+};
+
+/**
+ * Actualiza la cantidad de un producto en el inventario
+ */
+export const updateInventarioItem = async (item: {
+  fk_cerv_pres_1: number,
+  fk_cerv_pres_2: number,
+  fk_tien: number,
+  fk_luga_tien: number,
+  cant_pres: number
+}): Promise<ApiResponse<any>> => {
+  return apiRequest<any>('/inventario', {
+    method: 'PUT',
+    body: JSON.stringify(item),
+  });
 }; 

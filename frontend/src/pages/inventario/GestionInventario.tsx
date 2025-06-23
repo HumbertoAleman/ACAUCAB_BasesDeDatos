@@ -30,7 +30,7 @@ import {
   Pagination,
 } from "@mui/material"
 import { Search, Edit, Delete, ShoppingCart, Refresh, CheckCircle, Warning } from "@mui/icons-material"
-import { getProductosInventario } from "../../services/api";
+import { getProductosInventario, updateInventarioItem } from "../../services/api";
 import type { ProductoInventario } from "../../interfaces/ventas";
 
 const updateStock = async (id_inventario: number, nuevo_stock: number) => {
@@ -116,9 +116,15 @@ export const GestionInventario: React.FC = () => {
     if (!selectedItem || editedStock === "") return;
     const nuevoStockNum = parseInt(editedStock, 10);
     if (!isNaN(nuevoStockNum)) {
-        await updateStock(selectedItem.fk_cerv_pres_1, nuevoStockNum);
-        setEditModalOpen(false);
-        await cargarInventario();
+      await updateInventarioItem({
+        fk_cerv_pres_1: selectedItem.fk_cerv_pres_1,
+        fk_cerv_pres_2: selectedItem.fk_cerv_pres_2,
+        fk_tien: 1,
+        fk_luga_tien: selectedItem.fk_luga_tien,
+        cant_pres: nuevoStockNum,
+      });
+      setEditModalOpen(false);
+      await cargarInventario();
     }
   };
 
@@ -216,9 +222,6 @@ export const GestionInventario: React.FC = () => {
                     <Tooltip title="Editar Stock">
                       <IconButton size="small" onClick={() => handleOpenEditModal(item)}><Edit /></IconButton>
                     </Tooltip>
-                    <Tooltip title="Ordenar Reposición">
-                      <IconButton size="small" color="primary" onClick={() => handleOpenRestockModal(item)}><ShoppingCart /></IconButton>
-                    </Tooltip>
                     <Tooltip title="Eliminar Registro">
                       <IconButton size="small" color="error" onClick={() => handleDelete(item.fk_cerv_pres_1)}><Delete /></IconButton>
                     </Tooltip>
@@ -260,18 +263,7 @@ export const GestionInventario: React.FC = () => {
       </Dialog>
       
       {/* Modal de Reposición (Restock) */}
-      <Dialog open={restockModalOpen} onClose={() => setRestockModalOpen(false)}>
-        <DialogTitle>Ordenar Reposición</DialogTitle>
-        <DialogContent sx={{ pt: '20px !important' }}>
-          <Typography variant="h6">{selectedItem?.nombre_cerv} - {selectedItem?.nombre_pres}</Typography>
-          <Typography variant="body2" color="text.secondary">Stock actual: {selectedItem?.cant_pres}</Typography>
-          <TextField autoFocus margin="dense" label="Cantidad a solicitar" type="number" fullWidth value={cantidadRestock} onChange={(e) => setCantidadRestock(e.target.value)} sx={{ mt: 2 }} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRestockModalOpen(false)}>Cancelar</Button>
-          <Button onClick={handleConfirmRestock} variant="contained" disabled={!cantidadRestock}>Solicitar</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Eliminado: ya no se usa */}
     </Box>
   )
 }
