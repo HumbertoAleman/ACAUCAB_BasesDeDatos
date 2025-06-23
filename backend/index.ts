@@ -33,13 +33,14 @@ Bun.serve({
 
 		"/usuario": { GET: getUsuario, },
 
-		"/api/form/parroquias": {
+		"/api/parroquias": {
 			async GET() {
 				const res = await sql`
-					SELECT p.cod_luga as eid, e.nombre_luga || ', ' || m.nombre_luga || ', ' || p.nombre_luga as "displayName"
+					SELECT p.cod_luga, e.nombre_luga || ', ' || m.nombre_luga || ', ' || p.nombre_luga as "nombre_luga"
 					FROM Lugar AS e
 					JOIN Lugar AS m ON e.cod_luga = m.fk_luga
-					JOIN Lugar AS p ON m.cod_luga = p.fk_luga`
+					JOIN Lugar AS p ON m.cod_luga = p.fk_luga
+					`
 				return Response.json(res, CORS_HEADERS);
 			},
 		},
