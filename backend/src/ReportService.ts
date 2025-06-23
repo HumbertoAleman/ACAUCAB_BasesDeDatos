@@ -307,9 +307,9 @@ class ReportService {
 					y -= 20;
 
 					for (const row of data) {
-						let booleanInt = parseInt(row["Es de Crédito"]) ;
-						page.drawText(String(booleanInt), { x: 50, y, size: 10, font });
-						page.drawText(String(row["Cantidad"]), { x: 250, y, size: 10, font });
+						let booleanValue = row["Es de Crédito"] == 1 ? "Sí" : "No";
+						page.drawText(booleanValue, { x: 50, y, size: 10, font });
+						page.drawText(String(row["count"]), { x: 250, y, size: 10, font });
 						y -= 15;
 						if (y < 50){
 							page = pdfDoc.addPage([780, 800]);
