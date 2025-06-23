@@ -1,5 +1,6 @@
 import { sql } from "bun"
 import { LogFunctionExecution } from "./logger/decorators"
+import { CORS_HEADERS } from "../globals"
 
 type APIPago = {
 	[x: string]: any
@@ -73,6 +74,16 @@ class VentaService {
 			console.error(e, msg)
 			return { "error": msg }
 		}
+	}
+
+	routes = {
+		"/api/venta": {
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
+			POST: async (req: any, _) => {
+				const res = await this.registerVenta((await req.json()) as APIVenta)
+				return Response.json(res, CORS_HEADERS);
+			}
+		},
 	}
 }
 
