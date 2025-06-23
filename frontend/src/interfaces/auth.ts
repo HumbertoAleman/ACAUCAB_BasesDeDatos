@@ -62,3 +62,10 @@ export interface UsuarioFront {
 export interface RolFront {
   nombre: string;
 }
+
+// Payload para gestión de privilegios
+export interface PrivilegiosPayload {
+  cod_rol: number;
+  priv_agre: number[];
+  priv_elim: number[];
+}

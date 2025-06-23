@@ -212,7 +212,18 @@ export const privilegeService = {
       method: 'PUT',
       body: JSON.stringify({ privileges }),
     });
-  }
+  },
+
+  // Guardar privilegios de un rol (PUT)
+  async saveRolePrivileges(payload: { cod_rol: number, priv_agre: number[], priv_elim: number[] }): Promise<ApiResponse<void>> {
+    return apiRequest<void>(
+      '/gestion_privilegios',
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }
+    )
+  },
 }
 
 // Función helper para manejar errores de autenticación
@@ -479,6 +490,27 @@ export const actualizarStockProducto = async (
     return response.ok;
   } catch (error) {
     console.error('Error updating stock:', error);
+    return false;
+  }
+};
+
+/**
+ * Actualiza los datos de un usuario (nombre o rol).
+ * @param userData Un objeto que debe contener cod_usua y puede contener username_usua y/o fk_rol.
+ */
+export const updateUser = async (userData: { cod_usua: number; username_usua?: string; fk_rol?: number }): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/user`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    if (!response.ok) {
+      throw new Error('Error al actualizar el usuario');
+    }
+    return true;
+  } catch (error) {
+    console.error('Error updating user:', error);
     return false;
   }
 }; 
