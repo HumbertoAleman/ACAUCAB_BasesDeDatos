@@ -88,12 +88,15 @@ class ClientesService {
 			POST: async (req: any) => {
 				const body = await req.json();
 				const cliente: NaturalCliente = { ...body, tipo_clie: "Natural" };
+				delete cliente.telefonos;
+				delete cliente.correos;
+
 				const res = await sql`INSERT INTO Cliente ${sql(cliente)} RETURNING *`;
 
 				for (const telf of body.telefonos)
-					await sql`insert into telefono ${sql({ ...telf, fk_clie: res.rif_clie })}`
+					await sql`insert into telefono ${sql({ ...telf, fk_clie: res[0].rif_clie })}`
 				for (const corr of body.correos)
-					await sql`insert into telefono ${sql({ ...corr, fk_clie: res.rif_clie })}`
+					await sql`insert into correo ${sql({ ...corr, fk_clie: res[0].rif_clie })}`
 
 				return Response.json(res, CORS_HEADERS)
 			}
@@ -104,12 +107,16 @@ class ClientesService {
 			POST: async (req: any) => {
 				const body = await req.json();
 				const cliente: JuridicoCliente = { ...body, tipo_clie: "Juridico" };
+				delete cliente.telefonos;
+				delete cliente.correos;
+
+
 				const res = await sql`INSERT INTO Cliente ${sql(cliente)} RETURNING *`;
 
 				for (const telf of body.telefonos)
-					await sql`insert into telefono ${sql({ ...telf, fk_clie: res.rif_clie })}`
+					await sql`insert into telefono ${sql({ ...telf, fk_clie: res[0].rif_clie })}`
 				for (const corr of body.correos)
-					await sql`insert into telefono ${sql({ ...corr, fk_clie: res.rif_clie })}`
+					await sql`insert into correo ${sql({ ...corr, fk_clie: res[0].rif_clie })}`
 
 				return Response.json(res, CORS_HEADERS)
 			}
