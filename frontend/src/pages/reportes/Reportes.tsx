@@ -160,20 +160,38 @@ export const Reportes: React.FC = () => {
   };
 
   const getFileName = (reporte: Reporte) => {
+    let base = "reporte";
     switch (reporte.id) {
       case "clientes-nuevos":
-        return "registro_clientes.pdf";
+        base = "registro_clientes";
+        break;
       case "horas-laboradas":
-        return "horas_laboradas.pdf";
+        base = "horas_laboradas";
+        break;
       case "inventario-critico":
-        return "productos_criticos.pdf";
+        base = "productos_criticos";
+        break;
       case "rentabilidad-cerveza":
-        return "rentabilidad_cerveza.pdf";
+        base = "rentabilidad_cerveza";
+        break;
       case "metodos-pago-online":
-        return "proporcion_tarjetas.pdf";
+        base = "proporcion_tarjetas";
+        break;
       default:
-        return "reporte.pdf";
+        base = "reporte";
     }
+    let paramStr = "";
+    if (reporte.id === "clientes-nuevos") {
+      paramStr = `_${parametros["año"] || ""}_${parametros["modalidad_cliente"] || ""}`;
+    } else if (reporte.id === "horas-laboradas") {
+      paramStr = `_${parametros["año"] || ""}_${parametros["modalidad_horas"] || ""}`;
+      if (parametros["modalidad_horas"] === "trimestral") {
+        paramStr += `_${parametros["trimestre"] || ""}`;
+      } else {
+        paramStr += `_${parametros["mes"] || ""}`;
+      }
+    }
+    return `${base}${paramStr}.pdf`;
   };
 
   const handleDescargarReporte = async (reporte: Reporte) => {
