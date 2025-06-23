@@ -2,16 +2,17 @@ import { sql } from "bun";
 import { quickDelete } from "./src/delete";
 import { quickInsert } from "./src/insert";
 import { CORS_HEADERS } from "./globals";
+
+import AuthService from "./src/AuthService";
+import ClientesService from "./src/ClientesService";
+import InventoryService from "./src/InventoryService";
+import PrivilegesService from "./src/PrivilegesService";
+import RolService from "./src/RolService";
+import TasaService from "./src/TasaService";
+import UsuarioService from "./src/UsuarioService";
+import VentaService, { type APIVenta } from "./src/VentaService";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
-import PrivilegesService from "./src/PrivilegesService";
-import ClientesService from "./src/ClientesService";
-import TasaService from "./src/TasaService";
-import VentaService, { type APIVenta } from "./src/VentaService";
-import AuthService from "./src/AuthService";
-import RolService from "./src/RolService";
-import InventoryService from "./src/InventoryService";
-import UsuarioService from "./src/UsuarioService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -84,39 +85,5 @@ Bun.serve({
 		...TasaService.routes,
 		...VentaService.routes,
 		...UsuarioService.routes,
-
-		"/api/tasa": {
-			OPTIONS: () => new Response('Departed', CORS_HEADERS),
-			async GET(req, _) {
-				const res = (await TasaService.getTasaDiaActual())
-				return Response.json(res, CORS_HEADERS)
-			}
-		},
-
-		"/api/venta": {
-			OPTIONS: () => new Response('Departed', CORS_HEADERS),
-			async POST(req, _) {
-				const res = await VentaService.registerVenta((await req.json()) as APIVenta)
-				return Response.json(res, CORS_HEADERS);
-			}
-		},
-
-		"/api/inventory": {
-			OPTIONS: () => new Response('Departed', CORS_HEADERS),
-			async GET() {
-				const res = await sql`SELECT C.nombre_cerv AS "nombre_producto", P.nombre_pres AS "nombre_presentacion", SUM(IT.cant_pres) AS "stock_actual", AVG(IT.precio_actual_pres)::numeric(8,2) AS "precio_usd", LT.nombre_luga_tien AS "lugar_tienda", M.razon_social_miem AS "miembro_proveedor"
-					FROM Inventario_Tienda AS IT
-					JOIN Cerveza AS C ON C.cod_cerv = IT.fk_cerv_pres_1
-					JOIN Presentacion AS P ON P.cod_pres = IT.fk_cerv_pres_2
-					JOIN CERV_PRES AS CP ON CP.fk_cerv = C.cod_cerv AND CP.fk_pres = P.cod_pres
-					JOIN Miembro AS M ON CP.fk_miem = M.rif_miem
-					JOIN Lugar_Tienda AS LT ON LT.cod_luga_tien = IT.fk_luga_tien
-					WHERE fk_tien = 1
-					GROUP BY C.nombre_cerv, P.nombre_pres, LT.nombre_luga_tien, M.razon_social_miem`
-				for (const item of res)
-					item.estado = (item.stock_actual > 100) ? "Disponible" : ((item.stock_actual === 0) ? "Agotado" : "Bajo Stock")
-				return Response.json(res, CORS_HEADERS);
-			}
-		}
 	}
 })
