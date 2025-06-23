@@ -42,6 +42,20 @@ class PrivilegesService {
 	}
 
 	routes = {
+		"/api/gestion_privilegios": {
+			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
+			PUT: async (req: any) => {
+				const body = await req.json()
+				if ('priv_agre' in body)
+					for (const agre of body.priv_agre)
+						await this.relatePrivilegeRol(agre, body.cod_rol)
+				if ('priv_elim' in body)
+					for (const elim of body.priv_elim)
+						await this.removeRelationPrivilegeRol(elim, body.cod_rol)
+				return Response.json({ "success": true }, CORS_HEADERS)
+			}
+		},
+
 		"/api/privileges": {
 			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
 			GET: async () => {
