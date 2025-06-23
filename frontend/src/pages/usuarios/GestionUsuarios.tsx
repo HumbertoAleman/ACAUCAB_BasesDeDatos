@@ -39,7 +39,9 @@ import { useUsers } from "../../hooks/useUsers"
 import { 
   privilegeService, 
   roleService, 
-  updateUser
+  updateUser,
+  getClientesDetallados,
+  createUsuarioCliente
 } from "../../services/api"
 import { useRoles } from "../../hooks/useRoles"
 import type { Rol, Usuario, Privilegio } from "../../interfaces"
@@ -64,6 +66,7 @@ export const GestionUsuarios: React.FC = () => {
   const [newPassword, setNewPassword] = useState("")
   const [newTipoUsuario, setNewTipoUsuario] = useState<string>("")
   const [newRelacionado, setNewRelacionado] = useState<any>(null)
+  const [clientes, setClientes] = useState<any[]>([])
   // Simulación de listas para cada tipo (luego se reemplaza por fetch real)
   const listaEmpleados = [ { id: 1, nombre: "Empleado 1" }, { id: 2, nombre: "Empleado 2" } ]
   const listaMiembros = [ { id: 1, nombre: "Miembro 1" }, { id: 2, nombre: "Miembro 2" } ]
@@ -80,6 +83,14 @@ export const GestionUsuarios: React.FC = () => {
       }
     }
     fetchRoles()
+  }, [])
+  
+  useEffect(() => {
+    getClientesDetallados().then((data) => {
+      // Si la respuesta es un array de arrays, aplanar
+      const clientesFlat = Array.isArray(data[0]) ? data.flat() : data;
+      setClientes(clientesFlat || [])
+    })
   }, [])
   
   const handleRoleChange = async (userId: number, event: SelectChangeEvent<number>) => {
@@ -108,6 +119,29 @@ export const GestionUsuarios: React.FC = () => {
   const handleDeleteUser = async (userId: number) => {
     if (window.confirm("¿Está seguro de que desea eliminar este usuario? Esta acción es irreversible.")) {
       await deleteUser(userId)
+    }
+  }
+
+  const handleCreateUsuario = async () => {
+    if (!newUsername || !newPassword || !newRelacionado) return;
+    const payload = {
+      username_usua: newUsername,
+      contra_usua: newPassword,
+      fk_clie: newRelacionado.rif_clie,
+      tipo_clie: newRelacionado.tipo_clie,
+    };
+    console.log("Payload enviado a /api/clientes:", payload);
+    const res = await createUsuarioCliente(payload);
+    if (res.success) {
+      setCreateModalOpen(false);
+      setNewUsername("");
+      setNewPassword("");
+      setNewTipoUsuario("");
+      setNewRelacionado(null);
+      refreshUsers();
+      alert("Usuario creado exitosamente");
+    } else {
+      alert("Error al crear usuario: " + (res.error || "Error desconocido"));
     }
   }
 
@@ -231,30 +265,23 @@ export const GestionUsuarios: React.FC = () => {
                 setNewRelacionado(null)
               }}
             >
-              <MenuItem value="empleado">Empleado</MenuItem>
-              <MenuItem value="miembro">Miembro</MenuItem>
-              <MenuItem value="juridico">Juridico</MenuItem>
-              <MenuItem value="natural">Natural</MenuItem>
+              <MenuItem value="juridico">Cliente Jurídico</MenuItem>
+              <MenuItem value="natural">Cliente Natural</MenuItem>
             </Select>
           </FormControl>
           {newTipoUsuario && (
             <Autocomplete
-              options={
-                newTipoUsuario === "empleado" ? listaEmpleados :
-                newTipoUsuario === "miembro" ? listaMiembros :
-                newTipoUsuario === "juridico" ? listaJuridicos :
-                newTipoUsuario === "natural" ? listaNaturales : []
-              }
-              getOptionLabel={option => option.nombre}
+              options={clientes.filter(c => (newTipoUsuario === "juridico" ? c.tipo_clie === "Juridico" : c.tipo_clie === "Natural"))}
+              getOptionLabel={option => option.razon_social_juri || option.primer_nom_natu + ' ' + option.primer_ape_natu || option.rif_clie}
               value={newRelacionado}
               onChange={(_, value) => setNewRelacionado(value)}
-              renderInput={params => <TextField {...params} label={`Seleccionar ${newTipoUsuario.charAt(0).toUpperCase() + newTipoUsuario.slice(1)}`} fullWidth />}
+              renderInput={params => <TextField {...params} label={`Seleccionar Cliente`} fullWidth />}
             />
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCreateModalOpen(false)}>Cancelar</Button>
-          <Button variant="contained" disabled>Crear</Button>
+          <Button variant="contained" onClick={handleCreateUsuario} disabled={!newUsername || !newPassword || !newRelacionado}>Crear</Button>
         </DialogActions>
       </Dialog>
     </Box>

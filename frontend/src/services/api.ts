@@ -568,4 +568,19 @@ export const updateInventarioItem = async (item: {
     method: 'PUT',
     body: JSON.stringify(item),
   });
+};
+
+/**
+ * Crea un usuario cliente (jurídico o natural)
+ */
+export const createUsuarioCliente = async (data: {
+  username_usua: string,
+  contra_usua: string,
+  fk_clie: string,
+  tipo_clie: string
+}): Promise<ApiResponse<any>> => {
+  return apiRequest<any>('/clientes', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }; 
