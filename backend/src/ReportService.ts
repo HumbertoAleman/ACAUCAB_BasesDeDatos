@@ -148,7 +148,7 @@ class ReportService {
 
 			"/api/reportes/productos_reposicion/pdf": {
 				OPTIONS: () => new Response('Departed', CORS_HEADERS),
-				GET: async (req) => {
+				GET: async () => {
 					// La url debe verse así /api/reportes/productos_reposicion/pdf
 					const data = await sql`SELECT * FROM productos_generan_repo_view`;
 					const pdfDoc = await PDFDocument.create();
@@ -196,8 +196,107 @@ class ReportService {
 						"Access-Control-Allow-Headers": "Content-Type, Authorization",
 					},
 					});
+				}
+			},
+
+			"/api/reportes/rentabilidad_por_tipo/pdf": {
+				OPTIONS: () => new Response('Departed', CORS_HEADERS),
+				GET: async () => {
+					// La url debe verse así /api/reportes/rentabilidad_por_tipo/pdfd
+					const data = await sql`SELECT * FROM rentabilidad_tipo_view`;
+					const pdfDoc = await PDFDocument.create();
+					let page = pdfDoc.addPage([780, 800]);
+					const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+					let y = 750;
+
+					page.drawText("ACAUCAB", { x: 50, y, size: 28, font, color: rgb(0, 0.2, 0.6) });
+					y -= 40;
+
+					page.drawText(`Reporte: Rentabilidad por Tipo de Cerveza`, { x: 50, y, size: 16, font, color: rgb(0, 0, 0.8) });
+					y -= 30;
+
+					page.drawText("Tipo de Cerveza", { x: 50, y, size: 12, font });
+					page.drawText("Rentabilidad", { x: 250, y, size: 12, font });
+					y -= 20;
+
+					for (const row of data) {
+						page.drawText(String(row["Tipo de Cerveza"]), { x: 50, y, size: 10, font });
+						page.drawText(String(row["Rentabilidad"]), { x: 250, y, size: 10, font });
+						// Agrega más columnas si tu vista tiene más datos
+						y -= 15;
+						if (y < 50){
+							page = pdfDoc.addPage([780, 800]);
+							y = 750;
+							page.drawText("Tipo de Cerveza", { x: 50, y, size: 12, font });
+							page.drawText("Rentabilidad", { x: 250, y, size: 12, font });
+							y -= 20;
+						}
+					}
+					const pdfBytes = await pdfDoc.save();
+
+					return new Response(pdfBytes, {
+						headers: {
+							"Content-Type": "application/pdf",
+							"Content-Disposition": "attachment; filename=rentabilidad_tipo.pdf",
+							"Access-Control-Allow-Origin": "*",
+							"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+							"Access-Control-Allow-Headers": "Content-Type, Authorization",
+						},
+					});
+				}
+			},
+
+			"/api/reportes/proporcion_tarjetas/pdf": {
+				OPTIONS: () => new Response('Departed', CORS_HEADERS),
+				GET: async () => {
+					// La url debe verse así /api/reportes/proporcion_tarjetas/pdf
+					const data = await sql`SELECT * FROM proporcion_tarjetas_view`;
+					const pdfDoc = await PDFDocument.create();
+					let page = pdfDoc.addPage([780, 800]);
+					const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+					let y = 750;
+
+					page.drawText("ACAUCAB", { x: 50, y, size: 28, font, color: rgb(0, 0.2, 0.6) });
+					y -= 40;
+
+					page.drawText(`Reporte: Proporción de Tarjetas`, { x: 50, y, size: 16, font, color: rgb(0, 0, 0.8) });
+					y -= 30;
+
+					page.drawText("Tipo de Tarjeta", { x: 50, y, size: 12, font });
+					page.drawText("Cantidad", { x: 250, y, size: 12, font });
+					page.drawText("Proporción", { x: 400, y, size: 12, font });
+					y -= 20;
+
+					for (const row of data) {
+						page.drawText(String(row["Tipo de Tarjeta"]), { x: 50, y, size: 10, font });
+						page.drawText(String(row["Cantidad"]), { x: 250, y, size: 10, font });
+						page.drawText(String(row["Proporción"]), { x: 400, y, size: 10, font });
+						y -= 15;
+						if (y < 50){
+							page = pdfDoc.addPage([780, 800]);
+							y = 750;
+							page.drawText("Tipo de Tarjeta", { x: 50, y, size: 12, font });
+							page.drawText("Cantidad", { x: 250, y, size: 12, font });
+							page.drawText("Proporción", { x: 400, y, size: 12, font });
+							y -= 20;
+						}
+					}
+					const pdfBytes = await pdfDoc.save();
+
+					return new Response(pdfBytes, {
+						headers: {
+							"Content-Type": "application/pdf",
+							"Content-Disposition": "attachment; filename=proporcion_tarjetas.pdf",
+							"Access-Control-Allow-Origin": "*",
+							"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+							"Access-Control-Allow-Headers": "Content-Type, Authorization",
+						},
+					});
+				}
 			}
 		}
 	}
-}
+
 export default new ReportService();
