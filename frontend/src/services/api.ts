@@ -564,7 +564,7 @@ export const updateInventarioItem = async (item: {
   fk_luga_tien: number,
   cant_pres: number
 }): Promise<ApiResponse<any>> => {
-  return apiRequest<any>('/inventario', {
+  return apiRequest<any>('/inventory', {
     method: 'PUT',
     body: JSON.stringify(item),
   });

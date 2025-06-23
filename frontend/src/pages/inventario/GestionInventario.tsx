@@ -30,7 +30,7 @@ import {
   Pagination,
 } from "@mui/material"
 import { Search, Edit, Delete, ShoppingCart, Refresh, CheckCircle, Warning } from "@mui/icons-material"
-import { getProductosInventario, updateInventarioItem } from "../../services/api";
+import { getProductosInventario, updateInventarioItem, getTableData } from "../../services/api";
 import type { ProductoInventario } from "../../interfaces/ventas";
 
 const updateStock = async (id_inventario: number, nuevo_stock: number) => {
@@ -62,16 +62,30 @@ export const GestionInventario: React.FC = () => {
 
   const cargarInventario = async () => {
     setLoading(true);
-    const data = await getProductosInventario();
-    // Mapeo de campos para que coincidan con ProductoInventario
-    const inventarioMapeado = (data as any[]).map((item, idx) => ({
-      ...item,
-      nombre_cerv: item.nombre_producto,
-      nombre_pres: item.nombre_presentacion,
-      cant_pres: Number(item.stock_actual),
-      precio_actual_pres: Number(item.precio_usd),
-      _key: `${item.nombre_producto}-${item.nombre_presentacion}-${item.lugar_tienda}-${idx}`
-    })) as any[];
+    // Obtener productos, cervezas, presentaciones y lugares para mapear los ids correctamente
+    const [data, cervezas, presentaciones, lugaresTienda] = await Promise.all([
+      getProductosInventario(),
+      getTableData('Cerveza'),
+      getTableData('Presentacion'),
+      getTableData('Lugar_Tienda')
+    ]);
+    const inventarioMapeado = (data as any[]).map((item, idx) => {
+      const cerveza = cervezas.find((c: any) => c.nombre_cerv === item.nombre_producto);
+      const presentacion = presentaciones.find((p: any) => p.nombre_pres === item.nombre_presentacion);
+      const lugarTienda = lugaresTienda.find((l: any) => l.nombre_luga_tien === item.lugar_tienda);
+      return {
+        ...item,
+        fk_cerv_pres_1: cerveza?.cod_cerv,
+        fk_cerv_pres_2: presentacion?.cod_pres,
+        fk_tien: 1,
+        fk_luga_tien: lugarTienda?.cod_luga_tien,
+        nombre_cerv: item.nombre_producto,
+        nombre_pres: item.nombre_presentacion,
+        cant_pres: Number(item.stock_actual),
+        precio_actual_pres: Number(item.precio_usd),
+        _key: `${item.nombre_producto}-${item.nombre_presentacion}-${item.lugar_tienda}-${idx}`
+      }
+    });
     setInventario(inventarioMapeado as any);
     setLoading(false);
   };
@@ -116,13 +130,14 @@ export const GestionInventario: React.FC = () => {
     if (!selectedItem || editedStock === "") return;
     const nuevoStockNum = parseInt(editedStock, 10);
     if (!isNaN(nuevoStockNum)) {
-      await updateInventarioItem({
+      const payload = {
         fk_cerv_pres_1: selectedItem.fk_cerv_pres_1,
         fk_cerv_pres_2: selectedItem.fk_cerv_pres_2,
-        fk_tien: 1,
+        fk_tien: selectedItem.fk_tien,
         fk_luga_tien: selectedItem.fk_luga_tien,
         cant_pres: nuevoStockNum,
-      });
+      };
+      await updateInventarioItem(payload);
       setEditModalOpen(false);
       await cargarInventario();
     }
