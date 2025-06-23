@@ -78,27 +78,35 @@ export const useUsers = (): UseUsersReturn => {
     }
   }
 
-  const deleteUser = async (id: number): Promise<boolean> => {
+  const deleteUser = useCallback(async (userId: number): Promise<boolean> => {
+    setLoading(true);
     try {
-      setError(null)
-      const response = await userService.deleteUser(id)
-      
-      if (response.success) {
-        await fetchUsers() // Recargar la lista
-        return true
-      } else {
-        setError(response.error || 'Error al eliminar usuario')
-        return false
-      }
-    } catch (error) {
-      setError('Error de conexión al eliminar usuario')
-      return false
+      await userService.deleteUser(userId);
+      setUsers(prevUsers => prevUsers.filter(user => user.cod_usua !== userId));
+      return true;
+    } catch (err) {
+      setError("Error al eliminar el usuario.");
+      return false;
+    } finally {
+      setLoading(false);
     }
-  }
+  }, []);
 
-  const refreshUsers = async () => {
-    await fetchUsers()
-  }
+  const refreshUsers = useCallback(async () => {
+    setLoading(true)
+    try {
+      const response = await userService.getUsersWithRoles()
+      if (Array.isArray(response)) {
+        setUsers(response)
+      } else {
+        setError("Error al cargar los usuarios.")
+      }
+    } catch (err) {
+      setError("Error de conexión al obtener usuarios.")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     fetchUsers()

@@ -12,40 +12,41 @@ import {
   Box,
   Typography,
 } from "@mui/material"
-import { Dashboard, ShoppingCart, Inventory, Assessment, People, Settings } from "@mui/icons-material"
-import { useNavigate, useLocation } from "react-router-dom"
+import {
+  Dashboard,
+  ShoppingCart,
+  Inventory,
+  Assessment,
+  People,
+  Settings,
+  VerifiedUser, // Icono para privilegios
+} from "@mui/icons-material"
+import { Link as RouterLink, useLocation } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import { getAccessibleRoutes } from "../../config/routes"
 
 const drawerWidth = 280
 
-interface SidebarProps {
-  open: boolean
-  onClose: () => void
-}
-
-// Mapeo de iconos para las rutas
-const routeIcons: Record<string, React.ReactNode> = {
+// Mapeo de iconos centralizado
+const routeIcons: Record<string, React.ReactElement> = {
   "/dashboard": <Dashboard />,
   "/ventas": <ShoppingCart />,
   "/inventario": <Inventory />,
   "/reportes": <Assessment />,
   "/usuarios": <People />,
+  "/privilegios": <VerifiedUser />,
   "/configuracion": <Settings />,
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
-  const navigate = useNavigate()
+export const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({
+  open,
+  onClose,
+}) => {
   const location = useLocation()
   const { hasPermission } = useAuth()
 
-  const handleNavigation = (path: string) => {
-    navigate(path)
-    onClose()
-  }
-
-  // Obtener rutas accesibles según los permisos del usuario
-  const accessibleRoutes = getAccessibleRoutes(hasPermission)
+  // Lógica original para obtener rutas basadas en permisos
+  const accessibleRoutes = getAccessibleRoutes().filter(route => route.inMenu)
 
   return (
     <Drawer
@@ -74,31 +75,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
       <List>
         {accessibleRoutes.map((route) => (
-          <ListItem key={route.path} disablePadding>
+          <ListItem key={route.path} disablePadding component={RouterLink} to={route.path}>
             <ListItemButton
               selected={location.pathname === route.path}
-              onClick={() => handleNavigation(route.path)}
               sx={{
-                "&.Mui-selected": {
-                  backgroundColor: "#E8F5E8",
-                  "&:hover": {
-                    backgroundColor: "#E8F5E8",
-                  },
-                },
+                backgroundColor: location.pathname === route.path ? "rgba(46, 125, 50, 0.08)" : "inherit",
               }}
             >
-              <ListItemIcon sx={{ color: location.pathname === route.path ? "#2E7D32" : "inherit" }}>
+              <ListItemIcon
+                sx={{
+                  color: location.pathname === route.path ? "#2E7D32" : "#757575",
+                }}
+              >
                 {routeIcons[route.path] || <Settings />}
               </ListItemIcon>
               <ListItemText
                 primary={route.title}
                 secondary={route.description}
-                sx={{ 
-                  color: location.pathname === route.path ? "#2E7D32" : "inherit",
+                sx={{
+                  color: location.pathname === route.path ? "#2E7D32" : "#212121",
                   "& .MuiListItemText-secondary": {
                     fontSize: "0.75rem",
                     opacity: 0.7,
-                  }
+                  },
                 }}
               />
             </ListItemButton>
