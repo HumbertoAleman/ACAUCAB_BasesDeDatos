@@ -81,9 +81,66 @@ export const Reportes: React.FC = () => {
   const [reporteSeleccionado, setReporteSeleccionado] = useState<Reporte | null>(null)
   const [parametros, setParametros] = useState<{ [key: string]: string }>({})
 
+  const getDownloadLink = (reporte: Reporte) => {
+    if (reporte.id === "clientes-nuevos") {
+      const year = parametros["año"];
+      const modalidad = parametros["modalidad_cliente"];
+      if (!year || !modalidad) return null;
+      return `/api/reportes/periodo_tipo_cliente/pdf?year=${year}&modalidad=${modalidad}`;
+    }
+    if (reporte.id === "horas-laboradas") {
+      const year = parametros["año"];
+      const modalidad = parametros["modalidad_horas"];
+      if (!year || !modalidad) return null;
+      let month = "";
+      let trimonth = "";
+      if (modalidad === "trimestral") {
+        trimonth = parametros["trimestre"] || "";
+        if (!trimonth || !["1","2","3","4"].includes(trimonth)) return null;
+      } else {
+        month = parametros["mes"] || "";
+        const mesNum = parseInt(month, 10);
+        if (!month || isNaN(mesNum) || mesNum < 1 || mesNum > 12) return null;
+      }
+      return `/api/reportes/consolidar_horas/pdf?year=${year}&month=${month}&trimonth=${trimonth}&modalidad=${modalidad}`;
+    }
+    if (reporte.id === "inventario-critico") {
+      return "/api/reportes/productos_reposicion/pdf";
+    }
+    if (reporte.id === "rentabilidad-cerveza") {
+      return "/api/reportes/rentabilidad_por_tipo/pdf";
+    }
+    if (reporte.id === "metodos-pago-online") {
+      return "/api/reportes/proporcion_tarjetas/pdf";
+    }
+    return null;
+  };
+
+  const isDownloadEnabled = (reporte: Reporte) => {
+    if (reporte.id === "clientes-nuevos") {
+      return Boolean(parametros["año"] && parametros["modalidad_cliente"]);
+    }
+    if (reporte.id === "horas-laboradas") {
+      const year = parametros["año"];
+      const modalidad = parametros["modalidad_horas"];
+      if (!year || !modalidad) return false;
+      if (modalidad === "trimestral") {
+        const trimonth = parametros["trimestre"];
+        return Boolean(trimonth && ["1","2","3","4"].includes(trimonth));
+      } else {
+        const mes = parametros["mes"];
+        const mesNum = parseInt(mes, 10);
+        return Boolean(mes && !isNaN(mesNum) && mesNum >= 1 && mesNum <= 12);
+      }
+    }
+    // Los otros reportes no requieren parámetros
+    return true;
+  };
+
   const handleDescargarReporte = (reporte: Reporte) => {
-    // Aquí iría la lógica para generar y descargar el reporte
-    alert(`Descargando: ${reporte.nombre} con parámetros ${JSON.stringify(parametros)}`)
+    const link = getDownloadLink(reporte);
+    if (!link) return;
+    window.open(link, "_blank");
   }
 
   const handleParametroChange = (parametro: string, valor: string) => {
@@ -219,6 +276,25 @@ export const Reportes: React.FC = () => {
                               <MenuItem value="mensual">Mensual</MenuItem>
                               <MenuItem value="semestral">Semestral</MenuItem>
                               <MenuItem value="anual">Anual</MenuItem>
+                              <MenuItem value="trimestral">Trimestral</MenuItem>
+                            </Select>
+                          </FormControl>
+                        )
+                      }
+
+                      if (parametro === "trimestre" && parametros["modalidad_horas"] === "trimestral") {
+                        return (
+                          <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
+                            <InputLabel>Trimestre</InputLabel>
+                            <Select
+                              value={parametros["trimestre"] || "1"}
+                              onChange={(e) => handleParametroChange("trimestre", e.target.value)}
+                              label="Trimestre"
+                            >
+                              <MenuItem value="1">Q1</MenuItem>
+                              <MenuItem value="2">Q2</MenuItem>
+                              <MenuItem value="3">Q3</MenuItem>
+                              <MenuItem value="4">Q4</MenuItem>
                             </Select>
                           </FormControl>
                         )
@@ -235,9 +311,10 @@ export const Reportes: React.FC = () => {
                   size="large"
                   startIcon={<Download />}
                   onClick={() => handleDescargarReporte(reporteSeleccionado)}
+                  disabled={!isDownloadEnabled(reporteSeleccionado)}
                   sx={{
-                    backgroundColor: "#2E7D32",
-                    "&:hover": { backgroundColor: "#1B5E20" },
+                    backgroundColor: isDownloadEnabled(reporteSeleccionado) ? "#2E7D32" : "#A5D6A7",
+                    "&:hover": { backgroundColor: isDownloadEnabled(reporteSeleccionado) ? "#1B5E20" : "#A5D6A7" },
                   }}
                 >
                   Descargar Reporte PDF
