@@ -2,6 +2,48 @@ import { sql } from "bun";
 import { LogFunctionExecution } from "./logger/decorators";
 import { CORS_HEADERS } from "../globals";
 
+// Common properties for both types
+interface BaseCliente {
+    rif_clie: string;
+    direccion_fiscal_clie: string;
+    direccion_fisica_clie: string;
+    fk_luga_1: number;
+    fk_luga_2: number;
+    tipo_clie: 'Natural' | 'Juridico';
+    fecha_ingr_clie?: Date; // Optional, defaults to CURRENT_DATE
+}
+
+// Type for Natural client
+interface NaturalCliente extends BaseCliente {
+    tipo_clie: 'Natural';
+    primer_nom_natu: string;
+    segundo_nom_natu?: string; // Optional
+    primer_ape_natu: string;
+    segundo_ape_natu?: string; // Optional
+    ci_natu: number;
+    razon_social_juri?: never; // Not applicable
+    denom_comercial_juri?: never; // Not applicable
+    capital_juri?: never; // Not applicable
+    pag_web_juri?: never; // Not applicable
+}
+
+// Type for Juridico client
+interface JuridicoCliente extends BaseCliente {
+    tipo_clie: 'Juridico';
+    razon_social_juri: string;
+    denom_comercial_juri: string;
+    capital_juri: number; // Use numeric type
+    pag_web_juri?: string; // Optional
+    primer_nom_natu?: never; // Not applicable
+    segundo_nom_natu?: never; // Not applicable
+    primer_ape_natu?: never; // Not applicable
+    segundo_ape_natu?: never; // Not applicable
+    ci_natu?: never; // Not applicable
+}
+
+// Union type for Cliente
+type Cliente = NaturalCliente | JuridicoCliente;
+
 class ClientesService {
 	@LogFunctionExecution
 	async getAllClientes(): Promise<any[]> {
@@ -37,8 +79,38 @@ class ClientesService {
 			GET: async () => {
 				const res = await this.getAllClientes()
 				return Response.json(res, CORS_HEADERS);
+			},
+		},
+
+		"/api/natural": { 
+			POST: async (req: any) => {
+				const body = await req.json();
+				const cliente: NaturalCliente = { ...body, tipo_clie: "Natural" };
+				const res = await sql`INSERT INTO Cliente ${sql(cliente)} RETURNING *`;
+
+				for (const telf of body.telefonos)
+					await sql`insert into telefono ${sql({ ...telf, fk_clie: res.rif_clie })}`
+				for (const corr of body.correos)
+					await sql`insert into telefono ${sql({ ...corr, fk_clie: res.rif_clie })}`
+
+				return Response.json(res, CORS_HEADERS)
 			}
 		},
+
+		"/api/juridico": { 
+			POST: async (req: any) => {
+				const body = await req.json();
+				const cliente: JuridicoCliente = { ...body, tipo_clie: "Juridico" };
+				const res = await sql`INSERT INTO Cliente ${sql(cliente)} RETURNING *`;
+
+				for (const telf of body.telefonos)
+					await sql`insert into telefono ${sql({ ...telf, fk_clie: res.rif_clie })}`
+				for (const corr of body.correos)
+					await sql`insert into telefono ${sql({ ...corr, fk_clie: res.rif_clie })}`
+
+				return Response.json(res, CORS_HEADERS)
+			}
+		}
 	}
 }
 
