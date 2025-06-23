@@ -267,11 +267,12 @@ export const Reportes: React.FC = () => {
                     <FormControl fullWidth sx={{ mb: 2 }}>
                       <InputLabel>Modalidad</InputLabel>
                       <Select
-                        value={parametros["modalidad_horas"] || "diaria"}
+                        value={parametros["modalidad_horas"] || "diario"}
                         onChange={(e) => handleParametroChange("modalidad_horas", e.target.value)}
                         label="Modalidad"
                       >
                         <MenuItem value="diaria">Diaria</MenuItem>
+                        <MenuItem value="diario">Diario</MenuItem>
                         <MenuItem value="semanal">Semanal</MenuItem>
                         <MenuItem value="mensual">Mensual</MenuItem>
                         <MenuItem value="semestral">Semestral</MenuItem>
@@ -333,11 +334,12 @@ export const Reportes: React.FC = () => {
                             <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
                               <InputLabel>Modalidad</InputLabel>
                               <Select
-                                value={parametros[parametro] || "diaria"}
+                                value={parametros[parametro] || "diario"}
                                 onChange={(e) => handleParametroChange(parametro, e.target.value)}
                                 label="Modalidad"
                               >
                                 <MenuItem value="diaria">Diaria</MenuItem>
+                                <MenuItem value="diario">Diario</MenuItem>
                                 <MenuItem value="semanal">Semanal</MenuItem>
                                 <MenuItem value="mensual">Mensual</MenuItem>
                                 <MenuItem value="semestral">Semestral</MenuItem>
