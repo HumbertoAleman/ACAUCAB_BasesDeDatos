@@ -135,12 +135,11 @@ Bun.serve({
 				const page = pdfDoc.addPage([700, 800]);
 				const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-				let y = 780;
+				let y = 750;
 
 				page.drawText("ACAUCAB", { x: 50, y, size: 28, font, color: rgb(0, 0.2, 0.6) });
 				y -= 40;
 
-				y = 750;
 				page.drawText(`Reporte: Periodo Tipo Cliente (${modalidad}, ${year})`, { x: 50, y, size: 16, font, color: rgb(0, 0, 0.8) });
 				y -= 30;
 
