@@ -76,6 +76,7 @@ class ClientesService {
 
 	routes = {
 		"/api/clientes": {
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			GET: async () => {
 				const res = await this.getAllClientes()
 				return Response.json(res, CORS_HEADERS);
@@ -83,6 +84,7 @@ class ClientesService {
 		},
 
 		"/api/natural": { 
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			POST: async (req: any) => {
 				const body = await req.json();
 				const cliente: NaturalCliente = { ...body, tipo_clie: "Natural" };
@@ -98,6 +100,7 @@ class ClientesService {
 		},
 
 		"/api/juridico": { 
+			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			POST: async (req: any) => {
 				const body = await req.json();
 				const cliente: JuridicoCliente = { ...body, tipo_clie: "Juridico" };
