@@ -170,9 +170,9 @@ class ReportService {
 					y -= 20;
 
 					for (const row of data) {
-						page.drawText(String(row["Numero de Empleado"]), { x: 50, y, size: 10, font });
-						page.drawText(String(row["Cedula Empleado"]), { x: 200, y, size: 10, font });
-						page.drawText(String(row["Horas trabajadas"]), { x: 350, y, size: 10, font });
+						page.drawText(String(row["Código Cerveza"]), { x: 50, y, size: 10, font });
+						page.drawText(String(row["Nombre"]), { x: 200, y, size: 10, font });
+						page.drawText(String(row["Código de Presentación"]), { x: 350, y, size: 10, font });
 						page.drawText(String(row["Nombre Presentación"]), { x: 500, y, size: 10, font });
 						y -= 15;
 						if (y < 50){
