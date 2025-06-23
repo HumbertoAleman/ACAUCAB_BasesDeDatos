@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useAuth } from "../../contexts/AuthContext"
-import { useLocation, Navigate } from "react-router-dom"
+import { useLocation, Navigate, useNavigate } from "react-router-dom"
 
 const loginSchema = z.object({
   username: z.string().min(1, "El usuario es requerido"),
@@ -21,6 +21,7 @@ export const LoginForm: React.FC = () => {
   const { user, login, isLoading } = useAuth()
   const [error, setError] = useState<string>("")
   const location = useLocation()
+  const navigate = useNavigate()
 
   // Si ya está autenticado, redirigir al dashboard o a la página original
   if (user) {
@@ -117,6 +118,14 @@ export const LoginForm: React.FC = () => {
                 disabled={isLoading}
               >
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                sx={{ mb: 2 }}
+                onClick={() => navigate("/registro-cliente")}
+              >
+                Registrarse
               </Button>
             </Box>
 
