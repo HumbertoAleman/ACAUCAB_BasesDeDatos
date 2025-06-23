@@ -1485,8 +1485,6 @@ CREATE OR REPLACE TRIGGER after_insert_detalle_venta
 CREATE OR REPLACE FUNCTION remove_from_inventory ()
     RETURNS TRIGGER
     AS $$
-DECLARE
-    x integer;
 BEGIN
     UPDATE
         Inventario_Tienda
@@ -1692,29 +1690,30 @@ BEGIN
                         AND i_t.fk_luga_tien = lt.cod_luga_tien
                 WHERE
                     fk_tien = 1
-                    AND fk_cerv_pres_1 = d_t.fk_cerv_pres_1
-                    AND fk_cerv_pres_2 = d_t.fk_cerv_pres_2) THEN
+                    AND fk_cerv_pres_1 = i_t.fk_cerv_pres_1
+                    AND fk_cerv_pres_2 = i_t.fk_cerv_pres_2) THEN
             cerv_pres := (
                 SELECT
                     *
                 FROM
                     CERV_PRES
                 WHERE
-                    fk_cerv = d_v.fk_cerv_pres_1
-                    AND fk_pres = d_v.fk_cerv_pres_2
+                    fk_cerv = deta_comp.fk_cerv_pres_1
+                    AND fk_pres = deta_comp.fk_cerv_pres_2
                     AND fk_miem = comp.fk_miem);
             INSERT INTO Inventario_Tienda (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, fk_luga_tien, cant_pres, precio_actual_pres)
-                VALUES (d_t.fk_cerv_pres_1, d_t.fk_cerv_pres_2, comp.fk_tien, luga_tien.cod_luga_tien, 0, cerv_pres.precio_cerv_pres);
+                VALUES (deta_comp.fk_cerv_pres_1, deta_comp.fk_cerv_pres_2, comp.fk_tien, luga_tien.cod_luga_tien, 0, cerv_pres.precio_cerv_pres);
         END IF;
     -- After checking if doesnt exist (and inserting if doesnt, put here)
     UPDATE
         Inventario_Tienda
     SET
-        cant_pres = cant_pres + d_v.cant_deta_comp
+        cant_pres = cant_pres + deta_comp.cant_deta_comp
     WHERE
-        fk_cerv_pres_1 = d_v.fk_cerv_pres_1
-        AND fk_cerv_pres_2 = d_v.fk_cerv_pres_2
-        AND fk_comp = comp.cod_comp;
+        fk_cerv_pres_1 = deta_comp.fk_cerv_pres_1
+        AND fk_cerv_pres_2 = deta_comp.fk_cerv_pres_2
+        AND fk_tien = 1
+		AND cant_pres < 100; -- HACK: Arreglar esto en algun momento
 END LOOP;
     RETURN NEW;
 END
@@ -1725,6 +1724,42 @@ CREATE OR REPLACE TRIGGER on_esta_compra_insert_add_inventario_tienda
     AFTER INSERT ON ESTA_COMP
     FOR EACH ROW
     EXECUTE FUNCTION tri_add_inventario_tienda ();
+
+CREATE OR REPLACE FUNCTION on_low_stock_create_orden_compra()
+	RETURNS TRIGGER
+	AS $$
+DECLARE
+	cerv integer;
+	pres integer;
+	miem text;
+BEGIN
+	IF NEW.cant_pres > 100 THEN
+		RETURN NEW;
+	END IF;
+
+	SELECT fk_miem
+	FROM CERV_PRES
+	WHERE fk_cerv = NEW.fk_cerv_pres_1 AND fk_pres = NEW.fk_cerv_pres_2
+	INTO miem;
+
+	CALL crear_compra ( -- Crear compra
+		1, -- Tienda Destino
+		miem, -- Miembro Proveedor
+		ARRAY [10000], -- Cantidad comprada
+		ARRAY [4.99], -- Precio por el que la cerveza fue comprada
+		ARRAY [NEW.fk_cerv_pres_1], -- Cervezas a comprar
+		ARRAY [NEW.fk_cerv_pres_2] -- Presentaciones a comprar
+	);
+
+	RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER on_low_stock_create_compra
+	AFTER UPDATE ON Inventario_Tienda
+	FOR EACH ROW
+	EXECUTE FUNCTION on_low_stock_create_orden_compra();
 
 --[[[ TRIGGER END ]]]--
 
