@@ -180,6 +180,7 @@ export const Reportes: React.FC = () => {
     const link = getDownloadLink(reporte);
     if (!link) return;
     const filename = getFileName(reporte);
+    console.log('Descargando reporte desde:', API_BASE + link);
     await descargarPDF(API_BASE + link, filename);
   };
 
