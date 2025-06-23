@@ -217,12 +217,16 @@ class ReportService {
 					y -= 30;
 
 					page.drawText("Tipo de Cerveza", { x: 50, y, size: 12, font });
-					page.drawText("Rentabilidad", { x: 250, y, size: 12, font });
+					page.drawText("Nombre del Tipo", { x: 200, y, size: 12, font });
+					page.drawText("Fecha de Venta", { x: 350, y, size: 12, font });
+					page.drawText("Ganancia por venta", { x: 500, y, size: 12, font });
 					y -= 20;
 
 					for (const row of data) {
-						page.drawText(String(row["Tipo de Cerveza"]), { x: 50, y, size: 10, font });
-						page.drawText(String(row["Rentabilidad"]), { x: 250, y, size: 10, font });
+						page.drawText(String(row["Código Tipo"]), { x: 50, y, size: 10, font });
+						page.drawText(String(row["Nombre Tipo de Cerveza"]), { x: 200, y, size: 10, font });
+						page.drawText(String(row["Fecha de Venta"]), { x: 350, y, size: 12, font });
+						page.drawText(String(row["Ganancia total entre todas las Ventas"]), { x: 500, y, size: 12, font });
 						// Agrega más columnas si tu vista tiene más datos
 						y -= 15;
 						if (y < 50){
@@ -230,6 +234,8 @@ class ReportService {
 							y = 750;
 							page.drawText("Tipo de Cerveza", { x: 50, y, size: 12, font });
 							page.drawText("Rentabilidad", { x: 250, y, size: 12, font });
+							page.drawText("Fecha de Venta", { x: 350, y, size: 12, font });
+							page.drawText("Ganancia por venta", { x: 500, y, size: 12, font });
 							y -= 20;
 						}
 					}
@@ -264,22 +270,19 @@ class ReportService {
 					page.drawText(`Reporte: Proporción de Tarjetas`, { x: 50, y, size: 16, font, color: rgb(0, 0, 0.8) });
 					y -= 30;
 
-					page.drawText("Tipo de Tarjeta", { x: 50, y, size: 12, font });
+					page.drawText("Es de Crédito", { x: 50, y, size: 12, font });
 					page.drawText("Cantidad", { x: 250, y, size: 12, font });
-					page.drawText("Proporción", { x: 400, y, size: 12, font });
 					y -= 20;
 
 					for (const row of data) {
-						page.drawText(String(row["Tipo de Tarjeta"]), { x: 50, y, size: 10, font });
-						page.drawText(String(row["Cantidad"]), { x: 250, y, size: 10, font });
-						page.drawText(String(row["Proporción"]), { x: 400, y, size: 10, font });
+						page.drawText(String(row["Es de Crédito"]), { x: 50, y, size: 10, font });
+						page.drawText(String(row["count"]), { x: 250, y, size: 10, font });
 						y -= 15;
 						if (y < 50){
 							page = pdfDoc.addPage([780, 800]);
 							y = 750;
-							page.drawText("Tipo de Tarjeta", { x: 50, y, size: 12, font });
+							page.drawText("Es de Crédito", { x: 50, y, size: 12, font });
 							page.drawText("Cantidad", { x: 250, y, size: 12, font });
-							page.drawText("Proporción", { x: 400, y, size: 12, font });
 							y -= 20;
 						}
 					}
