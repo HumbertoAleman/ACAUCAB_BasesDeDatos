@@ -181,52 +181,52 @@ class ReportService {
 				GET: async () => {
 					try {
 						// La url debe verse así /api/reportes/productos_reposicion/pdf
-					const data = await sql`SELECT * FROM productos_generan_repo_view`;
-					const pdfDoc = await PDFDocument.create();
-					let page = pdfDoc.addPage([780, 800]);
-					const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+						const data = await sql`SELECT * FROM productos_generan_repo_view`;
+						const pdfDoc = await PDFDocument.create();
+						let page = pdfDoc.addPage([780, 800]);
+						const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-					let y = 750;
+						let y = 750;
 
-					page.drawText("ACAUCAB", { x: 50, y, size: 28, font, color: rgb(0, 0.2, 0.6) });
-					y -= 40;
+						page.drawText("ACAUCAB", { x: 50, y, size: 28, font, color: rgb(0, 0.2, 0.6) });
+						y -= 40;
 
-					page.drawText(`Reporte: Productos que generaron Ordenes de Compra`, { x: 50, y, size: 16, font, color: rgb(0, 0, 0.8) });
-					y -= 30;
-					
-					page.drawText("Código de Cerveza", { x: 50, y, size: 12, font });
-					page.drawText("Nombre de la Cerveza", { x: 200, y, size: 12, font });
-					page.drawText("Código de Presentación", { x: 350, y, size: 12, font });
-					page.drawText("Nombre Presentación", { x: 500, y, size: 12, font });
-					y -= 20;
+						page.drawText(`Reporte: Productos que generaron Ordenes de Compra`, { x: 50, y, size: 16, font, color: rgb(0, 0, 0.8) });
+						y -= 30;
+						
+						page.drawText("Código de Cerveza", { x: 50, y, size: 12, font });
+						page.drawText("Nombre de la Cerveza", { x: 200, y, size: 12, font });
+						page.drawText("Código de Presentación", { x: 350, y, size: 12, font });
+						page.drawText("Nombre Presentación", { x: 500, y, size: 12, font });
+						y -= 20;
 
-					for (const row of data) {
-						page.drawText(String(row["Código Cerveza"]), { x: 50, y, size: 10, font });
-						page.drawText(String(row["Nombre"]), { x: 200, y, size: 10, font });
-						page.drawText(String(row["Código de Presentación"]), { x: 350, y, size: 10, font });
-						page.drawText(String(row["Nombre Presentación"]), { x: 500, y, size: 10, font });
-						y -= 15;
-						if (y < 50){
-							page = pdfDoc.addPage([780, 800]);
-							y = 750;
-							page.drawText("Código de Cerveza", { x: 50, y, size: 12, font });
-							page.drawText("Nombre de la Cerveza", { x: 200, y, size: 12, font });
-							page.drawText("Código de Presentación", { x: 350, y, size: 12, font });
-							page.drawText("Nombre Presentación", { x: 500, y, size: 12, font });
-							y -= 20;
-						}; // Evita desbordar la página
-					}
-					const pdfBytes = await pdfDoc.save();
+						for (const row of data) {
+							page.drawText(String(row["Código de Cerveza"]), { x: 50, y, size: 10, font });
+							page.drawText(String(row["Nombre"]), { x: 200, y, size: 10, font });
+							page.drawText(String(row["Código de Presentación"]), { x: 350, y, size: 10, font });
+							page.drawText(String(row["Nombre Presentación"]), { x: 500, y, size: 10, font });
+							y -= 15;
+							if (y < 50){
+								page = pdfDoc.addPage([780, 800]);
+								y = 750;
+								page.drawText("Código de Cerveza", { x: 50, y, size: 12, font });
+								page.drawText("Nombre de la Cerveza", { x: 200, y, size: 12, font });
+								page.drawText("Código de Presentación", { x: 350, y, size: 12, font });
+								page.drawText("Nombre Presentación", { x: 500, y, size: 12, font });
+								y -= 20;
+							}; // Evita desbordar la página
+						}
+						const pdfBytes = await pdfDoc.save();
 
-					return new Response(pdfBytes, {
-					headers: {
-						"Content-Type": "application/pdf",
-						"Content-Disposition": "attachment; filename=productos_orden_compra.pdf",
-						"Access-Control-Allow-Origin": "*",
-						"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
-						"Access-Control-Allow-Headers": "Content-Type, Authorization",
-					},
-					});
+						return new Response(pdfBytes, {
+						headers: {
+							"Content-Type": "application/pdf",
+							"Content-Disposition": "attachment; filename=productos_orden_compra.pdf",
+							"Access-Control-Allow-Origin": "*",
+							"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+							"Access-Control-Allow-Headers": "Content-Type, Authorization",
+						},
+						});
 					} catch (error) {
 						console.error(error);
 						return new Response("Error interno del servidor", {
