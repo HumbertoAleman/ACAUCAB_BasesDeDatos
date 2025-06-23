@@ -53,7 +53,7 @@ const reportesDisponibles: Reporte[] = [
     descripcion:
       "Consolida las horas de entrada y salida de cada empleado para calcular sus horas trabajadas en un período de tiempo.",
     icono: <AccessTime />,
-    parametros: ["año", "mes", "modalidad_horas"],
+    parametros: ["año", "modalidad_horas"],
   },
   {
     id: "inventario-critico",
@@ -80,6 +80,7 @@ const reportesDisponibles: Reporte[] = [
 export const Reportes: React.FC = () => {
   const [reporteSeleccionado, setReporteSeleccionado] = useState<Reporte | null>(null)
   const [parametros, setParametros] = useState<{ [key: string]: string }>({})
+  const API_BASE = "http://localhost:3000"
 
   const getDownloadLink = (reporte: Reporte) => {
     if (reporte.id === "clientes-nuevos") {
@@ -137,11 +138,51 @@ export const Reportes: React.FC = () => {
     return true;
   };
 
-  const handleDescargarReporte = (reporte: Reporte) => {
+  const descargarPDF = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        alert("Error al generar el PDF");
+        return;
+      }
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      alert("Error al descargar el PDF");
+    }
+  };
+
+  const getFileName = (reporte: Reporte) => {
+    switch (reporte.id) {
+      case "clientes-nuevos":
+        return "registro_clientes.pdf";
+      case "horas-laboradas":
+        return "horas_laboradas.pdf";
+      case "inventario-critico":
+        return "productos_criticos.pdf";
+      case "rentabilidad-cerveza":
+        return "rentabilidad_cerveza.pdf";
+      case "metodos-pago-online":
+        return "proporcion_tarjetas.pdf";
+      default:
+        return "reporte.pdf";
+    }
+  };
+
+  const handleDescargarReporte = async (reporte: Reporte) => {
     const link = getDownloadLink(reporte);
     if (!link) return;
-    window.open(link, "_blank");
-  }
+    const filename = getFileName(reporte);
+    console.log('Descargando reporte desde:', API_BASE + link);
+    await descargarPDF(API_BASE + link, filename);
+  };
 
   const handleParametroChange = (parametro: string, valor: string) => {
     setParametros((prev) => ({
@@ -208,101 +249,155 @@ export const Reportes: React.FC = () => {
                 <Divider sx={{ mb: 2 }} />
 
                 {/* Parámetros del Reporte */}
-                {reporteSeleccionado.parametros && reporteSeleccionado.parametros.length > 0 && (
+                {reporteSeleccionado.id === "horas-laboradas" ? (
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle2" gutterBottom>
                       Parámetros:
                     </Typography>
-
-                    {reporteSeleccionado.parametros.map((parametro) => {
-                      if (parametro === "año") {
-                        return (
-                          <TextField
-                            key={parametro}
-                            fullWidth
-                            label="Año"
-                            type="number"
-                            placeholder="Ej. 2024"
-                            value={parametros[parametro] || ""}
-                            onChange={(e) => handleParametroChange(parametro, e.target.value)}
-                            InputLabelProps={{ shrink: true }}
-                            sx={{ mb: 2 }}
-                          />
-                        )
-                      }
-                      if (parametro === "mes") {
-                        return (
-                          <TextField
-                            key={parametro}
-                            fullWidth
-                            label="Mes"
-                            type="number"
-                            placeholder="Ej. 7"
-                            value={parametros[parametro] || ""}
-                            onChange={(e) => handleParametroChange(parametro, e.target.value)}
-                            InputLabelProps={{ shrink: true }}
-                            sx={{ mb: 2 }}
-                          />
-                        )
-                      }
-
-                      if (parametro === "modalidad_cliente") {
-                        return (
-                          <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
-                            <InputLabel>Modalidad</InputLabel>
-                            <Select
-                              value={parametros[parametro] || "mensual"}
-                              onChange={(e) => handleParametroChange(parametro, e.target.value)}
-                              label="Modalidad"
-                            >
-                              <MenuItem value="mensual">Mensual</MenuItem>
-                              <MenuItem value="trimestral">Trimestral</MenuItem>
-                            </Select>
-                          </FormControl>
-                        )
-                      }
-
-                      if (parametro === "modalidad_horas") {
-                        return (
-                          <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
-                            <InputLabel>Modalidad</InputLabel>
-                            <Select
-                              value={parametros[parametro] || "diaria"}
-                              onChange={(e) => handleParametroChange(parametro, e.target.value)}
-                              label="Modalidad"
-                            >
-                              <MenuItem value="diaria">Diaria</MenuItem>
-                              <MenuItem value="semanal">Semanal</MenuItem>
-                              <MenuItem value="mensual">Mensual</MenuItem>
-                              <MenuItem value="semestral">Semestral</MenuItem>
-                              <MenuItem value="anual">Anual</MenuItem>
-                              <MenuItem value="trimestral">Trimestral</MenuItem>
-                            </Select>
-                          </FormControl>
-                        )
-                      }
-
-                      if (parametro === "trimestre" && parametros["modalidad_horas"] === "trimestral") {
-                        return (
-                          <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
-                            <InputLabel>Trimestre</InputLabel>
-                            <Select
-                              value={parametros["trimestre"] || "1"}
-                              onChange={(e) => handleParametroChange("trimestre", e.target.value)}
-                              label="Trimestre"
-                            >
-                              <MenuItem value="1">Q1</MenuItem>
-                              <MenuItem value="2">Q2</MenuItem>
-                              <MenuItem value="3">Q3</MenuItem>
-                              <MenuItem value="4">Q4</MenuItem>
-                            </Select>
-                          </FormControl>
-                        )
-                      }
-
-                      return null
-                    })}
+                    <TextField
+                      fullWidth
+                      label="Año"
+                      type="number"
+                      placeholder="Ej. 2024"
+                      value={parametros["año"] || ""}
+                      onChange={(e) => handleParametroChange("año", e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      sx={{ mb: 2 }}
+                    />
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>Modalidad</InputLabel>
+                      <Select
+                        value={parametros["modalidad_horas"] || "diario"}
+                        onChange={(e) => handleParametroChange("modalidad_horas", e.target.value)}
+                        label="Modalidad"
+                      >
+                        <MenuItem value="diario">Diario</MenuItem>
+                        <MenuItem value="semanal">Semanal</MenuItem>
+                        <MenuItem value="mensual">Mensual</MenuItem>
+                        <MenuItem value="semestral">Semestral</MenuItem>
+                        <MenuItem value="anual">Anual</MenuItem>
+                        <MenuItem value="trimestral">Trimestral</MenuItem>
+                      </Select>
+                    </FormControl>
+                    {parametros["modalidad_horas"] === "trimestral" ? (
+                      <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel>Trimestre</InputLabel>
+                        <Select
+                          value={parametros["trimestre"] || "1"}
+                          onChange={(e) => handleParametroChange("trimestre", e.target.value)}
+                          label="Trimestre"
+                        >
+                          <MenuItem value="1">1</MenuItem>
+                          <MenuItem value="2">2</MenuItem>
+                          <MenuItem value="3">3</MenuItem>
+                          <MenuItem value="4">4</MenuItem>
+                        </Select>
+                      </FormControl>
+                    ) : parametros["modalidad_horas"] ? (
+                      <TextField
+                        fullWidth
+                        label="Mes"
+                        type="number"
+                        placeholder="Ej. 7"
+                        value={parametros["mes"] || ""}
+                        onChange={(e) => handleParametroChange("mes", e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ mb: 2 }}
+                      />
+                    ) : null}
                   </Box>
+                ) : (
+                  reporteSeleccionado.parametros && reporteSeleccionado.parametros.length > 0 && (
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Parámetros:
+                      </Typography>
+                      {reporteSeleccionado.parametros.map((parametro) => {
+                        if (parametro === "año") {
+                          return (
+                            <TextField
+                              key={parametro}
+                              fullWidth
+                              label="Año"
+                              type="number"
+                              placeholder="Ej. 2024"
+                              value={parametros[parametro] || ""}
+                              onChange={(e) => handleParametroChange(parametro, e.target.value)}
+                              InputLabelProps={{ shrink: true }}
+                              sx={{ mb: 2 }}
+                            />
+                          )
+                        }
+                        if (parametro === "modalidad_horas") {
+                          return (
+                            <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
+                              <InputLabel>Modalidad</InputLabel>
+                              <Select
+                                value={parametros[parametro] || "diario"}
+                                onChange={(e) => handleParametroChange(parametro, e.target.value)}
+                                label="Modalidad"
+                              >
+                                <MenuItem value="diario">Diario</MenuItem>
+                                <MenuItem value="semanal">Semanal</MenuItem>
+                                <MenuItem value="mensual">Mensual</MenuItem>
+                                <MenuItem value="semestral">Semestral</MenuItem>
+                                <MenuItem value="anual">Anual</MenuItem>
+                                <MenuItem value="trimestral">Trimestral</MenuItem>
+                              </Select>
+                            </FormControl>
+                          )
+                        }
+                        if (parametro === "trimestre" && parametros["modalidad_horas"] === "trimestral") {
+                          return (
+                            <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
+                              <InputLabel>Trimestre</InputLabel>
+                              <Select
+                                value={parametros["trimestre"] || "1"}
+                                onChange={(e) => handleParametroChange("trimestre", e.target.value)}
+                                label="Trimestre"
+                              >
+                                <MenuItem value="1">1</MenuItem>
+                                <MenuItem value="2">2</MenuItem>
+                                <MenuItem value="3">3</MenuItem>
+                                <MenuItem value="4">4</MenuItem>
+                              </Select>
+                            </FormControl>
+                          )
+                        }
+                        if (parametro === "mes" && parametros["modalidad_horas"] !== "trimestral") {
+                          return (
+                            <TextField
+                              key={parametro}
+                              fullWidth
+                              label="Mes"
+                              type="number"
+                              placeholder="Ej. 7"
+                              value={parametros[parametro] || ""}
+                              onChange={(e) => handleParametroChange(parametro, e.target.value)}
+                              InputLabelProps={{ shrink: true }}
+                              sx={{ mb: 2 }}
+                            />
+                          )
+                        }
+                        if (parametro === "modalidad_cliente") {
+                          return (
+                            <FormControl key={parametro} fullWidth sx={{ mb: 2 }}>
+                              <InputLabel>Modalidad</InputLabel>
+                              <Select
+                                value={parametros[parametro] || "mensual"}
+                                onChange={(e) => handleParametroChange(parametro, e.target.value)}
+                                label="Modalidad"
+                              >
+                                <MenuItem value="mensual">Mensual</MenuItem>
+                                <MenuItem value="trimestral">Trimestral</MenuItem>
+                              </Select>
+                            </FormControl>
+                          )
+                        }
+                        return null
+                      })}
+                    </Box>
+                  )
                 )}
 
                 <Button
