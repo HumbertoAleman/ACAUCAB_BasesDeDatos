@@ -20,6 +20,17 @@ class CompraService {
 							AND cp.fk_pres = dc.fk_cerv_pres_2
 						JOIN cerveza AS ce ON cp.fk_cerv = ce.cod_cerv
 						JOIN miembro AS m ON m.rif_miem = cp.fk_miem`
+
+				for (const compra of res) {
+					const status = await sql`SELECT E.nombre_esta
+						FROM ESTA_COMP AS EC
+						JOIN Estatus AS E ON EC.fk_esta = E.cod_esta
+						WHERE EC.fk_comp = 1
+						ORDER BY EC.cod_esta_comp DESC
+						LIMIT 1`
+					compra.nombre_estatus = status[0].nombre_esta
+				}
+
 				return Response.json(res, CORS_HEADERS)
 			}
 		},
