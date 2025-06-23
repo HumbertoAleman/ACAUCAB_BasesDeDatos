@@ -219,7 +219,7 @@ class ReportService {
 					page.drawText("Tipo de Cerveza", { x: 50, y, size: 12, font });
 					page.drawText("Nombre del Tipo", { x: 200, y, size: 12, font });
 					page.drawText("Fecha de Venta", { x: 350, y, size: 12, font });
-					page.drawText("Ganancia por venta", { x: 500, y, size: 12, font });
+					page.drawText("Ganancia por venta($)", { x: 500, y, size: 12, font });
 					y -= 20;
 
 					for (const row of data) {
@@ -227,8 +227,8 @@ class ReportService {
 						fecha = fecha.slice(3, 15);
 						page.drawText(String(row["Código Tipo"]), { x: 50, y, size: 10, font });
 						page.drawText(String(row["Nombre Tipo de Cerveza"]), { x: 200, y, size: 10, font });
-						page.drawText(String(fecha), { x: 350, y, size: 12, font });
-						page.drawText(String(row["Ganancia total entre todas las Ventas"]), { x: 500, y, size: 12, font });
+						page.drawText(String(fecha), { x: 350, y, size: 10, font });
+						page.drawText(String(row["Ganancia total entre todas las Ventas"]), { x: 500, y, size: 10, font });
 						// Agrega más columnas si tu vista tiene más datos
 						y -= 15;
 						if (y < 50){
@@ -241,6 +241,35 @@ class ReportService {
 							y -= 20;
 						}
 					}
+
+					const data2 = await sql`SELECT * FROM rentabilidad_tipo_total_view`;
+					page = pdfDoc.addPage([780, 800]);
+					y = 750;
+					page.drawText("ACAUCAB", { x: 50, y, size: 28, font, color: rgb(0, 0.2, 0.6) });
+					y -= 40;
+					page.drawText(`Reporte: Rentabilidad Total por Tipo de Cerveza`, { x: 50, y, size: 16, font, color: rgb(0, 0, 0.8) });
+					y -= 30;
+
+					page.drawText("Tipo de Cerveza", { x: 50, y, size: 12, font });
+					page.drawText("Nombre del Tipo", { x: 200, y, size: 12, font });
+					page.drawText("Ganancia por venta($)", { x: 350, y, size: 12, font });
+
+					for (const row of data2) {
+						page.drawText(String(row["Código Tipo"]), { x: 50, y, size: 10, font });
+						page.drawText(String(row["Nombre Tipo de Cerveza"]), { x: 200, y, size: 10, font });
+						page.drawText(String(row["Ganancia total entre todas las Ventas"]), { x: 350, y, size: 10, font });
+						// Agrega más columnas si tu vista tiene más datos
+						y -= 15;
+						if (y < 50){
+							page = pdfDoc.addPage([780, 800]);
+							y = 750;
+							page.drawText("Tipo de Cerveza", { x: 50, y, size: 12, font });
+							page.drawText("Nombre del Tipo", { x: 200, y, size: 12, font });
+							page.drawText("Ganancia por venta($)", { x: 350, y, size: 12, font });
+							y -= 20;
+						}
+					}
+
 					const pdfBytes = await pdfDoc.save();
 
 					return new Response(pdfBytes, {
@@ -272,18 +301,19 @@ class ReportService {
 					page.drawText(`Reporte: Proporción de Tarjetas`, { x: 50, y, size: 16, font, color: rgb(0, 0, 0.8) });
 					y -= 30;
 
-					page.drawText("Es de Crédito", { x: 50, y, size: 12, font });
+					page.drawText("Es Tarjeta de Crédito", { x: 50, y, size: 12, font });
 					page.drawText("Cantidad", { x: 250, y, size: 12, font });
 					y -= 20;
 
 					for (const row of data) {
+						let boolean = row["Es de Crédito"] ? true : false;
 						page.drawText(String(row["Es de Crédito"]), { x: 50, y, size: 10, font });
-						page.drawText(String(row["count"]), { x: 250, y, size: 10, font });
+						page.drawText(String(boolean), { x: 250, y, size: 10, font });
 						y -= 15;
 						if (y < 50){
 							page = pdfDoc.addPage([780, 800]);
 							y = 750;
-							page.drawText("Es de Crédito", { x: 50, y, size: 12, font });
+							page.drawText("Es Tarjeta de Crédito", { x: 50, y, size: 12, font });
 							page.drawText("Cantidad", { x: 250, y, size: 12, font });
 							y -= 20;
 						}

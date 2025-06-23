@@ -37,6 +37,20 @@ CREATE OR REPLACE VIEW rentabilidad_tipo_view AS
         AND v.online = true
 	GROUP BY tc.cod_tipo_cerv, tc.nombre_tipo_cerv, v.fecha_vent;
 
+CREATE OR REPLACE VIEW rentabilidad_tipo_total_view AS
+	SELECT tc.cod_tipo_cerv "Código Tipo", tc.nombre_tipo_cerv "Nombre Tipo de Cerveza", SUM(dv.precio_unitario_vent * dv.cant_deta_vent) "Ganancia total entre todas las Ventas"
+    FROM Presentacion p, Detalle_Venta dv, Inventario_Tienda it, CERV_PRES cp, Cerveza c, Tipo_Cerveza tc, Venta v
+    WHERE p.cod_pres = cp.fk_pres
+        AND c.cod_cerv = cp.fk_cerv
+        AND c.fk_tipo_cerv = tc.cod_tipo_cerv
+        AND cp.fk_cerv = it.fk_cerv_pres_1
+        AND cp.fk_pres = it.fk_cerv_pres_2
+        AND it.fk_cerv_pres_1 = dv.fk_inve_tien_1
+        AND it.fk_cerv_pres_2 = dv.fk_inve_tien_2
+        AND dv.fk_vent = v.cod_vent
+        AND v.online = true
+	GROUP BY tc.cod_tipo_cerv, tc.nombre_tipo_cerv;
+
 CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
     SELECT t.credito "Es de Crédito", COUNT (t.credito)
     FROM Venta v, Pago p, Metodo_Pago mp, Tarjeta t
