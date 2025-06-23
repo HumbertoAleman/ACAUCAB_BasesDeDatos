@@ -254,7 +254,7 @@ class ReportService {
 					page.drawText("Nombre del Tipo", { x: 200, y, size: 12, font });
 					page.drawText("Ganancia por venta($)", { x: 350, y, size: 12, font });
 					y -= 20;
-					
+
 					for (const row of data2) {
 						page.drawText(String(row["Código Tipo"]), { x: 50, y, size: 10, font });
 						page.drawText(String(row["Nombre Tipo de Cerveza"]), { x: 200, y, size: 10, font });
@@ -308,8 +308,8 @@ class ReportService {
 
 					for (const row of data) {
 						let boolean = row["Es de Crédito"] ? true : false;
-						page.drawText(String(row["Es de Crédito"]), { x: 50, y, size: 10, font });
-						page.drawText(String(boolean), { x: 250, y, size: 10, font });
+						page.drawText(String(boolean), { x: 50, y, size: 10, font });
+						page.drawText(String(row["count"]), { x: 250, y, size: 10, font });
 						y -= 15;
 						if (y < 50){
 							page = pdfDoc.addPage([780, 800]);
