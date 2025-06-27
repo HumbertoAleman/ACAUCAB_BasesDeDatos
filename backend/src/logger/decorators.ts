@@ -21,4 +21,26 @@ function sqlProtection(_: any, propertyName: string, descriptor: PropertyDescrip
 	};
 }
 
-export { LogFunctionExecution, sqlProtection }
+function AddOptionsMethod<T extends { new(...args: any[]): {} }>(constructor: T) {
+	return class extends constructor {
+		[x: string]: any;
+		constructor(...args: any[]) {
+			super(...args);
+			for (const route in this.routes) {
+				if (this.routes.hasOwnProperty(route)) {
+					const methods = this.routes[route];
+					methods.OPTIONS = async () => {
+						const headers = {
+							"Access-Control-Allow-Origin": "*",
+							"Access-Control-Allow-Methods": `${Object.keys(methods)}`,
+							"Access-Control-Allow-Headers": "Content-Type, Authorization",
+						};
+						return new Response(null, { status: 204, headers: headers, });
+					};
+				}
+			}
+		}
+	};
+}
+
+export { LogFunctionExecution, sqlProtection, AddOptionsMethod }
