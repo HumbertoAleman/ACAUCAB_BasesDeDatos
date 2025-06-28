@@ -69,6 +69,16 @@ class RolService {
 		return Response.json(res, CORS_HEADERS);
 	}
 
+	@sqlProtection
+	@LogFunctionExecution
+	async modifyPrivilegegesFromRol(rol: number, added: number[], removed: number[]) {
+		for (const agre of added)
+			await this.relatePrivilegeWithRol(agre, rol)
+		for (const elim of removed)
+			await this.unrelatePrivilegeWithRol(elim, rol)
+		return Response.json({ "success": true }, CORS_HEADERS)
+	}
+
 	routes = {
 		"/api/roles": {
 			GET: async () => await this.getAllRoles(),
@@ -83,6 +93,14 @@ class RolService {
 			GET: async (req: any) => await this.getPrivilegesFromRol(req.params.id),
 			POST: async (req: any) => await this.relatePrivilegeWithRol(req.params.id, (await req.json()).fk_priv),
 			DELETE: async (req: any) => await this.unrelatePrivilegeWithRol(req.params.id, (await req.json()).fk_priv)
+		},
+
+		"/api/gestion_privilegios": {
+			OPTIONS() { return new Response('Departed', CORS_HEADERS) },
+			PUT: async (req: any) => {
+				const body = await req.json()
+				return await this.modifyPrivilegegesFromRol(body.cod_rol, body.priv_agre, body.priv_elim)
+			}
 		},
 	}
 }
