@@ -51,12 +51,14 @@ import {
   Receipt
 } from "@mui/icons-material"
 import type { ProductoInventario, ClienteDetallado, TasaVenta, MetodoPagoCompleto, ItemVenta, PagoVenta, ResumenVenta } from "../../interfaces/ventas"
+import type { Banco } from "../../interfaces/common"
 import { 
   getProductosInventario, 
   getClientesDetallados, 
   getTasaActual, 
   getMetodosPago, 
   procesarVenta,
+  getBancos,
   getTableData
 } from "../../services/api"
 
@@ -65,6 +67,7 @@ export const PuntoVenta: React.FC = () => {
   const [productos, setProductos] = useState<ProductoInventario[]>([])
   const [clientes, setClientes] = useState<ClienteDetallado[]>([])
   const [tasaActual, setTasaActual] = useState<TasaVenta | null>(null)
+  const [bancos, setBancos] = useState<Banco[]>([])
   
   // Estados para la venta
   const [busquedaProducto, setBusquedaProducto] = useState("")
@@ -90,7 +93,7 @@ export const PuntoVenta: React.FC = () => {
   const [camposCheque, setCamposCheque] = useState({
     numero_cheque: "",
     numero_cuenta_cheque: "",
-    fk_banc: "",
+    fk_banc: 0,
     nombre_banco: ""
   })
   const [denominacionEfectivo, setDenominacionEfectivo] = useState("USD")
@@ -112,7 +115,7 @@ export const PuntoVenta: React.FC = () => {
     { cod_meto_pago: 1, tipo: "Efectivo", denominacion_efec: "USD" },
     { cod_meto_pago: 2, tipo: "Tarjeta", credito: true },
     { cod_meto_pago: 3, tipo: "Punto_Canjeo" },
-    { cod_meto_pago: 4, tipo: "Cheque", nombre_banco: "Banco de Venezuela" },
+    { cod_meto_pago: 4, tipo: "Cheque" },
   ];
 
   // Cargar datos iniciales
@@ -121,11 +124,12 @@ export const PuntoVenta: React.FC = () => {
       try {
         setLoading(true);
 
-        const [productosData, cervezas, presentaciones, lugaresTienda] = await Promise.all([
+        const [productosData, cervezas, presentaciones, lugaresTienda, bancosData] = await Promise.all([
           getProductosInventario(),
           getTableData('Cerveza'),
           getTableData('Presentacion'),
-          getTableData('Lugar_Tienda')
+          getTableData('Lugar_Tienda'),
+          getBancos()
         ]);
 
         const productosMapeados = (productosData as any[]).map((item, idx) => {
@@ -148,8 +152,10 @@ export const PuntoVenta: React.FC = () => {
         });
 
         setProductos(productosMapeados);
+        setBancos(bancosData);
       } catch (error) {
         setProductos([]);
+        setBancos([]);
       } finally {
         setLoading(false);
       }
@@ -313,7 +319,7 @@ export const PuntoVenta: React.FC = () => {
       nombre_titu_tarj: "",
       credito: false
     })
-    setCamposCheque({ numero_cheque: "", numero_cuenta_cheque: "", nombre_banco: "", fk_banc: "" })
+    setCamposCheque({ numero_cheque: "", numero_cuenta_cheque: "", nombre_banco: "", fk_banc: 0 })
     setDenominacionEfectivo("USD")
     setPuntosUsar("")
     setDialogPago(true)
@@ -374,7 +380,7 @@ export const PuntoVenta: React.FC = () => {
     setMetodoPagoSeleccionado(null);
     setMontoPago("");
     setCamposTarjeta({ numero_tarj: "", fecha_venci_tarj: "", cvv_tarj: "", nombre_titu_tarj: "", credito: false });
-    setCamposCheque({ numero_cheque: "", numero_cuenta_cheque: "", nombre_banco: "", fk_banc: "" });
+    setCamposCheque({ numero_cheque: "", numero_cuenta_cheque: "", nombre_banco: "", fk_banc: 0 });
     setDenominacionEfectivo("USD");
     setPuntosUsar("");
   };
@@ -896,12 +902,27 @@ export const PuntoVenta: React.FC = () => {
                       onChange={(e) => setCamposCheque({ ...camposCheque, numero_cuenta_cheque: e.target.value })}
                       sx={{ mb: 2 }}
                     />
-                    <TextField
-                      fullWidth
-                      label="Banco"
-                      value={camposCheque.nombre_banco}
-                      onChange={(e) => setCamposCheque({ ...camposCheque, nombre_banco: e.target.value })}
-                    />
+                    <FormControl fullWidth>
+                      <InputLabel>Banco</InputLabel>
+                      <Select
+                        value={camposCheque.fk_banc}
+                        onChange={(e) => {
+                          const bancoSeleccionado = bancos.find(b => b.cod_banc === e.target.value);
+                          setCamposCheque({ 
+                            ...camposCheque, 
+                            fk_banc: e.target.value,
+                            nombre_banco: bancoSeleccionado?.nombre_banc || ""
+                          });
+                        }}
+                        label="Banco"
+                      >
+                        {bancos.map((banco) => (
+                          <MenuItem key={banco.cod_banc} value={banco.cod_banc}>
+                            {banco.nombre_banc}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Box>
                 )}
 

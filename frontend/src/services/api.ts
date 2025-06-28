@@ -6,7 +6,7 @@ import type {
   MetodoPagoCompleto, 
   VentaCompleta 
 } from '../interfaces/ventas'
-import type { Lugar } from '../interfaces/common'
+import type { Lugar, Banco } from '../interfaces/common'
 
 // Configuración base de la API
 const API_URL = 'http://127.0.0.1:3000' // URL Base para todos los endpoints
@@ -392,6 +392,38 @@ export const getTasaActual = async (): Promise<TasaVenta[]> => {
 };
 
 /**
+ * Obtiene los bancos disponibles
+ */
+export const getBancos = async (): Promise<Banco[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bancos`);
+    if (!response.ok) {
+      throw new Error('Error al obtener bancos');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching bancos:', error);
+    // Bancos de ejemplo para desarrollo
+    return [
+      { cod_banc: 1, nombre_banc: "Banco de Venezuela" },
+      { cod_banc: 2, nombre_banc: "Bancamiga" },
+      { cod_banc: 3, nombre_banc: "Banesco" },
+      { cod_banc: 4, nombre_banc: "Banco Mercantil" },
+      { cod_banc: 5, nombre_banc: "Banco Nacional de Crédito (BNC)" },
+      { cod_banc: 6, nombre_banc: "Banco del Tesoro" },
+      { cod_banc: 7, nombre_banc: "Banco Exterior" },
+      { cod_banc: 8, nombre_banc: "Banco Provincial" },
+      { cod_banc: 9, nombre_banc: "Banco Caroní" },
+      { cod_banc: 10, nombre_banc: "Banco Sofitasa" },
+      { cod_banc: 11, nombre_banc: "Banca Amiga" },
+      { cod_banc: 12, nombre_banc: "Banco Agrícola de Venezuela" },
+      { cod_banc: 13, nombre_banc: "Banco Bicentenario" },
+      { cod_banc: 14, nombre_banc: "Banco del Caribe" }
+    ];
+  }
+};
+
+/**
  * Obtiene los métodos de pago disponibles
  */
 export const getMetodosPago = async (): Promise<MetodoPagoCompleto[]> => {
@@ -421,8 +453,7 @@ export const getMetodosPago = async (): Promise<MetodoPagoCompleto[]> => {
       },
       {
         cod_meto_pago: 4,
-        tipo: "Cheque",
-        nombre_banco: "Banco de Venezuela"
+        tipo: "Cheque"
       }
     ];
   }
