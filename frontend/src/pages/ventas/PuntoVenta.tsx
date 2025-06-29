@@ -370,6 +370,7 @@ export const PuntoVenta: React.FC = () => {
       ...(metodoPagoSeleccionado.tipo === "Cheque" && {
         numero_cheque: parseInt(camposCheque.numero_cheque),
         numero_cuenta_cheque: parseInt(camposCheque.numero_cuenta_cheque),
+        fk_banc: camposCheque.fk_banc,
         nombre_banco: camposCheque.nombre_banco
       }),
       ...(metodoPagoSeleccionado.tipo === "Efectivo" && {
@@ -425,8 +426,6 @@ export const PuntoVenta: React.FC = () => {
           tipo: pago.metodo_pago.tipo,
           monto: pago.monto / tasaActual.tasa_dolar_bcv,
         };
-
-        // Agregar detalles específicos del método de pago
         if (pago.metodo_pago.tipo === "Tarjeta") {
           pagoData.numero_tarj = pago.metodo_pago.numero_tarj;
           pagoData.fecha_venci_tarj = pago.metodo_pago.fecha_venci_tarj;
@@ -437,10 +436,10 @@ export const PuntoVenta: React.FC = () => {
           pagoData.numero_cheque = pago.metodo_pago.numero_cheque;
           pagoData.numero_cuenta_cheque = pago.metodo_pago.numero_cuenta_cheque;
           pagoData.fk_banc = pago.metodo_pago.fk_banc;
+          pagoData.nombre_banco = pago.metodo_pago.nombre_banco;
         } else if (pago.metodo_pago.tipo === "Efectivo") {
           pagoData.denominacion_efec = pago.metodo_pago.denominacion_efec;
         }
-
         return pagoData;
       });
 
