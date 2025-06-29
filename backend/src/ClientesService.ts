@@ -52,7 +52,7 @@ class ClientesService {
 	@sqlProtection
 	@LogFunctionExecution
 	async getAllClientes() {
-		const natural = sql`
+		const natural = await sql`
 			SELECT C.rif_clie, C.tipo_clie, C.razon_social_juri, C.denom_comercial_juri, C.direccion_fiscal_clie, C.direccion_fisica_clie, C.fk_luga_1, C.fk_luga_2, C.fecha_ingr_clie, SUM(COALESCE(PC.cant_puntos_acum, 0)) as "puntos_acumulados", COALESCE(STRING_AGG(CAST(T.cod_area_tele AS text)||'-'||CAST(T.num_tele AS text), ','), 'No Phone Number') AS "telefonos", COALESCE(STRING_AGG(CAST(Co.prefijo_corr AS text), ','), 'No Mail') AS "correos"
 			FROM Cliente C
 			FULL JOIN PUNT_CLIE PC ON C.rif_clie = PC.fk_clie
@@ -61,7 +61,7 @@ class ClientesService {
 			WHERE tipo_clie = 'Juridico'
 			GROUP BY C.rif_clie`;
 
-		const juridico = sql`
+		const juridico = await sql`
 			SELECT C.rif_clie, C.tipo_clie, C.primer_nom_natu, C.primer_ape_natu, C.direccion_fiscal_clie, C.direccion_fisica_clie, C.fk_luga_1, C.fk_luga_2, C.fecha_ingr_clie, SUM(COALESCE(PC.cant_puntos_acum, 0)) as "puntos_acumulados", COALESCE(STRING_AGG(CAST(T.cod_area_tele AS text)||'-'||CAST(T.num_tele AS text), ','), 'No Phone Number') AS "telefonos", COALESCE(STRING_AGG(CAST(Co.prefijo_corr AS text), ','), 'No Mail') AS "correos"
 			FROM Cliente C
 			FULL JOIN PUNT_CLIE PC ON C.rif_clie = PC.fk_clie
@@ -70,7 +70,7 @@ class ClientesService {
 			WHERE tipo_clie = 'Natural'
 			GROUP BY C.rif_clie`;
 
-		return Response.json(Promise.all([natural, juridico]), CORS_HEADERS)
+		return Response.json([...natural, ...juridico], CORS_HEADERS)
 	}
 
 	@sqlProtection

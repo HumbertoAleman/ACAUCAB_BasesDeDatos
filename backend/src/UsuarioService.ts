@@ -1,10 +1,11 @@
 import { sql } from "bun";
 import { CORS_HEADERS } from "../globals";
+import { AddOptionsMethod } from "./logger/decorators";
 
+@AddOptionsMethod
 class UsuarioService {
 	routes = {
 		"/api/user": {
-			OPTIONS: () => new Response('Departed', CORS_HEADERS),
 			POST: async (req: any) => {
 				const body = await req.json();
 				body.fk_rol = body.tipo_clie === "Natural" ? 200 : 201;

@@ -14,7 +14,7 @@ enum DebugLevel {
 }
 
 export default class Logger {
-	static #level: DebugLevel = DebugLevel.warn;
+	static #level: DebugLevel = DebugLevel.debug;
 
 	static debug(message: string): void {
 		if (this.#level < DebugLevel.debug)
