@@ -15,6 +15,8 @@ import VentaService from "./src/VentaService";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
 import CompraService from "./src/CompraService";
+import { defaultCheckBoxAppearanceProvider } from "pdf-lib";
+import BancoService from "./src/BancoService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -90,5 +92,6 @@ Bun.serve({
 		...ReportService.routes,
 		...UsuarioService.routes,
 		...CompraService.routes,
+		...BancoService.routes,
 	}
 })
