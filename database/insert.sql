@@ -1159,7 +1159,7 @@ p_online boolean, -- If was online
 p_fk_clie varchar(20), -- Who bought this
 p_fk_tien integer, -- fk_tien
 -- Parameters for Metodo_Pago
-m_p_fk_meto_pago integer[], -- Array fk_meto_pago
+metodos_pago integer[], -- Array fk_meto_pago
 m_p_monto_pago numeric(8, 2)[], -- Array montos
 -- Parameters for Detalle_Venta
 d_v_cant_deta_vent integer[], -- Array of quantities sold
@@ -1171,11 +1171,9 @@ d_v_fk_inve_tien_4 integer[] -- fk_luga_tien
 DECLARE
     total_acum integer;
     v_cod_tasa integer;
-    v_cod_vent integer;
+    v_cod_vent integer; -- Hold generated cod_vent
     precio_unitario numeric;
-    -- Hold generated cod_vent
-    i integer;
-    -- Loop index
+    i integer; -- Loop index
 BEGIN
     ----
     -- Create Venta record
@@ -1204,10 +1202,10 @@ BEGIN
     -- * This shoots substract_points_on_venta where if Pago is Punto_Canjeo
     --     it discounts the apropriate points from the Client
     ----
-    FOR i IN 1..array_length(m_p_fk_meto_pago, 1)
+    FOR i IN 1..array_length(metodos_pago, 1)
     LOOP
-        INSERT INTO Pago (fk_vent, fk_meto_pago, monto_pago, fecha_pago, fk_tasa)
-            VALUES (v_cod_vent, m_p_fk_meto_pago[i], m_p_monto_pago[i], p_fecha_vent, create_or_insert_tasa (p_fecha_vent));
+		INSERT INTO Pago (fk_vent, fk_meto_pago, monto_pago, fecha_pago, fk_tasa)
+            VALUES (v_cod_vent, metodos_pago[i], m_p_monto_pago[i], p_fecha_vent, create_or_insert_tasa (p_fecha_vent));
     END LOOP;
 END;
 $$

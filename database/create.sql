@@ -439,16 +439,18 @@ CREATE TABLE Efectivo (
 );
 
 CREATE TABLE Pago (
+	cod_pago serial,
     fk_vent integer,
     fk_meto_pago integer,
     monto_pago numeric(32, 2) NOT NULL,
     fecha_pago date NOT NULL,
     fk_tasa integer NOT NULL,
-    PRIMARY KEY (fk_vent, fk_meto_pago),
+    PRIMARY KEY (cod_pago, fk_vent, fk_meto_pago),
     CONSTRAINT formada FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent),
     CONSTRAINT usa FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago),
     CONSTRAINT calculado FOREIGN KEY (fk_tasa) REFERENCES Tasa (cod_tasa)
 );
+
 
 CREATE TABLE Telefono (
     cod_tele serial,
