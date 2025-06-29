@@ -100,6 +100,15 @@ CREATE TABLE Evento (
     CONSTRAINT desarrollado FOREIGN KEY (fk_luga) REFERENCES Lugar (cod_luga)
 );
 
+CREATE TABLE Actividad (
+    cod_acti serial,
+    fk_even int,
+    nombre_acti text,
+    descripcion_acti text,
+    PRIMARY KEY (cod_acti),
+    CONSTRAINT realizada FOREIGN KEY (fk_even) REFERENCES Evento (cod_even)
+);
+
 CREATE TABLE Empleado (
     cod_empl serial,
     ci_empl integer NOT NULL,
@@ -157,7 +166,7 @@ CREATE TABLE Departamento (
 );
 
 CREATE TABLE EMPL_CARG (
-	cod_empl_carg serial,
+    cod_empl_carg serial,
     fk_empl integer,
     fk_carg integer,
     fecha_ini date NOT NULL,
@@ -439,7 +448,7 @@ CREATE TABLE Efectivo (
 );
 
 CREATE TABLE Pago (
-	cod_pago serial,
+    cod_pago serial,
     fk_vent integer,
     fk_meto_pago integer,
     monto_pago numeric(32, 2) NOT NULL,
@@ -450,7 +459,6 @@ CREATE TABLE Pago (
     CONSTRAINT usa FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago),
     CONSTRAINT calculado FOREIGN KEY (fk_tasa) REFERENCES Tasa (cod_tasa)
 );
-
 
 CREATE TABLE Telefono (
     cod_tele serial,
