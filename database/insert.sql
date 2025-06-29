@@ -1511,8 +1511,8 @@ DECLARE
 	v record;
 BEGIN
 	SELECT * FROM Venta WHERE cod_vent = NEW.fk_vent INTO v;
-	-- If venta not online, user does not win points
-	IF NOT v.online THEN
+	-- If venta is online, user does not win points
+	IF v.online THEN
 		RETURN NEW;
 	END IF;
 	
