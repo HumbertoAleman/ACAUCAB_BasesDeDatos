@@ -34,7 +34,7 @@ import {
   Autocomplete,
   InputLabel,
 } from "@mui/material"
-import { Security, Refresh, Edit, Delete } from "@mui/icons-material"
+import { Security, Refresh, Edit, Delete, Add } from "@mui/icons-material"
 import { useUsers } from "../../hooks/useUsers"
 import { 
   privilegeService, 
@@ -67,21 +67,28 @@ export const GestionUsuarios: React.FC = () => {
   const [newTipoUsuario, setNewTipoUsuario] = useState<string>("")
   const [newRelacionado, setNewRelacionado] = useState<any>(null)
   const [clientes, setClientes] = useState<any[]>([])
+  
+  // Estados para crear roles
+  const [createRoleModalOpen, setCreateRoleModalOpen] = useState(false)
+  const [newRoleName, setNewRoleName] = useState("")
+  const [newRoleDescription, setNewRoleDescription] = useState("")
+  
   // Simulación de listas para cada tipo (luego se reemplaza por fetch real)
   const listaEmpleados = [ { id: 1, nombre: "Empleado 1" }, { id: 2, nombre: "Empleado 2" } ]
   const listaMiembros = [ { id: 1, nombre: "Miembro 1" }, { id: 2, nombre: "Miembro 2" } ]
   const listaJuridicos = [ { id: 1, nombre: "Juridico 1" }, { id: 2, nombre: "Juridico 2" } ]
   const listaNaturales = [ { id: 1, nombre: "Natural 1" }, { id: 2, nombre: "Natural 2" } ]
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      const response = await roleService.getRoles()
-      if (Array.isArray(response)) {
-        setRoles(response)
-      } else {
-        console.error("Error al cargar los roles:", (response as any).error)
-      }
+  const fetchRoles = async () => {
+    const response = await roleService.getRoles()
+    if (Array.isArray(response)) {
+      setRoles(response)
+    } else {
+      console.error("Error al cargar los roles:", (response as any).error)
     }
+  }
+
+  useEffect(() => {
     fetchRoles()
   }, [])
   
@@ -145,6 +152,33 @@ export const GestionUsuarios: React.FC = () => {
     }
   }
 
+  const handleCreateRole = async () => {
+    if (!newRoleName.trim() || !newRoleDescription.trim()) {
+      alert("Por favor complete todos los campos");
+      return;
+    }
+
+    try {
+      const response = await roleService.createRole({
+        nombre_rol: newRoleName.trim(),
+        descripcion_rol: newRoleDescription.trim()
+      });
+
+      if (response.success) {
+        setCreateRoleModalOpen(false);
+        setNewRoleName("");
+        setNewRoleDescription("");
+        await fetchRoles(); // Recargar la lista de roles
+        alert("Rol creado exitosamente");
+      } else {
+        alert("Error al crear rol: " + (response.error || "Error desconocido"));
+      }
+    } catch (error) {
+      console.error("Error al crear rol:", error);
+      alert("Error de conexión al crear rol");
+    }
+  }
+
   if (loading || roles.length === 0) return <CircularProgress />
 
   return (
@@ -154,6 +188,9 @@ export const GestionUsuarios: React.FC = () => {
         <Box sx={{ display: "flex", gap: 2 }}>
           <Button variant="outlined" startIcon={<Refresh />} onClick={refreshUsers}>
             Actualizar
+          </Button>
+          <Button variant="outlined" startIcon={<Add />} onClick={() => setCreateRoleModalOpen(true)}>
+            Crear Rol
           </Button>
           <Button variant="contained" color="primary" onClick={() => setCreateModalOpen(true)}>
             Crear Usuario
@@ -282,6 +319,38 @@ export const GestionUsuarios: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setCreateModalOpen(false)}>Cancelar</Button>
           <Button variant="contained" onClick={handleCreateUsuario} disabled={!newUsername || !newPassword || !newRelacionado}>Crear</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de Creación de Rol */}
+      <Dialog open={createRoleModalOpen} onClose={() => setCreateRoleModalOpen(false)}>
+        <DialogTitle>Crear Rol</DialogTitle>
+        <DialogContent sx={{ pt: '20px !important', minWidth: 400 }}>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Nombre del Rol"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newRoleName}
+            onChange={e => setNewRoleName(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Descripción del Rol"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newRoleDescription}
+            onChange={e => setNewRoleDescription(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateRoleModalOpen(false)}>Cancelar</Button>
+          <Button variant="contained" onClick={handleCreateRole}>Crear</Button>
         </DialogActions>
       </Dialog>
     </Box>
