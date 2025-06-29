@@ -65,6 +65,7 @@ import {
   getBancos,
   getTableData
 } from "../../services/api"
+import { useAuth } from '../../contexts/AuthContext'
 
 export const PuntoVenta: React.FC = () => {
   // Estados para datos
@@ -123,6 +124,8 @@ export const PuntoVenta: React.FC = () => {
   ];
 
   const [modoVenta, setModoVenta] = useState<'fisica' | 'online'>('fisica');
+
+  const { user } = useAuth();
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -448,7 +451,7 @@ export const PuntoVenta: React.FC = () => {
         iva_vent: resumenVenta.iva,
         base_imponible_vent: resumenVenta.subtotal,
         online: modoVenta === 'online',
-        fk_clie: clienteSeleccionado?.rif_clie || null,
+        fk_clie: modoVenta === 'online' ? user?.username : clienteSeleccionado?.rif_clie || null,
         fk_tien: 1,
         items: apiItems,
         pagos: apiPagos,
@@ -500,8 +503,8 @@ export const PuntoVenta: React.FC = () => {
 
   // Nuevo: función para guardar carrito online
   const guardarCarritoOnline = async () => {
-    if (!resumenVenta || !clienteSeleccionado) {
-      alert('Selecciona un cliente y agrega productos al carrito.');
+    if (!resumenVenta) {
+      alert('Agrega productos al carrito.');
       return;
     }
     setProcesandoVenta(true);
@@ -657,29 +660,37 @@ export const PuntoVenta: React.FC = () => {
             </Typography>
 
             {/* Selección de Cliente */}
-            <FormControl fullWidth sx={{ mb: 2 }} required>
-              <InputLabel>Cliente</InputLabel>
-              <Select
-                value={clienteSeleccionado?.rif_clie || ""}
-                onChange={(e) => {
-                  const cliente = clientes.find((c) => c.rif_clie === e.target.value)
-                  setClienteSeleccionado(cliente || null)
-                }}
-                label="Cliente"
-                error={!clienteSeleccionado}
-              >
-                {clientes.map((cliente) => (
-                  <MenuItem key={cliente.rif_clie} value={cliente.rif_clie}>
-                    <Box>
-                      <Typography variant="body2">{cliente.display_name || cliente.rif_clie}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {cliente.tipo_clie || 'N/A'} | Puntos: {typeof cliente.puntos_acumulados === 'number' ? cliente.puntos_acumulados : 'N/A'}
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            {modoVenta === 'fisica' ? (
+              <FormControl fullWidth sx={{ mb: 2 }} required>
+                <InputLabel>Cliente</InputLabel>
+                <Select
+                  value={clienteSeleccionado?.rif_clie || ""}
+                  onChange={(e) => {
+                    const cliente = clientes.find((c) => c.rif_clie === e.target.value)
+                    setClienteSeleccionado(cliente || null)
+                  }}
+                  label="Cliente"
+                  error={!clienteSeleccionado}
+                >
+                  {clientes.map((cliente) => (
+                    <MenuItem key={cliente.rif_clie} value={cliente.rif_clie}>
+                      <Box>
+                        <Typography variant="body2">{cliente.display_name || cliente.rif_clie}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {cliente.tipo_clie || 'N/A'} | Puntos: {typeof cliente.puntos_acumulados === 'number' ? cliente.puntos_acumulados : 'N/A'}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Cliente: <b>{user?.username}</b> (Venta Online)
+                </Typography>
+              </Box>
+            )}
 
             {/* Tarjeta con datos del cliente seleccionado */}
             {clienteSeleccionado && (
@@ -820,7 +831,7 @@ export const PuntoVenta: React.FC = () => {
                     size="large"
                     color="success"
                     onClick={guardarCarritoOnline}
-                    disabled={!clienteSeleccionado || itemsVenta.length === 0 || procesandoVenta}
+                    disabled={itemsVenta.length === 0 || procesandoVenta}
                   >
                     Guardar Carrito Online
                   </Button>
