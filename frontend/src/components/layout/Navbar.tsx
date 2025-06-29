@@ -98,16 +98,16 @@ export const Navbar: React.FC = () => {
                 Cerrar Sesión
               </MenuItem>
             </Menu>
+
+            <IconButton color="inherit" onClick={() => navigate('/venta-online')} sx={{ ml: 0 }}>
+              <Badge badgeContent={items.length} color="error">
+                <ShoppingCart />
+              </Badge>
+            </IconButton>
           </Box>
         )}
 
         <Box sx={{ flexGrow: 1 }} />
-
-        <IconButton color="inherit" onClick={() => navigate('/carrito')}>
-          <Badge badgeContent={items.length} color="error">
-            <ShoppingCart />
-          </Badge>
-        </IconButton>
       </Toolbar>
     </AppBar>
   )

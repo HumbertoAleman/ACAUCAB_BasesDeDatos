@@ -7,7 +7,7 @@ import { GestionPrivilegios } from "../pages/privilegios/GestionPrivilegios";
 import { GestionOrdenes } from "../pages/compras/GestionOrdenes";
 import CarritoOnline from '../pages/carrito';
 import CheckoutOnline from '../pages/checkout';
-import { PuntoVentaOnline } from '../pages/ventas/PuntoVentaOnline';
+import PuntoVentaOnline from '../pages/ventas/PuntoVentaOnline';
 
 export interface RouteConfig {
   path: string

@@ -7,7 +7,7 @@ import {
   Typography,
   Avatar,
 } from "@mui/material"
-import { Link as RouterLink } from "react-router-dom"
+import { Link as RouterLink, useNavigate } from "react-router-dom"
 import {
   Dashboard as DashboardIcon,
   ShoppingCart,
@@ -43,6 +43,7 @@ const routeColors: Record<string, string> = {
 }
 
 export const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   // Solo módulos principales (inMenu)
   const mainRoutes = ROUTES.filter(r => r.inMenu && r.path !== "/dashboard")
 
@@ -93,6 +94,15 @@ export const Dashboard: React.FC = () => {
             </Card>
           </Grid>
         ))}
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+          <Card sx={{ minWidth: 200, cursor: 'pointer' }} onClick={() => navigate('/venta-online')}>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <ShoppingCart sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+              <Typography variant="h6">Venta Online</Typography>
+              <Typography variant="body2" color="text.secondary">Punto de venta para clientes online</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
     </Box>
   )
