@@ -6,7 +6,7 @@ import {
 } from "@mui/material"
 import { Add, Remove, Delete, Payment, Search, ShoppingCart, CreditCard, Close } from "@mui/icons-material"
 import type { ProductoInventario, TasaVenta, MetodoPagoCompleto, ItemVenta, PagoVenta, ResumenVenta } from "../../interfaces/ventas"
-import { getProductosInventario, getTasaActual, procesarVenta, getBancos, getTableData } from "../../services/api"
+import { getProductosInventario, getTasaActual, procesarVenta, getBancos, getTableData, saveCarrito, getCarritoUsuario } from "../../services/api"
 import { useAuth } from '../../contexts/AuthContext'
 
 interface PuntoVentaOnlineProps {
@@ -93,6 +93,23 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
       setResumenVenta(null);
     }
   }, [itemsVenta, tasaActual]);
+
+  useEffect(() => {
+    // Cargar carrito guardado si existe
+    const cargarCarritoGuardado = async () => {
+      if (!user?.username) return;
+      const carrito = await getCarritoUsuario(user.username);
+      if (carrito && carrito.items && Array.isArray(carrito.items) && carrito.items.length > 0) {
+        setItemsVenta(carrito.items.map((item: any) => ({
+          producto: item.producto,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario,
+          subtotal: item.subtotal
+        })));
+      }
+    };
+    cargarCarritoGuardado();
+  }, [user?.username]);
 
   const agregarProducto = (producto: any) => {
     const itemExistente = itemsVenta.find((item) => (item.producto as any)._key === (producto as any)._key);
@@ -242,33 +259,27 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
     setProcesandoVenta(true);
     try {
       const apiItems = itemsVenta.map((item) => ({
-        fk_cerv_pres_1: (item.producto as any).fk_cerv_pres_1,
-        fk_cerv_pres_2: (item.producto as any).fk_cerv_pres_2,
-        fk_tien: 1,
-        fk_luga_tien: 1,
+        producto: item.producto,
         cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario,
+        subtotal: item.subtotal
       }));
-      const ventaData = {
-        fecha_vent: new Date().toISOString().split('T')[0],
-        iva_vent: resumenVenta.iva,
-        base_imponible_vent: resumenVenta.subtotal,
-        online: true,
-        estado: 'presupuesto',
-        fk_clie: user?.username,
-        fk_tien: 1,
+      const carritoData = {
+        usuario: user?.username,
+        fecha: new Date().toISOString().split('T')[0],
         items: apiItems,
-        pagos: [],
+        resumen: resumenVenta
       };
-      const resultado = await procesarVenta(ventaData as any);
+      const resultado = await saveCarrito(carritoData);
       if (resultado.success) {
-        alert('Venta guardada como presupuesto/carrito exitosamente.');
+        alert('Carrito guardado exitosamente.');
         setItemsVenta([]);
         if (window.location) window.location.href = '/dashboard';
       } else {
-        alert(`Error al guardar la venta: ${resultado.message}`);
+        alert(`Error al guardar el carrito: ${resultado.message}`);
       }
     } catch (error) {
-      alert('Error inesperado al guardar la venta');
+      alert('Error inesperado al guardar el carrito');
     } finally {
       setProcesandoVenta(false);
     }
