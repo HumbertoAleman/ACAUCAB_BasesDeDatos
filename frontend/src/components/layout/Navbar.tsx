@@ -2,12 +2,17 @@
 
 import React from "react"
 import { AppBar, Toolbar, Typography, Box, Menu, MenuItem, IconButton, Avatar, Chip } from "@mui/material"
-import { ExitToApp, Person } from "@mui/icons-material"
+import { ExitToApp, Person, ShoppingCart } from "@mui/icons-material"
 import { useAuth } from "../../contexts/AuthContext"
+import { useCart } from '../../contexts/CartContext'
+import { useNavigate } from 'react-router-dom'
+import Badge from '@mui/material/Badge'
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const { items } = useCart()
+  const navigate = useNavigate()
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -95,6 +100,14 @@ export const Navbar: React.FC = () => {
             </Menu>
           </Box>
         )}
+
+        <Box sx={{ flexGrow: 1 }} />
+
+        <IconButton color="inherit" onClick={() => navigate('/carrito')}>
+          <Badge badgeContent={items.length} color="error">
+            <ShoppingCart />
+          </Badge>
+        </IconButton>
       </Toolbar>
     </AppBar>
   )

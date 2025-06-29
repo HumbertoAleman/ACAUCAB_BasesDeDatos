@@ -35,6 +35,10 @@ import {
   StepLabel,
   StepContent,
   Pagination,
+  Tabs,
+  Tab,
+  Switch,
+  FormControlLabel,
 } from "@mui/material"
 import { 
   Add, 
@@ -117,6 +121,8 @@ export const PuntoVenta: React.FC = () => {
     { cod_meto_pago: 3, tipo: "Punto_Canjeo" },
     { cod_meto_pago: 4, tipo: "Cheque" },
   ];
+
+  const [modoVenta, setModoVenta] = useState<'fisica' | 'online'>('fisica');
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -442,7 +448,7 @@ export const PuntoVenta: React.FC = () => {
         fecha_vent: new Date().toISOString().split('T')[0],
         iva_vent: resumenVenta.iva,
         base_imponible_vent: resumenVenta.subtotal,
-        online: false,
+        online: modoVenta === 'online',
         fk_clie: clienteSeleccionado?.rif_clie || null,
         fk_tien: 1,
         items: apiItems,
@@ -493,6 +499,52 @@ export const PuntoVenta: React.FC = () => {
     setPagos(pagos.filter((_, i) => i !== index));
   };
 
+  // Nuevo: función para guardar carrito online
+  const guardarCarritoOnline = async () => {
+    if (!resumenVenta || !clienteSeleccionado) {
+      alert('Selecciona un cliente y agrega productos al carrito.');
+      return;
+    }
+    setProcesandoVenta(true);
+    try {
+      const apiItems = itemsVenta.map((item) => ({
+        fk_cerv_pres_1: (item.producto as any).fk_cerv_pres_1,
+        fk_cerv_pres_2: (item.producto as any).fk_cerv_pres_2,
+        fk_tien: 1,
+        fk_luga_tien: (item.producto as any).fk_luga_tien,
+        cantidad: item.cantidad,
+      }));
+      const ventaData = {
+        fecha_vent: new Date().toISOString().split('T')[0],
+        iva_vent: resumenVenta.iva,
+        base_imponible_vent: resumenVenta.subtotal,
+        total_vent: resumenVenta.total,
+        online: true,
+        fk_clie: clienteSeleccionado?.rif_clie || null,
+        fk_tien: 1,
+        items: apiItems,
+        pagos: [],
+      };
+      const resultado = await procesarVenta(ventaData as any);
+      if (resultado.success) {
+        alert('Carrito guardado correctamente. Puedes continuar tu compra más tarde o proceder al pago cuando desees.');
+        setItemsVenta([]);
+        setClienteSeleccionado(null);
+      } else {
+        alert(`Error al guardar el carrito: ${resultado.message}`);
+      }
+    } catch (error) {
+      alert('Error inesperado al guardar el carrito');
+    } finally {
+      setProcesandoVenta(false);
+    }
+  };
+
+  // Filtrar métodos de pago según el modo
+  const metodosPagoDisponibles = modoVenta === 'online'
+    ? metodosPagoFijos.filter(m => m.tipo !== 'Efectivo')
+    : metodosPagoFijos;
+
   if (loading) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -506,6 +558,17 @@ export const PuntoVenta: React.FC = () => {
       <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold", color: "#2E7D32" }}>
         Punto de Venta
       </Typography>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={modoVenta === 'online'}
+            onChange={(_, checked) => setModoVenta(checked ? 'online' : 'fisica')}
+            color="success"
+          />
+        }
+        label={modoVenta === 'online' ? 'Modo Venta Online' : 'Modo Venta Física'}
+        sx={{ mb: 2 }}
+      />
 
       {/* Información de tasa y fecha */}
       {tasaActual && (
@@ -739,17 +802,30 @@ export const PuntoVenta: React.FC = () => {
                     </Typography>
                   </Box>
                 </Box>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  startIcon={<Payment />}
-                  onClick={iniciarPago}
-                  sx={{ backgroundColor: "#2E7D32", "&:hover": { backgroundColor: "#1B5E20" } }}
-                  disabled={!clienteSeleccionado}
-                >
-                  Pagar
-                </Button>
+                {modoVenta === 'fisica' ? (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    startIcon={<Payment />}
+                    onClick={iniciarPago}
+                    sx={{ backgroundColor: "#2E7D32", "&:hover": { backgroundColor: "#1B5E20" } }}
+                    disabled={!clienteSeleccionado}
+                  >
+                    Pagar
+                  </Button>
+                ) : (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    color="success"
+                    onClick={guardarCarritoOnline}
+                    disabled={!clienteSeleccionado || itemsVenta.length === 0 || procesandoVenta}
+                  >
+                    Guardar Carrito Online
+                  </Button>
+                )}
               </>
             )}
 
@@ -785,12 +861,12 @@ export const PuntoVenta: React.FC = () => {
                       <Select 
                         value={metodoPagoSeleccionado?.cod_meto_pago || ""} 
                         onChange={(e) => {
-                          const metodo = metodosPagoFijos.find(m => m.cod_meto_pago === e.target.value)
+                          const metodo = metodosPagoDisponibles.find(m => m.cod_meto_pago === e.target.value)
                           setMetodoPagoSeleccionado(metodo || null)
                         }}
                         label="Método de Pago"
                       >
-                        {metodosPagoFijos.map((metodo) => (
+                        {metodosPagoDisponibles.map((metodo) => (
                           <MenuItem key={metodo.cod_meto_pago} value={metodo.cod_meto_pago}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               {metodo.tipo === "Efectivo" && <AttachMoney />}

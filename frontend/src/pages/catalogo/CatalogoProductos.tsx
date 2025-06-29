@@ -29,7 +29,8 @@ import {
 } from "@mui/material"
 import { Search, ShoppingCart, Add, Remove, Visibility, LocalOffer, Close } from "@mui/icons-material"
 import { useNavigate } from "react-router-dom"
-import type { Cerveza } from "../../interfaces"
+import type { Cerveza, ProductoInventario } from "../../interfaces"
+import { useCart } from '../../contexts/CartContext';
 
 // Datos de ejemplo basados en las interfaces
 const productosEjemplo: (Cerveza & { precio_detal: number; precio_mayor: number; stock: number })[] = [
@@ -69,11 +70,11 @@ interface ItemCarrito {
 
 export const CatalogoProductos: React.FC = () => {
   const navigate = useNavigate()
+  const { addItem, items } = useCart()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<(typeof productosEjemplo)[0] | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [discountOpen, setDiscountOpen] = useState(false)
-  const [carrito, setCarrito] = useState<ItemCarrito[]>([])
   const [cantidades, setCantidades] = useState<{ [key: number]: number }>({})
   const [tiposPrecios, setTiposPrecios] = useState<{ [key: number]: "detal" | "mayor" }>({})
 
@@ -81,16 +82,27 @@ export const CatalogoProductos: React.FC = () => {
     const cantidad = cantidades[producto.cod_cerv] || 1
     const tipoPrecio = tiposPrecios[producto.cod_cerv] || "detal"
     const precioUnitario = tipoPrecio === "detal" ? producto.precio_detal : producto.precio_mayor
-
-    const nuevoItem: ItemCarrito = {
-      producto,
+    const productoInventario: ProductoInventario = {
+      fk_cerv_pres_1: producto.cod_cerv,
+      fk_cerv_pres_2: 1,
+      fk_tien: 1,
+      fk_luga_tien: 1,
+      nombre_cerv: producto.nombre_cerv,
+      nombre_pres: tipoPrecio === 'detal' ? 'Detallista' : 'Mayorista',
+      capacidad_pres: 1,
+      tipo_cerveza: 'Tipo',
+      miembro_proveedor: 'Proveedor',
+      cant_pres: producto.stock,
+      precio_actual_pres: precioUnitario,
+      lugar_tienda: 'Online',
+      estado: 'Disponible',
+    }
+    addItem({
+      producto: productoInventario,
       cantidad,
-      tipo_precio: tipoPrecio,
       precio_unitario: precioUnitario,
       subtotal: precioUnitario * cantidad,
-    }
-
-    setCarrito((prev) => [...prev, nuevoItem])
+    })
   }
 
   const handleQuantityChange = (productId: number, delta: number) => {
@@ -207,7 +219,7 @@ export const CatalogoProductos: React.FC = () => {
             Mis Órdenes
           </Button>
           <IconButton color="primary" onClick={() => navigate("/carrito")}>
-            <Badge badgeContent={carrito.length} color="error">
+            <Badge badgeContent={items.length} color="error">
               <ShoppingCart />
             </Badge>
           </IconButton>
