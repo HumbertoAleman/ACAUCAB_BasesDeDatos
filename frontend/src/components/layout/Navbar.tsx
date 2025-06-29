@@ -8,7 +8,11 @@ import { useCart } from '../../contexts/CartContext'
 import { useNavigate } from 'react-router-dom'
 import Badge from '@mui/material/Badge'
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  onCartClick?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onCartClick }) => {
   const { user, logout } = useAuth()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const { items } = useCart()
@@ -29,14 +33,14 @@ export const Navbar: React.FC = () => {
 
   return (
     <AppBar position="static" sx={{ backgroundColor: "#2E7D32" }}>
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: "bold" }}>
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Typography variant="h6" component="div" sx={{ fontWeight: "bold" }}>
           ACAUCAB - Sistema de Gestión
         </Typography>
 
         {user && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", mr: 1 }}>
               <Typography variant="body2" sx={{ fontWeight: 500 }}>
                 {user.username}
               </Typography>
@@ -53,7 +57,6 @@ export const Navbar: React.FC = () => {
                 />
               )}
             </Box>
-
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -61,12 +64,17 @@ export const Navbar: React.FC = () => {
               aria-haspopup="true"
               onClick={handleMenu}
               color="inherit"
+              sx={{ mr: 0.5 }}
             >
               <Avatar sx={{ width: 32, height: 32, backgroundColor: "#1B5E20" }}>
                 {user && user.username ? user.username.charAt(0).toUpperCase() : <Person />}
               </Avatar>
             </IconButton>
-
+            <IconButton color="inherit" sx={{ ml: 0 }} onClick={onCartClick}>
+              <Badge badgeContent={items.length} color="error">
+                <ShoppingCart />
+              </Badge>
+            </IconButton>
             <Menu
               id="menu-appbar"
               anchorEl={anchorEl}
@@ -98,16 +106,8 @@ export const Navbar: React.FC = () => {
                 Cerrar Sesión
               </MenuItem>
             </Menu>
-
-            <IconButton color="inherit" onClick={() => navigate('/venta-online')} sx={{ ml: 0 }}>
-              <Badge badgeContent={items.length} color="error">
-                <ShoppingCart />
-              </Badge>
-            </IconButton>
           </Box>
         )}
-
-        <Box sx={{ flexGrow: 1 }} />
       </Toolbar>
     </AppBar>
   )

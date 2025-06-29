@@ -40,9 +40,11 @@ const routeIcons: Record<string, React.ReactElement> = {
   "/configuracion": <Settings />,
 }
 
-export const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({
+interface SidebarProps { open: boolean; onClose: () => void; onVentaOnlineClick?: () => void }
+export const Sidebar: React.FC<SidebarProps> = ({
   open,
   onClose,
+  onVentaOnlineClick
 }) => {
   const location = useLocation()
   const navigate = useNavigate()
@@ -106,12 +108,6 @@ export const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({
             </ListItemButton>
           </ListItem>
         ))}
-        <ListItem button key="Venta Online" onClick={() => { onClose(); navigate('/venta-online'); }}>
-          <ListItemIcon>
-            <ShoppingCart />
-          </ListItemIcon>
-          <ListItemText primary="Venta Online" />
-        </ListItem>
       </List>
     </Drawer>
   )

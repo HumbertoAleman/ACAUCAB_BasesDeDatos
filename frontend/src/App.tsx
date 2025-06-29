@@ -17,6 +17,7 @@ import { GestionPrivilegios } from "./pages/privilegios/GestionPrivilegios"
 import { RegistroMiembro } from "./pages/miembros/RegistroMiembro"
 import { RegistroCliente } from "./pages/clientes/RegistroCliente"
 import { GestionOrdenes } from "./pages/compras/GestionOrdenes"
+import PuntoVentaOnline from './pages/ventas/PuntoVentaOnline'
 
 // Crear cliente de React Query
 const queryClient = new QueryClient({
@@ -131,6 +132,7 @@ function App() {
                         <Route path="/reportes" element={<Reportes />} />
                         <Route path="/privilegios" element={<GestionPrivilegios />} />
                         <Route path="/miembros/registro" element={<RegistroMiembro />} />
+                        <Route path="/ventas-online" element={<PuntoVentaOnline />} />
                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                       </Routes>
                     </Layout>

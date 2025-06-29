@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { useState } from "react"
 import { Box, IconButton, useMediaQuery, useTheme } from "@mui/material"
 import { Menu } from "@mui/icons-material"
@@ -8,6 +8,7 @@ import { Navbar } from "./Navbar"
 import { Sidebar } from "./Sidebar"
 import { CartProvider } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode
@@ -18,15 +19,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen)
   }
 
+  const handleCartClick = () => {
+    navigate('/ventas-online');
+  }
+
   return (
     <CartProvider userId={user?.username || null}>
       <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <Navbar />
+        <Navbar onCartClick={handleCartClick} />
 
         <Box sx={{ display: "flex", flex: 1 }}>
           <Box sx={{ p: 1 }}>
@@ -35,7 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </IconButton>
           </Box>
 
-          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} onVentaOnlineClick={handleCartClick} />
 
           <Box
             component="main"
