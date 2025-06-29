@@ -1,20 +1,27 @@
 import { sql } from "bun"
-import { LogFunctionExecution } from "./logger/decorators";
+import { AddOptionsMethod, LogFunctionExecution, sqlProtection } from "./logger/decorators";
 import { CORS_HEADERS } from "../globals";
 
+type Tasa = {
+	cod_tasa: number,
+	tasa_dolar_bcv: number
+	tasa_punto: number
+	fecha_ini_tasa: string
+	fecha_fin_tasa: string
+}
+
+@AddOptionsMethod
 class TasaService {
+	@sqlProtection
 	@LogFunctionExecution
-	async getTasaDiaActual(): Promise<any[]> {
-		return sql` SELECT * FROM Tasa WHERE fecha_fin_tasa IS NULL LIMIT 1`
+	async getTasaDiaActual() {
+		const res: Tasa[] = await sql` SELECT * FROM Tasa WHERE fecha_fin_tasa IS NULL LIMIT 1`
+		return Response.json(res, CORS_HEADERS)
 	}
 
 	routes = {
 		"/api/tasa": {
-			OPTIONS: () => new Response('Departed', CORS_HEADERS),
-			GET: async () => {
-				const res = (await this.getTasaDiaActual())
-				return Response.json(res, CORS_HEADERS)
-			}
+			GET: async () => await this.getTasaDiaActual()
 		},
 	}
 }
