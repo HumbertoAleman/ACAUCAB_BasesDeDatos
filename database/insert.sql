@@ -1439,6 +1439,9 @@ CREATE OR REPLACE FUNCTION create_new_estatus_for_venta ()
     RETURNS TRIGGER
     AS $$
 BEGIN
+	IF NEW.online THEN
+		RETURN NEW;
+	END IF;
     INSERT INTO ESTA_VENT (fk_esta, fk_vent, fecha_ini, fecha_fin)
         VALUES (get_estatus_by_name ('Pagado'), NEW.cod_vent, NEW.fecha_vent, NULL);
     RETURN NEW;
@@ -1515,7 +1518,7 @@ BEGIN
 	IF v.online THEN
 		RETURN NEW;
 	END IF;
-	
+
     UPDATE
         PUNT_CLIE
     SET
@@ -1611,7 +1614,7 @@ CREATE OR REPLACE TRIGGER on_compra_insert_create_esta_comp_pendiente
     FOR EACH ROW
     EXECUTE FUNCTION tri_create_esta_comp_pendiente ();
 
--- Trigger to run after insert on Detalle_Compra, 
+-- Trigger to run after insert on Detalle_Compra,
 CREATE OR REPLACE FUNCTION tri_increment_compra_total ()
     RETURNS TRIGGER
     AS $$
@@ -1942,7 +1945,7 @@ INSERT INTO DESCUENTO (descripcion_desc, fecha_ini_desc, fecha_fin_desc)
     ('Descuento DiarioUnaCerveza', '2023-05-21', '2023-06-10'),
     ('Descuento DiarioUnaCerveza', '2023-06-10', '2023-06-30');
 
---[[ INSERT ESTADOS, 
+--[[ INSERT ESTADOS,
 -- DEPENDENT on PROCEDURE ESTADOS ]]--
 CALL insert_estados(ARRAY ['Amazonas', 'Anzoategui', 'Apure', 'Aragua', 'Barinas', 'Bolivar', 'Carabobo', 'Cojedes', 'Delta Amacuro', 'Distrito Capital', 'Falcon', 'Guarico', 'La Guaira', 'Lara', 'Merida', 'Miranda', 'Monagas', 'Nueva Esparta', 'Portuguesa', 'Sucre', 'Tachira', 'Trujillo', 'Yaracuy', 'Zulia']);
 
@@ -1990,8 +1993,8 @@ CALL insert_parroquias(ARRAY['San Juan de Payara', 'Codazzi', 'Cunaviche'], 'Ped
 CALL insert_parroquias(ARRAY['Elorza', 'La Trinidad de Orichuna'], 'Romulo Gallegos', 'Apure');
 CALL insert_parroquias(ARRAY['El Recreo', 'Peñalver', 'San Fernando de Apure', 'San Rafael de Atamaica'], 'San Fernando', 'Apure');
 
--- Aragua 
-CALL insert_municipios(ARRAY['Girardot', 'Bolivar', 'Mario Briceño Iragorry', 'Santos Michelena', 'Sucre', 'Santiago Mariño', 'Jose angel Lamas', 'Francisco Linares Alcantara', 'San Casimiro', 'Urdaneta', 'Jose Felix Ribas', 'Jose Rafael Revenga', 'Ocumare de la Costa de Oro', 'Tovar', 'Camatagua', 'Zamora', 'San Sebastian', 'Libertador'], 'Aragua'); 
+-- Aragua
+CALL insert_municipios(ARRAY['Girardot', 'Bolivar', 'Mario Briceño Iragorry', 'Santos Michelena', 'Sucre', 'Santiago Mariño', 'Jose angel Lamas', 'Francisco Linares Alcantara', 'San Casimiro', 'Urdaneta', 'Jose Felix Ribas', 'Jose Rafael Revenga', 'Ocumare de la Costa de Oro', 'Tovar', 'Camatagua', 'Zamora', 'San Sebastian', 'Libertador'], 'Aragua');
 CALL insert_parroquias(ARRAY['Bolivar San Mateo'], 'Bolivar', 'Aragua');
 CALL insert_parroquias(ARRAY['Camatagua', 'Carmen de Cura'], 'Camatagua', 'Aragua');
 CALL insert_parroquias(ARRAY['Santa Rita', 'Francisco de Miranda', 'Moseñor Feliciano Gonzalez Paraparal'], 'Francisco Linares Alcantara', 'Aragua');
@@ -3378,7 +3381,7 @@ CALL add_punto_canjeo ();
 
 CALL add_punto_canjeo ();
 
---[[ INSERT EVENTO ]]-- 
+--[[ INSERT EVENTO ]]--
 CALL insertar_evento(
 -- Nombres de eventos
 ARRAY[
@@ -3634,7 +3637,7 @@ CREATE OR REPLACE VIEW horas_trabajo_view AS
 CREATE OR REPLACE VIEW productos_generan_repo_view AS
     SELECT DISTINCT c.cod_cerv "Código de Cerveza", c.nombre_cerv "Nombre", p.cod_pres "Código de Presentación", p.nombre_pres "Nombre Presentación"
     FROM Detalle_Compra dc, Detalle_Venta dv, CERV_PRES cp, Cerveza c, Inventario_Tienda it, Presentacion p
-    WHERE c.cod_cerv = cp.fk_cerv 
+    WHERE c.cod_cerv = cp.fk_cerv
         AND cp.fk_pres = p.cod_pres
         AND cp.fk_cerv = dc.fk_cerv_pres_1
         AND cp.fk_pres = dc.fk_cerv_pres_2
@@ -3690,7 +3693,7 @@ BEGIN
         RETURN QUERY
             SELECT "Tipo de Cliente", EXTRACT(MONTH from "Fecha de ingreso"):: integer as "Mes", COUNT ("Tipo de Cliente"), EXTRACT(YEAR FROM "Fecha de ingreso"):: integer as "Año"
             FROM tipo_cliente_view
-            WHERE EXTRACT(YEAR FROM "Fecha de ingreso") = year 
+            WHERE EXTRACT(YEAR FROM "Fecha de ingreso") = year
             GROUP BY "Tipo de Cliente", EXTRACT(MONTH from "Fecha de ingreso"), EXTRACT(YEAR FROM "Fecha de ingreso")
 			ORDER BY "Mes";
     ELSE
