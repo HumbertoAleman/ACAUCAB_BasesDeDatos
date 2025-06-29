@@ -7,6 +7,7 @@ import { GestionPrivilegios } from "../pages/privilegios/GestionPrivilegios";
 import { GestionOrdenes } from "../pages/compras/GestionOrdenes";
 import CarritoOnline from '../pages/carrito';
 import CheckoutOnline from '../pages/checkout';
+import { PuntoVentaOnline } from '../pages/ventas/PuntoVentaOnline';
 
 export interface RouteConfig {
   path: string
@@ -88,6 +89,13 @@ export const ROUTES: RouteConfig[] = [
     title: 'Checkout',
     description: 'Confirmar compra online',
     component: CheckoutOnline,
+    inMenu: false,
+  },
+  {
+    path: '/venta-online',
+    title: 'Venta Online',
+    description: 'Punto de venta para clientes online',
+    component: PuntoVentaOnline,
     inMenu: false,
   },
 ]
