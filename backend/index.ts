@@ -17,6 +17,7 @@ import getUsuario from "./src/query_usuario";
 import CompraService from "./src/CompraService";
 import { defaultCheckBoxAppearanceProvider } from "pdf-lib";
 import BancoService from "./src/BancoService";
+import CarritoService from "./src/CarritoService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -27,15 +28,15 @@ Bun.serve({
 			GET: async (req, _) => {
 				const sqlString = `SELECT * FROM ${req.params.table}`;
 				const res = await sql.unsafe(sqlString);
-				return Response.json(res, CORS_HEADERS)
+				return Response.json(res, CORS_HEADERS);
 			},
 			POST: quickInsert,
 			DELETE: quickDelete,
 		},
 
-		"/rol": { GET: getRol, },
+		"/rol": { GET: getRol },
 
-		"/usuario": { GET: getUsuario, },
+		"/usuario": { GET: getUsuario },
 
 		"/api/parroquias": {
 			async GET() {
@@ -44,24 +45,27 @@ Bun.serve({
 					FROM Lugar AS e
 					JOIN Lugar AS m ON e.cod_luga = m.fk_luga
 					JOIN Lugar AS p ON m.cod_luga = p.fk_luga
-					`
+					`;
 				return Response.json(res, CORS_HEADERS);
 			},
 		},
 
 		"/api/users_with_details": {
-			OPTIONS: () => new Response('Departed', CORS_HEADERS),
+			OPTIONS: () => new Response("Departed", CORS_HEADERS),
 			GET: async () => {
 				const users = await sql`
 					SELECT U.cod_usua, U.username_usua, U.fk_rol, R.cod_rol, R.nombre_rol, R.descripcion_rol
 					FROM Usuario AS U
 					JOIN Rol AS R ON R.cod_rol = U.fk_rol`;
 
-				if (users.length === 0)
-					return Response.json(users, CORS_HEADERS)
+				if (users.length === 0) return Response.json(users, CORS_HEADERS);
 
 				for (const user of users) {
-					user.rol = { cod_rol: user.cod_rol, nombre_rol: user.nombre_rol, descripcion_rol: user.descripcion_rol }
+					user.rol = {
+						cod_rol: user.cod_rol,
+						nombre_rol: user.nombre_rol,
+						descripcion_rol: user.descripcion_rol,
+					};
 					delete user.cod_rol;
 					delete user.nombre_rol;
 					delete user.descripcion_rol;
@@ -74,12 +78,12 @@ Bun.serve({
 						JOIN PRIV_ROL AS RP ON RP.fk_priv = P.cod_priv
 						JOIN Rol AS R ON RP.fk_rol = ${user.rol.cod_rol}
 						group by P.cod_priv
-						order by P.cod_priv`
+						order by P.cod_priv`;
 					user.rol.privileges = privileges;
 				}
 
 				return Response.json(users, CORS_HEADERS);
-			}
+			},
 		},
 
 		...AuthService.routes,
@@ -93,5 +97,6 @@ Bun.serve({
 		...UsuarioService.routes,
 		...CompraService.routes,
 		...BancoService.routes,
-	}
-})
+		...CarritoService.routes,
+	},
+});
