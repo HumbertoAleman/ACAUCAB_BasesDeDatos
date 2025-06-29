@@ -1,6 +1,7 @@
 import { sql } from "bun"
-import { LogFunctionExecution } from "./logger/decorators"
+import { AddOptionsMethod, LogFunctionExecution, sqlProtection } from "./logger/decorators"
 import { CORS_HEADERS } from "../globals"
+import MetodoPagoService from "./MetodoPagoService"
 
 type APIPago = {
 	[x: string]: any
@@ -27,46 +28,53 @@ type APIVenta = {
 	pagos: APIPago[],
 }
 
+@AddOptionsMethod
 class VentaService {
+	@sqlProtection
 	@LogFunctionExecution
-	createMetodoPago(pago: APIPago): Bun.SQLQuery<any> {
-		if (pago.tipo === "Tarjeta")
-			return sql`CALL add_tarjeta(${pago.numero}, ${pago.fecha_venci}, ${pago.cvv}, ${pago.nombre_titu}, ${pago.credito})`
-		if (pago.tipo === "Cheque")
-			return sql`CALL add_cheque(${pago.numero}, ${pago.numero_cuenta}, ${pago.nombre_banco})`
-		if (pago.tipo === "Efectivo")
-			return sql`CALL add_efectivo(${pago.denominacion_efec})`
-		return sql`CALL add_punto_canjeo()`
+	async getOrInsertMetodoPago(pago: APIPago): Promise<number> {
+		switch (pago.tipo) {
+			case "Efectivo":
+				return await MetodoPagoService.getOrInsertEfectivo(pago.denominacion_efec as string)
+			case "Punto_Canjeo":
+				return await MetodoPagoService.getPuntoCanjeo();
+			case "Tarjeta":
+				return await MetodoPagoService.insertTarjeta(pago.numero_tarj, pago.fecha_venci_tarj, pago.cvv_tarj, pago.nombre_titu_tarj, pago.credito);
+			case "Cheque":
+				return await MetodoPagoService.insertCheque(pago.numero_cheque, pago.numero_cuenta_cheque, pago.fk_banc)
+			default:
+				return 1
+		}
 	}
 
+	@sqlProtection
 	@LogFunctionExecution
 	async registerVenta(venta: APIVenta) {
 		const metodos_de_pago: number[] = [];
-		for (const pago of venta.pagos) {
-			await this.createMetodoPago(pago)
-			const id_pago = (await sql`SELECT cod_meto_pago FROM Metodo_Pago ORDER BY cod_meto_pago DESC LIMIT 1`)[0];
-			metodos_de_pago.push(Number(id_pago.cod_meto_pago));
-		}
+		for (const pago of venta.pagos)
+			metodos_de_pago.push(Number(await this.getOrInsertMetodoPago(pago)))
 
-		const montos = venta.pagos.map(x => Math.round(x.monto))
+		const montos = venta.pagos.map(x => Math.round(x.monto * 100) / 100)
 		const cantidades = venta.items.map(x => x.cantidad)
 		const cervezas = venta.items.map(x => x.fk_cerv_pres_1)
 		const presentaciones = venta.items.map(x => x.fk_cerv_pres_2)
 		const lugares = venta.items.map(x => x.fk_luga_tien)
 
+		const sql_string = `
+			CALL venta_en_tienda(
+			'${venta.fecha_vent}',
+			${venta.online},
+			'${venta.fk_clie}',
+			${venta.fk_tien},
+			ARRAY [ ${metodos_de_pago} ],
+			ARRAY [ ${(montos)} ],
+			ARRAY [ ${(cantidades)} ],
+			ARRAY [ ${(cervezas)} ],
+			ARRAY [ ${(presentaciones)} ] ,
+			ARRAY [ ${(lugares)} ])`
+
 		try {
-			await sql`
-				CALL venta_en_tienda(
-				CAST(${venta.fecha_vent} AS Date),
-				CAST(${venta.online} AS Boolean),
-				CAST(${venta.fk_clie} AS Text),
-				CAST(${venta.fk_tien} AS integer),
-				CAST(ARRAY [ ${metodos_de_pago} ] AS integer[]),
-				CAST(ARRAY [ ${montos} ] AS numeric(32 ,2)[]),
-				ARRAY [ ${cantidades} ],
-				ARRAY [ ${cervezas} ],
-				ARRAY [ ${presentaciones} ] ,
-				ARRAY [ ${lugares} ])`
+			await sql.unsafe(sql_string)
 			const res = (await sql`SELECT cod_vent FROM Venta ORDER BY cod_vent DESC LIMIT 1`)[0]
 			return res;
 		} catch (e) {
