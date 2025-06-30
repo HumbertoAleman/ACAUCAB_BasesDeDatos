@@ -15,7 +15,6 @@ import VentaService from "./src/VentaService";
 import getRol from "./src/query_rol";
 import getUsuario from "./src/query_usuario";
 import CompraService from "./src/CompraService";
-import { defaultCheckBoxAppearanceProvider } from "pdf-lib";
 import BancoService from "./src/BancoService";
 import CarritoService from "./src/CarritoService";
 
