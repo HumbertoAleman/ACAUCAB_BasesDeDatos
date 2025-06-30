@@ -1,9 +1,5 @@
 import { sql } from "bun";
-import {
-	AddOptionsMethod,
-	LogFunctionExecution,
-	sqlProtection,
-} from "./logger/decorators";
+import { AddOptionsMethod, LogFunctionExecution, sqlProtection, } from "./logger/decorators";
 import { CORS_HEADERS } from "../globals";
 
 @AddOptionsMethod
@@ -22,7 +18,7 @@ class CarritoService {
 						FROM ESTA_VENT
 						WHERE fk_vent = V.cod_vent AND fk_esta = 5)
 			ORDER BY cod_vent DESC
-			LIMIT 1;`; // Get latest online Venta that hasn't been bought yet
+			LIMIT 1`; // Get latest online Venta that hasn't been bought yet
 
 		if (carritos.length === 0)
 			return new Response("", { ...CORS_HEADERS, status: 204 }); // If no carrito found, return No Content
@@ -50,12 +46,25 @@ class CarritoService {
 		return Response.json(newCarrito, CORS_HEADERS);
 	}
 
+	@sqlProtection
+	@LogFunctionExecution
+	async clearCarritoForCliente(clienteID: string) {
+		const carritoResponse = await this.getCarritoFromCliente(clienteID);
+		if (carritoResponse.status === 204)
+			return new Response('', { ...CORS_HEADERS, status: 204 })
+		const body: any = await carritoResponse.json()
+		await sql`DELETE FROM Venta WHERE cod_vent = ${body.cod_vent}`
+		return Response.json(body, CORS_HEADERS)
+	}
+
 	routes = {
 		"/api/carrito/:clienteID": {
 			GET: async (req: any) =>
 				await this.getCarritoFromCliente(req.params.clienteID),
 			POST: async (req: any) =>
 				await this.createCarritoForCliente(req.params.clienteID),
+			DELETE: async (req: any) =>
+				await this.clearCarritoForCliente(req.params.clienteID),
 		},
 	};
 }
