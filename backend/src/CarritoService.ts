@@ -14,14 +14,17 @@ type Carrito = {
 	items: unknown[] // TODO: Change from unknown to the object
 }
 
+type CarritoItemIdentifier = {
+	cerveza: number
+	presentacion: number
+	lugar_tien?: number
+}
+
 type CarritoItem = {
 	precio_unitario: number
 	cantidad: number
-	cerveza: number
-	presentacion: number
 	tienda: 1
-	lugar_tien?: number
-}
+} & CarritoItemIdentifier
 
 // Cerveza, Presentacion
 // Siempre de tienda 1, siempre del almacen principal
@@ -111,6 +114,26 @@ class CarritoService {
 		return await this.getCarritoAndItems(clienteID)
 	}
 
+	@sqlProtection
+	@LogFunctionExecution
+	async removeItemsFromCarrito(clienteID: string, items: CarritoItemIdentifier[]) {
+		// Get carrito or create if doesn't exist
+		const carrito = await ((await this.createCarritoForCliente(clienteID)).json()) as Carrito
+		if (carrito.items.length === 0) // If empty carrito, do nothing
+			return await this.getCarritoAndItems(clienteID);
+
+		const deletions = []
+		for (const item of items)
+			deletions.push(await sql`DELETE FROM Detalle_Venta
+				WHERE fk_vent = ${carrito.cod_vent}
+				AND fk_inve_tien_1 = ${item.cerveza}
+				AND fk_inve_tien_2 = ${item.presentacion}
+				AND fk_inve_tien_4 = ${item.lugar_tien}`)
+		await Promise.all(deletions)
+
+		return await this.getCarritoAndItems(clienteID);
+	}
+
 	routes = {
 		"/api/carrito/:clienteID": {
 			GET: async (req: any) =>
@@ -124,7 +147,9 @@ class CarritoService {
 			GET: async (req: any) =>
 				(await this.getCarritoObjectFromCliente(req.params.clienteID))?.items || new Response('', { ...CORS_HEADERS, status: 204 }),
 			POST: async (req: any) =>
-				await this.addItemsToCarrito(req.params.clienteID, await req.json())
+				await this.addItemsToCarrito(req.params.clienteID, await req.json()),
+			DELETE: async (req: any) =>
+				await this.removeItemsFromCarrito(req.params.clienteID, await req.json())
 		}
 	};
 }
