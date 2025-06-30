@@ -1,146 +1,148 @@
-DROP VIEW tipo_cliente_view;
+DROP VIEW tipo_cliente_view CASCADE;
 
-DROP VIEW horas_trabajo_view;
+DROP VIEW horas_trabajo_view CASCADE;
 
-DROP VIEW productos_generan_repo_view;
+DROP VIEW productos_generan_repo_view CASCADE;
 
-DROP VIEW rentabilidad_tipo_view;
+DROP VIEW rentabilidad_tipo_view CASCADE;
 
-DROP VIEW rentabilidad_tipo_total_view;
+DROP VIEW rentabilidad_tipo_total_view CASCADE;
 
-DROP VIEW proporcion_tarjetas_view;
+DROP VIEW proporcion_tarjetas_view CASCADE;
 
-DROP FUNCTION periodo_tipo_cliente;
+DROP FUNCTION periodo_tipo_cliente CASCADE;
 
-DROP FUNCTION consolidar_horas;
+DROP FUNCTION consolidar_horas CASCADE;
 
 -- DROP Telefonos, Correos
-DROP TABLE Telefono;
+DROP TABLE Telefono CASCADE;
 
-DROP TABLE Correo;
+DROP TABLE Correo CASCADE;
 
 -- DROP Caracteristicas de la cerveza
-DROP TABLE RECE_INGR;
+DROP TABLE RECE_INGR CASCADE;
 
-DROP TABLE CERV_CARA;
+DROP TABLE CERV_CARA CASCADE;
 
-DROP TABLE TIPO_CARA;
+DROP TABLE TIPO_CARA CASCADE;
 
-DROP TABLE Caracteristica;
+DROP TABLE Caracteristica CASCADE;
 
-DROP TABLE Ingrediente;
+DROP TABLE Ingrediente CASCADE;
 
-DROP TABLE Instruccion;
+DROP TABLE Instruccion CASCADE;
 
 -- DROP Usuarios
-DROP TABLE Usuario;
+DROP TABLE Usuario CASCADE;
 
-DROP TABLE PRIV_ROL;
+DROP TABLE PRIV_ROL CASCADE;
 
-DROP TABLE Rol;
+DROP TABLE Rol CASCADE;
 
-DROP TABLE Privilegio;
+DROP TABLE Privilegio CASCADE;
 
 -- Drop Empleados
-DROP TABLE Asistencia;
+DROP TABLE Asistencia CASCADE;
 
-DROP TABLE Vacacion;
+DROP TABLE Vacacion CASCADE;
 
-DROP TABLE EMPL_BENE;
+DROP TABLE EMPL_BENE CASCADE;
 
-DROP TABLE Beneficio;
+DROP TABLE Beneficio CASCADE;
 
-DROP TABLE EMPL_HORA;
+DROP TABLE EMPL_HORA CASCADE;
 
-DROP TABLE Horario;
+DROP TABLE Horario CASCADE;
 
-DROP TABLE EMPL_CARG;
+DROP TABLE EMPL_CARG CASCADE;
 
-DROP TABLE Cargo;
+DROP TABLE Cargo CASCADE;
 
-DROP TABLE Departamento;
+DROP TABLE Departamento CASCADE;
 
-DROP TABLE Empleado;
+DROP TABLE Empleado CASCADE;
 
 -- DROP Estado
-DROP TABLE ESTA_EVEN;
+DROP TABLE ESTA_EVEN CASCADE;
 
-DROP TABLE ESTA_COMP;
+DROP TABLE ESTA_COMP CASCADE;
 
-DROP TABLE ESTA_VENT;
+DROP TABLE ESTA_VENT CASCADE;
 
-DROP TABLE Estatus;
+DROP TABLE Estatus CASCADE;
 
 -- DROP Ventas
-DROP TABLE PUNT_CLIE;
+DROP TABLE PUNT_CLIE CASCADE;
 
-DROP TABLE Pago;
+DROP TABLE Pago CASCADE;
 
-DROP TABLE Detalle_Venta;
+DROP TABLE Detalle_Venta CASCADE;
 
-DROP TABLE Venta;
+DROP TABLE Venta CASCADE;
 
-DROP TABLE Tasa;
+DROP TABLE Tasa CASCADE;
 
-DROP TABLE Cuota;
+DROP TABLE Cuota CASCADE;
 
 -- DROP Compras
-DROP TABLE Detalle_Compra;
+DROP TABLE Detalle_Compra CASCADE;
 
-DROP TABLE Compra;
+DROP TABLE Compra CASCADE;
 
 -- DROP Inventarios - Tiendas - Eventos
-DROP TABLE Inventario_Tienda;
+DROP TABLE Inventario_Tienda CASCADE;
 
-DROP TABLE Inventario_Evento;
+DROP TABLE Inventario_Evento CASCADE;
 
-DROP TABLE Tienda;
+DROP TABLE Tienda CASCADE;
 
-DROP TABLE Lugar_Tienda;
+DROP TABLE Lugar_Tienda CASCADE;
 
-DROP TABLE Registro_Evento;
+DROP TABLE Registro_Evento CASCADE;
 
-DROP TABLE Evento;
+DROP TABLE Evento CASCADE;
 
-DROP TABLE Tipo_Evento;
+DROP TABLE Tipo_Evento CASCADE;
 
-DROP TABLE Juez;
+DROP TABLE Juez CASCADE;
 
 -- DROP Cervezas
-DROP TABLE DESC_CERV;
+DROP TABLE DESC_CERV CASCADE;
 
-DROP TABLE Descuento;
+DROP TABLE Descuento CASCADE;
 
-DROP TABLE CERV_PRES;
+DROP TABLE CERV_PRES CASCADE;
 
-DROP TABLE Presentacion;
+DROP TABLE Presentacion CASCADE;
 
-DROP TABLE Cerveza;
+DROP TABLE Cerveza CASCADE;
 
-DROP TABLE Tipo_Cerveza;
+DROP TABLE Tipo_Cerveza CASCADE;
 
-DROP TABLE Receta;
+DROP TABLE Receta CASCADE;
 
 -- DROP Metodos de Pago
-DROP TABLE Efectivo;
+DROP TABLE Efectivo CASCADE;
 
-DROP TABLE Punto_Canjeo;
+DROP TABLE Punto_Canjeo CASCADE;
 
-DROP TABLE Tarjeta;
+DROP TABLE Tarjeta CASCADE;
 
-DROP TABLE Cheque;
+DROP TABLE Cheque CASCADE;
 
-DROP TABLE Banco;
+DROP TABLE Banco CASCADE;
 
-DROP TABLE Metodo_Pago;
+DROP TABLE Metodo_Pago CASCADE;
 
 -- Drop Clientes
-DROP TABLE Cliente;
+DROP TABLE Cliente CASCADE;
 
 -- Drop Miembros
-DROP TABLE Contacto;
+DROP TABLE Contacto CASCADE;
 
-DROP TABLE Miembro;
+DROP TABLE Miembro CASCADE;
 
 -- DROP Lugar
-DROP TABLE Lugar;
+DROP TABLE Lugar CASCADE;
+
+DROP TABLE Actividad CASCADE;

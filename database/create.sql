@@ -338,13 +338,13 @@ CREATE TABLE Venta (
     fk_cuot integer,
     PRIMARY KEY (cod_vent),
     -- Arco entre fk_clie - fk_miem
-    CONSTRAINT compra FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie),
-    CONSTRAINT comercializa FOREIGN KEY (fk_miem) REFERENCES Miembro (rif_miem),
+    CONSTRAINT compra FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie) ON DELETE CASCADE,
+    CONSTRAINT comercializa FOREIGN KEY (fk_miem) REFERENCES Miembro (rif_miem) ON DELETE CASCADE,
     CHECK ((fk_clie IS NOT NULL AND fk_miem IS NULL) OR (fk_miem IS NOT NULL AND fk_clie IS NULL)),
     -- Arco entre fk_even - fk_tien - fk_cuot
-    CONSTRAINT promociona FOREIGN KEY (fk_even) REFERENCES Evento (cod_even),
-    CONSTRAINT hace FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien),
-    CONSTRAINT cobra FOREIGN KEY (fk_cuot) REFERENCES Cuota (cod_cuot),
+    CONSTRAINT promociona FOREIGN KEY (fk_even) REFERENCES Evento (cod_even) ON DELETE CASCADE,
+    CONSTRAINT hace FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien) ON DELETE CASCADE,
+    CONSTRAINT cobra FOREIGN KEY (fk_cuot) REFERENCES Cuota (cod_cuot) ON DELETE CASCADE,
     CHECK ((fk_even IS NOT NULL AND fk_tien IS NULL AND fk_cuot IS NULL) OR (fk_tien IS NOT NULL AND fk_cuot IS NULL AND fk_even IS NULL) OR (fk_cuot IS NOT NULL AND fk_even IS NULL AND fk_tien IS NULL))
 );
 
@@ -401,9 +401,9 @@ CREATE TABLE Detalle_Venta (
     fk_inve_even_1 integer,
     fk_inve_even_2 integer,
     fk_inve_even_3 integer,
-    CONSTRAINT incluye FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent),
-    CONSTRAINT sustrae FOREIGN KEY (fk_inve_even_1, fk_inve_even_2, fk_inve_even_3) REFERENCES Inventario_Evento (fk_cerv_pres_1, fk_cerv_pres_2, fk_even),
-    CONSTRAINT vincula FOREIGN KEY (fk_inve_tien_1, fk_inve_tien_2, fk_inve_tien_3, fk_inve_tien_4) REFERENCES Inventario_Tienda (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, fk_luga_tien),
+    CONSTRAINT incluye FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent) ON DELETE CASCADE,
+    CONSTRAINT sustrae FOREIGN KEY (fk_inve_even_1, fk_inve_even_2, fk_inve_even_3) REFERENCES Inventario_Evento (fk_cerv_pres_1, fk_cerv_pres_2, fk_even) ON DELETE CASCADE,
+    CONSTRAINT vincula FOREIGN KEY (fk_inve_tien_1, fk_inve_tien_2, fk_inve_tien_3, fk_inve_tien_4) REFERENCES Inventario_Tienda (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, fk_luga_tien) ON DELETE CASCADE,
     -- Arco Inventario_Tienda - Inventario_Evento
     CHECK (((fk_inve_tien_1 IS NOT NULL AND fk_inve_tien_2 IS NOT NULL AND fk_inve_tien_3 IS NOT NULL) AND (fk_inve_even_1 IS NULL AND fk_inve_even_2 IS NULL AND fk_inve_even_3 IS NULL)) OR ((fk_inve_tien_1 IS NULL AND fk_inve_tien_2 IS NULL AND fk_inve_tien_3 IS NULL) AND (fk_inve_even_1 IS NOT NULL AND fk_inve_even_2 IS NOT NULL AND fk_inve_even_3 IS NOT NULL)))
 );
@@ -455,9 +455,9 @@ CREATE TABLE Pago (
     fecha_pago date NOT NULL,
     fk_tasa integer NOT NULL,
     PRIMARY KEY (cod_pago, fk_vent, fk_meto_pago),
-    CONSTRAINT formada FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent),
-    CONSTRAINT usa FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago),
-    CONSTRAINT calculado FOREIGN KEY (fk_tasa) REFERENCES Tasa (cod_tasa)
+    CONSTRAINT formada FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent) ON DELETE CASCADE,
+    CONSTRAINT usa FOREIGN KEY (fk_meto_pago) REFERENCES Metodo_Pago (cod_meto_pago) ON DELETE CASCADE,
+    CONSTRAINT calculado FOREIGN KEY (fk_tasa) REFERENCES Tasa (cod_tasa) ON DELETE CASCADE
 );
 
 CREATE TABLE Telefono (
