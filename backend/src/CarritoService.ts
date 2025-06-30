@@ -2,12 +2,36 @@ import { sql } from "bun";
 import { AddOptionsMethod, LogFunctionExecution, sqlProtection, } from "./logger/decorators";
 import { CORS_HEADERS } from "../globals";
 
+type Carrito = {
+	cod_vent: number
+	fecha_vent: string
+	iva_vent: number
+	base_imponible_vent: number
+	total_vent: number
+	online: boolean
+	fk_clie: string
+	fk_tien: 1
+	items: unknown[] // TODO: Change from unknown to the object
+}
+
+type CarritoItem = {
+	precio_unitario: number
+	cantidad: number
+	cerveza: number
+	presentacion: number
+	tienda: 1
+	lugar_tien?: number
+}
+
+// Cerveza, Presentacion
+// Siempre de tienda 1, siempre del almacen principal
+
 @AddOptionsMethod
 class CarritoService {
 	@sqlProtection
 	@LogFunctionExecution
-	async getCarritoFromCliente(clienteID: string) {
-		const carritos = await sql`
+	async getCarritoObjectFromCliente(clienteID: string): Promise<Carrito | undefined> {
+		const carrito: Carrito[] = await sql`
 			SELECT *
 			FROM Venta V
 			WHERE
@@ -18,12 +42,22 @@ class CarritoService {
 						FROM ESTA_VENT
 						WHERE fk_vent = V.cod_vent AND fk_esta = 5)
 			ORDER BY cod_vent DESC
-			LIMIT 1`; // Get latest online Venta that hasn't been bought yet
+			LIMIT 1`
 
-		if (carritos.length === 0)
+		if (carrito.length === 0)
+			return undefined
+
+		return carrito[0]
+	}
+
+	@sqlProtection
+	@LogFunctionExecution
+	async getCarritoAndItems(clienteID: string) {
+		const carrito = await this.getCarritoObjectFromCliente(clienteID);
+
+		if (carrito === undefined)
 			return new Response("", { ...CORS_HEADERS, status: 204 }); // If no carrito found, return No Content
 
-		const carrito = carritos[0];
 		const detalles = await sql`
 			SELECT *
 			FROM Detalle_Venta
@@ -35,7 +69,7 @@ class CarritoService {
 	@sqlProtection
 	@LogFunctionExecution
 	async createCarritoForCliente(clienteID: string) {
-		const carrito = await this.getCarritoFromCliente(clienteID);
+		const carrito = await this.getCarritoAndItems(clienteID);
 		if (carrito.status === 200) return carrito;
 
 		const newCarrito = (
@@ -49,7 +83,7 @@ class CarritoService {
 	@sqlProtection
 	@LogFunctionExecution
 	async clearCarritoForCliente(clienteID: string) {
-		const carritoResponse = await this.getCarritoFromCliente(clienteID);
+		const carritoResponse = await this.getCarritoAndItems(clienteID);
 		if (carritoResponse.status === 204)
 			return new Response('', { ...CORS_HEADERS, status: 204 })
 		const body: any = await carritoResponse.json()
@@ -57,15 +91,41 @@ class CarritoService {
 		return Response.json(body, CORS_HEADERS)
 	}
 
+	@sqlProtection
+	@LogFunctionExecution
+	async addItemsToCarrito(clienteID: string, items: CarritoItem[]) {
+		// Get carrito or create if doesn't exist
+		const carrito = await ((await this.createCarritoForCliente(clienteID)).json()) as Carrito
+
+		for (const item of items) {
+			await sql`INSERT INTO Detalle_Venta (cant_deta_vent, precio_unitario_vent,
+				fk_vent, fk_inve_tien_1, fk_inve_tien_2, fk_inve_tien_3, fk_inve_tien_4)
+				VALUES (${item.cantidad}, ${item.precio_unitario},
+				${carrito.cod_vent}, ${item.cerveza}, ${item.presentacion},
+				1, ${item.lugar_tien}) -- Insert new detalle
+				ON CONFLICT (fk_vent, fk_inve_tien_1, fk_inve_tien_2)
+				DO UPDATE SET -- If conflicts, just update the amount
+					cant_deta_vent = ${item.cantidad},
+					fk_inve_tien_4 = ${item.lugar_tien}`
+		}
+		return await this.getCarritoAndItems(clienteID)
+	}
+
 	routes = {
 		"/api/carrito/:clienteID": {
 			GET: async (req: any) =>
-				await this.getCarritoFromCliente(req.params.clienteID),
+				await this.getCarritoAndItems(req.params.clienteID),
 			POST: async (req: any) =>
 				await this.createCarritoForCliente(req.params.clienteID),
 			DELETE: async (req: any) =>
 				await this.clearCarritoForCliente(req.params.clienteID),
 		},
+		"/api/carrito/:clienteID/items": {
+			GET: async (req: any) =>
+				(await this.getCarritoObjectFromCliente(req.params.clienteID))?.items || new Response('', { ...CORS_HEADERS, status: 204 }),
+			POST: async (req: any) =>
+				await this.addItemsToCarrito(req.params.clienteID, await req.json())
+		}
 	};
 }
 
