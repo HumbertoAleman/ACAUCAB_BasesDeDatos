@@ -65,7 +65,7 @@ class MetodoPagoService {
 	@sqlProtection
 	@LogFunctionExecution
 	async getPuntoCanjeo(): Promise<number> {
-		const res = (await sql`SELECT * FROM Punto_Canjeo ORDER BY fk_metodo_pago DESC LIMIT 1`)[0].fk_meto_pago;
+		const res = (await sql`SELECT * FROM Punto_Canjeo ORDER BY fk_meto_pago DESC LIMIT 1`)[0].fk_meto_pago;
 		return res
 	}
 }
