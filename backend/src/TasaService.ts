@@ -14,9 +14,14 @@ type Tasa = {
 class TasaService {
 	@sqlProtection
 	@LogFunctionExecution
+	async getTasaDiaActualObject(): Promise<Tasa[]> {
+		return await sql` SELECT * FROM Tasa WHERE fecha_fin_tasa IS NULL LIMIT 1`
+	}
+
+	@sqlProtection
+	@LogFunctionExecution
 	async getTasaDiaActual() {
-		const res: Tasa[] = await sql` SELECT * FROM Tasa WHERE fecha_fin_tasa IS NULL LIMIT 1`
-		return Response.json(res, CORS_HEADERS)
+		return Response.json(await this.getTasaDiaActualObject(), CORS_HEADERS)
 	}
 
 	routes = {
