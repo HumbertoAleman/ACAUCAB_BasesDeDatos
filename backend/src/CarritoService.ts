@@ -1,6 +1,8 @@
 import { sql } from "bun";
 import { AddOptionsMethod, LogFunctionExecution, sqlProtection, } from "./logger/decorators";
 import { CORS_HEADERS } from "../globals";
+import MetodoPagoService from "./MetodoPagoService";
+import TasaService from "./TasaService";
 
 type Carrito = {
 	cod_vent: number
@@ -134,6 +136,43 @@ class CarritoService {
 		return await this.getCarritoAndItems(clienteID);
 	}
 
+	@sqlProtection
+	@LogFunctionExecution
+	async payForCarrito(clienteID: string) {
+		const carrito = await this.getCarritoObjectFromCliente(clienteID);
+		if (carrito === undefined)
+			return new Response('', { ...CORS_HEADERS, status: 204 })
+		const res = await sql`INSERT INTO ESTA_VENT (fk_vent, fk_esta, fecha_ini)
+			VALUES (${carrito.cod_vent}, 5, CURRENT_DATE) RETURNING *`;
+		return Response.json(res, { ...CORS_HEADERS, status: 200 })
+	}
+
+	@sqlProtection
+	@LogFunctionExecution
+	async registerPayment(clienteID: string, payments: any[]) {
+		const carrito = await ((await this.createCarritoForCliente(clienteID)).json()) as Carrito
+		const metodos_pago: [number, number][] = []
+		for (const pago of payments) {
+			if (pago.tipo === "Tarjeta")
+				metodos_pago.push([await MetodoPagoService.insertTarjeta(
+					pago.numero_tarj,
+					pago.fecha_venci_tarj,
+					pago.cvv_tarj,
+					pago.nombre_titu_tarj,
+					pago.credito), pago.monto])
+			else
+				metodos_pago.push([await MetodoPagoService.getPuntoCanjeo(), pago.monto])
+		}
+
+		const tasa = (await TasaService.getTasaDiaActualObject())[0];
+		const pagos = []
+		for (const metodo of metodos_pago)
+			pagos.push(await sql`INSERT INTO Pago (fk_vent, fk_meto_pago, monto_pago, fecha_pago, fk_tasa)
+				VALUES (${carrito.cod_vent}, ${metodo.at(0)}, ${metodo.at(1)}, CURRENT_DATE, ${tasa?.cod_tasa}) RETURNING *`)
+
+		return Response.json(pagos, CORS_HEADERS)
+	}
+
 	routes = {
 		"/api/carrito/:clienteID": {
 			GET: async (req: any) =>
@@ -150,6 +189,12 @@ class CarritoService {
 				await this.addItemsToCarrito(req.params.clienteID, await req.json()),
 			DELETE: async (req: any) =>
 				await this.removeItemsFromCarrito(req.params.clienteID, await req.json())
+		},
+		"/api/carrito/:clienteID/pay": {
+			GET: async (req: any) =>
+				await this.payForCarrito(req.params.clienteID),
+			POST: async (req: any) =>
+				await this.registerPayment(req.params.clienteID, await req.json())
 		}
 	};
 }
