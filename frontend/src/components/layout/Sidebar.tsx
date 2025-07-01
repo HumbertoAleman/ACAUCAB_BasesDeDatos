@@ -22,7 +22,7 @@ import {
   VerifiedUser, // Icono para privilegios
   Receipt, // Icono para compras
 } from "@mui/icons-material"
-import { Link as RouterLink, useLocation } from "react-router-dom"
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import { getAccessibleRoutes } from "../../config/routes"
 
@@ -40,11 +40,14 @@ const routeIcons: Record<string, React.ReactElement> = {
   "/configuracion": <Settings />,
 }
 
-export const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({
+interface SidebarProps { open: boolean; onClose: () => void; onVentaOnlineClick?: () => void }
+export const Sidebar: React.FC<SidebarProps> = ({
   open,
   onClose,
+  onVentaOnlineClick
 }) => {
   const location = useLocation()
+  const navigate = useNavigate()
   const { hasPermission } = useAuth()
 
   // Lógica original para obtener rutas basadas en permisos

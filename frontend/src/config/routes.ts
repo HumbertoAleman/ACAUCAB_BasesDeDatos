@@ -5,9 +5,7 @@ import { GestionUsuarios } from "../pages/usuarios/GestionUsuarios";
 import { PuntoVenta } from "../pages/ventas/PuntoVenta";
 import { GestionPrivilegios } from "../pages/privilegios/GestionPrivilegios";
 import { GestionOrdenes } from "../pages/compras/GestionOrdenes";
-import CarritoOnline from '../pages/carrito';
-import CheckoutOnline from '../pages/checkout';
-import { PuntoVentaOnline } from '../pages/ventas/PuntoVentaOnline';
+import PuntoVentaOnline from '../pages/ventas/PuntoVentaOnline';
 
 export interface RouteConfig {
   path: string
@@ -78,21 +76,7 @@ export const ROUTES: RouteConfig[] = [
     inMenu: false,
   },
   {
-    path: '/carrito',
-    title: 'Carrito',
-    description: 'Carrito de compras online',
-    component: CarritoOnline,
-    inMenu: false,
-  },
-  {
-    path: '/checkout',
-    title: 'Checkout',
-    description: 'Confirmar compra online',
-    component: CheckoutOnline,
-    inMenu: false,
-  },
-  {
-    path: '/venta-online',
+    path: '/ventas-online',
     title: 'Venta Online',
     description: 'Punto de venta para clientes online',
     component: PuntoVentaOnline,

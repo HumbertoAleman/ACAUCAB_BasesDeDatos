@@ -7,7 +7,7 @@ import {
   Typography,
   Avatar,
 } from "@mui/material"
-import { Link as RouterLink } from "react-router-dom"
+import { Link as RouterLink, useNavigate } from "react-router-dom"
 import {
   Dashboard as DashboardIcon,
   ShoppingCart,
@@ -42,9 +42,16 @@ const routeColors: Record<string, string> = {
   "/configuracion": "#607D8B",
 }
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onVentaOnlineClick?: () => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onVentaOnlineClick }) => {
+  const navigate = useNavigate();
   // Solo módulos principales (inMenu)
-  const mainRoutes = ROUTES.filter(r => r.inMenu && r.path !== "/dashboard")
+  const mainRoutes = [
+    ...ROUTES.filter(r => r.inMenu && r.path !== "/dashboard"),
+  ];
 
   return (
     <Box>
@@ -75,15 +82,15 @@ export const Dashboard: React.FC = () => {
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
-                background: `linear-gradient(135deg, ${routeColors[route.path] || "#2E7D32"}22 0%, #fff 100%)`,
+                background: `linear-gradient(135deg, ${routeColors[route.path] || (route as any).color || "#2E7D32"}22 0%, #fff 100%)`,
                 p: 3,
               }}
             >
-              <Avatar sx={{ bgcolor: routeColors[route.path] || "#2E7D32", width: 64, height: 64, mb: 2, mx: "auto" }}>
-                {routeIcons[route.path] || <Settings />}
+              <Avatar sx={{ bgcolor: routeColors[route.path] || (route as any).color || "#2E7D32", width: 64, height: 64, mb: 2, mx: "auto" }}>
+                {(routeIcons[route.path] || (route as any).icon) || <Settings />}
               </Avatar>
               <CardContent sx={{ textAlign: "center", p: 0, width: "100%" }}>
-                <Typography variant="h6" sx={{ fontWeight: "bold", color: routeColors[route.path] || "#2E7D32", mb: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: routeColors[route.path] || (route as any).color || "#2E7D32", mb: 1 }}>
                   {route.title}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" sx={{ px: 1 }}>
@@ -97,3 +104,6 @@ export const Dashboard: React.FC = () => {
     </Box>
   )
 }
+
+// Para identificar el componente en Layout
+Dashboard.displayName = 'Dashboard'

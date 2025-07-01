@@ -650,4 +650,52 @@ export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
   } catch (e) {
     return false;
   }
+};
+
+// ===== SERVICIOS DE CARRITO =====
+
+/**
+ * Guarda el carrito del usuario
+ */
+export const saveCarrito = async (carrito: any): Promise<{ success: boolean; id?: number; message?: string }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/carrito`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(carrito),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error al guardar el carrito');
+    }
+    const result = await response.json();
+    return { success: true, id: result.id };
+  } catch (error) {
+    console.error('Error saving carrito:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'Error desconocido al guardar el carrito' };
+  }
+};
+
+/**
+ * Obtiene el carrito del usuario actual
+ */
+export const getCarritoUsuario = async (usuario: string): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/carrito`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ usuario }),
+    });
+    if (!response.ok) {
+      throw new Error('Error al obtener el carrito');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching carrito:', error);
+    return null;
+  }
 }; 
