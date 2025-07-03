@@ -6,7 +6,7 @@ import {
 } from "@mui/material"
 import { Add, Remove, Delete, Payment, Search, ShoppingCart, CreditCard, Close } from "@mui/icons-material"
 import type { ProductoInventario, TasaVenta, MetodoPagoCompleto, ItemVenta, PagoVenta, ResumenVenta } from "../../interfaces/ventas"
-import { getProductosInventario, getTasaActual, procesarVenta, getBancos, getTableData, saveCarrito, getCarritoUsuario } from "../../services/api"
+import { getProductosInventario, getTasaActual, procesarVenta, getBancos, getTableData, getCarrito, createCarrito, addItemsToCarrito } from "../../services/api"
 import { useAuth } from '../../contexts/AuthContext'
 
 interface PuntoVentaOnlineProps {
@@ -98,7 +98,7 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
     // Cargar carrito guardado si existe
     const cargarCarritoGuardado = async () => {
       if (!user?.username) return;
-      const carrito = await getCarritoUsuario(user.username);
+      const carrito = await getCarrito(user.username);
       if (carrito && carrito.items && Array.isArray(carrito.items) && carrito.items.length > 0) {
         setItemsVenta(carrito.items.map((item: any) => ({
           producto: item.producto,
@@ -270,13 +270,27 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
         items: apiItems,
         resumen: resumenVenta
       };
-      const resultado = await saveCarrito(carritoData);
-      if (resultado.success) {
+      let resultado;
+      // Verificar si ya existe un carrito para el usuario
+      const carritoExistente = user?.username ? await getCarrito(user.username) : null;
+      if (!user?.username) {
+        alert('No hay usuario autenticado.');
+        setProcesandoVenta(false);
+        return;
+      }
+      if (!carritoExistente || carritoExistente.error) {
+        // Si no existe, crear el carrito
+        resultado = await createCarrito(user.username, carritoData);
+      } else {
+        // Si existe, actualizar los items
+        resultado = await addItemsToCarrito(user.username, apiItems);
+      }
+      if (resultado && !resultado.error) {
         alert('Carrito guardado exitosamente.');
         setItemsVenta([]);
         if (window.location) window.location.href = '/dashboard';
       } else {
-        alert(`Error al guardar el carrito: ${resultado.message}`);
+        alert(`Error al guardar el carrito: ${resultado?.message || resultado?.error || 'Error desconocido'}`);
       }
     } catch (error) {
       alert('Error inesperado al guardar el carrito');

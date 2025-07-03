@@ -652,50 +652,133 @@ export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
   }
 };
 
-// ===== SERVICIOS DE CARRITO =====
+// ===== SERVICIOS DE CARRITO RESTFUL =====
 
 /**
- * Guarda el carrito del usuario
+ * Obtiene el carrito y sus items para un cliente
  */
-export const saveCarrito = async (carrito: any): Promise<{ success: boolean; id?: number; message?: string }> => {
+export const getCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(carrito),
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error al guardar el carrito');
-    }
-    const result = await response.json();
-    return { success: true, id: result.id };
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`);
+    if (!response.ok) throw new Error('Error al obtener el carrito');
+    return await response.json();
   } catch (error) {
-    console.error('Error saving carrito:', error);
-    return { success: false, message: error instanceof Error ? error.message : 'Error desconocido al guardar el carrito' };
+    console.error('Error fetching carrito:', error);
+    return null;
   }
 };
 
 /**
- * Obtiene el carrito del usuario actual
+ * Crea un carrito para un cliente
  */
-export const getCarritoUsuario = async (usuario: string): Promise<any> => {
+export const createCarrito = async (clienteID: string, data: any): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito`, {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ usuario }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     });
-    if (!response.ok) {
-      throw new Error('Error al obtener el carrito');
-    }
+    if (!response.ok) throw new Error('Error al crear el carrito');
     return await response.json();
   } catch (error) {
-    console.error('Error fetching carrito:', error);
+    console.error('Error creating carrito:', error);
+    return null;
+  }
+};
+
+/**
+ * Elimina el carrito de un cliente
+ */
+export const deleteCarrito = async (clienteID: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
+      method: 'DELETE',
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Error deleting carrito:', error);
+    return false;
+  }
+};
+
+/**
+ * Obtiene los items del carrito de un cliente
+ */
+export const getCarritoItems = async (clienteID: string): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`);
+    if (!response.ok) throw new Error('Error al obtener items del carrito');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching carrito items:', error);
+    return [];
+  }
+};
+
+/**
+ * Agrega items al carrito de un cliente
+ */
+export const addItemsToCarrito = async (clienteID: string, items: any[]): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    });
+    if (!response.ok) throw new Error('Error al agregar items al carrito');
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding items to carrito:', error);
+    return null;
+  }
+};
+
+/**
+ * Elimina items del carrito de un cliente
+ */
+export const removeItemsFromCarrito = async (clienteID: string, items: any[]): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    });
+    if (!response.ok) throw new Error('Error al eliminar items del carrito');
+    return await response.json();
+  } catch (error) {
+    console.error('Error removing items from carrito:', error);
+    return null;
+  }
+};
+
+/**
+ * Realiza el pago del carrito de un cliente
+ */
+export const payForCarrito = async (clienteID: string): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`);
+    if (!response.ok) throw new Error('Error al pagar el carrito');
+    return await response.json();
+  } catch (error) {
+    console.error('Error paying for carrito:', error);
+    return null;
+  }
+};
+
+/**
+ * Registra un pago para el carrito de un cliente
+ */
+export const registerPayment = async (clienteID: string, paymentData: any): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(paymentData),
+    });
+    if (!response.ok) throw new Error('Error al registrar el pago');
+    return await response.json();
+  } catch (error) {
+    console.error('Error registering payment:', error);
     return null;
   }
 }; 
