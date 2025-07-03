@@ -6,6 +6,7 @@ import { PuntoVenta } from "../pages/ventas/PuntoVenta";
 import { GestionPrivilegios } from "../pages/privilegios/GestionPrivilegios";
 import { GestionOrdenes } from "../pages/compras/GestionOrdenes";
 import PuntoVentaOnline from '../pages/ventas/PuntoVentaOnline';
+import GestionEventos from '../pages/eventos/GestionEventos';
 
 export interface RouteConfig {
   path: string
@@ -74,6 +75,15 @@ export const ROUTES: RouteConfig[] = [
     title: "Registro de Miembros",
     component: RegistroMiembro,
     inMenu: false,
+  },
+  {
+    path: "/eventos",
+    permission: "evento_read",
+    title: "Eventos",
+    icon: "event",
+    description: "Gestión de eventos y entradas",
+    component: GestionEventos,
+    inMenu: true,
   },
   {
     path: '/ventas-online',

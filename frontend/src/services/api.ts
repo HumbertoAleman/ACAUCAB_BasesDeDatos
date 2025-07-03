@@ -7,6 +7,8 @@ import type {
   VentaCompleta 
 } from '../interfaces/ventas'
 import type { Lugar, Banco } from '../interfaces/common'
+import type { Evento, TipoEvento, RegistroEvento } from '../interfaces/eventos'
+import type { Miembro } from '../interfaces/miembros'
 
 // Configuración base de la API
 const API_URL = 'http://127.0.0.1:3000' // URL Base para todos los endpoints
@@ -779,6 +781,146 @@ export const registerPayment = async (clienteID: string, paymentData: any): Prom
     return await response.json();
   } catch (error) {
     console.error('Error registering payment:', error);
+    return null;
+  }
+};
+
+// ===== SERVICIOS DE EVENTOS =====
+
+/**
+ * Obtiene todos los tipos de evento
+ */
+export const getTiposEvento = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Tipo_Evento`);
+    if (!response.ok) throw new Error('Error al obtener tipos de evento');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching tipos de evento:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los lugares (parroquias)
+ */
+export const getLugares = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/parroquias`);
+    if (!response.ok) throw new Error('Error al obtener lugares');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching lugares:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los eventos
+ */
+export const getEventos = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/evento`);
+    if (!response.ok) throw new Error('Error al obtener eventos');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching eventos:', error);
+    return [];
+  }
+};
+
+/**
+ * Crea un nuevo evento
+ */
+export const createEvento = async (eventoData: any): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/evento`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventoData),
+    });
+    if (!response.ok) throw new Error('Error al crear evento');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating evento:', error);
+    return null;
+  }
+};
+
+/**
+ * Crea un evento recursivo
+ */
+export const createEventoRecursivo = async (eventoId: number, eventoData: any): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/evento/${eventoId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventoData),
+    });
+    if (!response.ok) throw new Error('Error al crear evento recursivo');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating evento recursivo:', error);
+    return null;
+  }
+};
+
+/**
+ * Obtiene todos los empleados
+ */
+export const getEmpleados = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Empleado`);
+    if (!response.ok) throw new Error('Error al obtener empleados');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching empleados:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los miembros
+ */
+export const getMiembros = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Miembro`);
+    if (!response.ok) throw new Error('Error al obtener miembros');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching miembros:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los jueces
+ */
+export const getJueces = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Juez`);
+    if (!response.ok) throw new Error('Error al obtener jueces');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching jueces:', error);
+    return [];
+  }
+};
+
+/**
+ * Crea un registro de evento (compra de entrada)
+ */
+export const createRegistroEvento = async (registroData: any): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Registro_Evento`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(registroData),
+    });
+    if (!response.ok) throw new Error('Error al registrar entrada');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating registro evento:', error);
     return null;
   }
 }; 
