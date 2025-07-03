@@ -661,9 +661,14 @@ export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
  */
 export const getCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`);
+    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}`);
+    if (response.status === 204) return null; // No hay carrito
     if (!response.ok) throw new Error('Error al obtener el carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error fetching carrito:', error);
     return null;
@@ -673,15 +678,17 @@ export const getCarrito = async (clienteID: string): Promise<any> => {
 /**
  * Crea un carrito para un cliente
  */
-export const createCarrito = async (clienteID: string, data: any): Promise<any> => {
+export const createCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
+    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Error al crear el carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error creating carrito:', error);
     return null;
@@ -693,7 +700,7 @@ export const createCarrito = async (clienteID: string, data: any): Promise<any> 
  */
 export const deleteCarrito = async (clienteID: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
+    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}`, {
       method: 'DELETE',
     });
     return response.ok;
@@ -704,31 +711,21 @@ export const deleteCarrito = async (clienteID: string): Promise<boolean> => {
 };
 
 /**
- * Obtiene los items del carrito de un cliente
- */
-export const getCarritoItems = async (clienteID: string): Promise<any[]> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`);
-    if (!response.ok) throw new Error('Error al obtener items del carrito');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching carrito items:', error);
-    return [];
-  }
-};
-
-/**
  * Agrega items al carrito de un cliente
  */
 export const addItemsToCarrito = async (clienteID: string, items: any[]): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
+    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify(items),
     });
     if (!response.ok) throw new Error('Error al agregar items al carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error adding items to carrito:', error);
     return null;
@@ -740,13 +737,17 @@ export const addItemsToCarrito = async (clienteID: string, items: any[]): Promis
  */
 export const removeItemsFromCarrito = async (clienteID: string, items: any[]): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
+    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}/items`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify(items),
     });
     if (!response.ok) throw new Error('Error al eliminar items del carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error removing items from carrito:', error);
     return null;
@@ -754,13 +755,18 @@ export const removeItemsFromCarrito = async (clienteID: string, items: any[]): P
 };
 
 /**
- * Realiza el pago del carrito de un cliente
+ * Marca el carrito como pagado (concreta la compra)
  */
 export const payForCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`);
+    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}/pay`);
+    if (response.status === 204) return null;
     if (!response.ok) throw new Error('Error al pagar el carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error paying for carrito:', error);
     return null;
@@ -772,13 +778,17 @@ export const payForCarrito = async (clienteID: string): Promise<any> => {
  */
 export const registerPayment = async (clienteID: string, paymentData: any): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`, {
+    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}/pay`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentData),
     });
     if (!response.ok) throw new Error('Error al registrar el pago');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error registering payment:', error);
     return null;
