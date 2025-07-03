@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getTiposEvento, getLugares, getEventos, createEvento, createEventoRecursivo } from '../../services/api';
-import type { Evento, TipoEvento } from '../../interfaces/eventos';
+import { getTiposEvento, getLugares, getEventos, createEvento, createEventoRecursivo, getJueces, createRegistroEvento } from '../../services/api';
+import type { Evento, TipoEvento, Juez } from '../../interfaces/eventos';
 import type { Lugar } from '../../interfaces/common';
 
 interface RegistroEventoProps {
@@ -23,6 +23,14 @@ interface FormData {
   fk_even?: number; // Para eventos recursivos
 }
 
+interface RegistroEventoData {
+  fk_even: number;
+  fk_juez?: number;
+  fk_clie?: string;
+  fk_miem?: string;
+  fecha_hora_regi_even: string;
+}
+
 const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState<FormData>({
     nombre_even: '',
@@ -40,6 +48,8 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
   const [tiposEvento, setTiposEvento] = useState<TipoEvento[]>([]);
   const [lugares, setLugares] = useState<Lugar[]>([]);
   const [eventos, setEventos] = useState<Evento[]>([]);
+  const [jueces, setJueces] = useState<Juez[]>([]);
+  const [selectedJueces, setSelectedJueces] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRecursive, setIsRecursive] = useState(false);
 
@@ -64,6 +74,10 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
       // Cargar eventos existentes para recursividad
       const eventos = await getEventos();
       setEventos(eventos);
+
+      // Cargar jueces disponibles
+      const jueces = await getJueces();
+      setJueces(jueces);
     } catch (error) {
       console.error('Error cargando datos:', error);
     } finally {
@@ -79,6 +93,16 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
         ? Number(value) 
         : value
     }));
+  };
+
+  const handleJuezSelection = (juezId: number) => {
+    setSelectedJueces(prev => {
+      if (prev.includes(juezId)) {
+        return prev.filter(id => id !== juezId);
+      } else {
+        return [...prev, juezId];
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,15 +121,30 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
     try {
       setLoading(true);
       
-      let response;
+      let eventoResponse;
       if (isRecursive && formData.fk_even) {
-        response = await createEventoRecursivo(formData.fk_even, formData);
+        eventoResponse = await createEventoRecursivo(formData.fk_even, formData);
       } else {
-        response = await createEvento(formData);
+        eventoResponse = await createEvento(formData);
       }
 
-      if (response) {
-        alert('Evento registrado exitosamente');
+      if (eventoResponse && eventoResponse.length > 0) {
+        const nuevoEvento = eventoResponse[0];
+        
+        // Registrar jueces para el evento
+        if (selectedJueces.length > 0) {
+          for (const juezId of selectedJueces) {
+            const registroData: RegistroEventoData = {
+              fk_even: nuevoEvento.cod_even,
+              fk_juez: juezId,
+              fecha_hora_regi_even: formData.fecha_hora_ini_even
+            };
+            
+            await createRegistroEvento(registroData);
+          }
+        }
+
+        alert('Evento registrado exitosamente con los jueces seleccionados');
         onSuccess();
         handleClose();
       } else {
@@ -132,6 +171,7 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
       fk_tipo_even: 0,
       fk_luga: 0
     });
+    setSelectedJueces([]);
     setIsRecursive(false);
     onClose();
   };
@@ -140,7 +180,7 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">
             {isRecursive ? 'Registrar Evento Recursivo' : 'Registrar Nuevo Evento'}
@@ -354,6 +394,36 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Selección de Jueces */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Jueces del Evento (Opcional)
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
+              {jueces.map(juez => (
+                <div key={juez.cod_juez} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`juez-${juez.cod_juez}`}
+                    checked={selectedJueces.includes(juez.cod_juez)}
+                    onChange={() => handleJuezSelection(juez.cod_juez)}
+                    className="rounded"
+                  />
+                  <label htmlFor={`juez-${juez.cod_juez}`} className="text-sm text-gray-700 cursor-pointer">
+                    {juez.primar_nom_juez} {juez.segundo_nom_juez || ''} {juez.primar_ape_juez} {juez.segundo_ape_juez || ''}
+                    <br />
+                    <span className="text-xs text-gray-500">CI: {juez.ci_juez}</span>
+                  </label>
+                </div>
+              ))}
+            </div>
+            {selectedJueces.length > 0 && (
+              <p className="text-sm text-gray-600 mt-2">
+                Jueces seleccionados: {selectedJueces.length}
+              </p>
+            )}
           </div>
 
           {/* Botones */}

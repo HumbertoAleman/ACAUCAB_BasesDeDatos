@@ -866,6 +866,20 @@ export const createEventoRecursivo = async (eventoId: number, eventoData: any): 
 };
 
 /**
+ * Obtiene todos los jueces
+ */
+export const getJueces = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Juez`);
+    if (!response.ok) throw new Error('Error al obtener jueces');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching jueces:', error);
+    return [];
+  }
+};
+
+/**
  * Obtiene todos los empleados
  */
 export const getEmpleados = async (): Promise<any[]> => {
@@ -894,20 +908,6 @@ export const getMiembros = async (): Promise<any[]> => {
 };
 
 /**
- * Obtiene todos los jueces
- */
-export const getJueces = async (): Promise<any[]> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/quick/Juez`);
-    if (!response.ok) throw new Error('Error al obtener jueces');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching jueces:', error);
-    return [];
-  }
-};
-
-/**
  * Crea un registro de evento (compra de entrada)
  */
 export const createRegistroEvento = async (registroData: any): Promise<any> => {
@@ -915,7 +915,7 @@ export const createRegistroEvento = async (registroData: any): Promise<any> => {
     const response = await fetch(`${API_BASE_URL}/quick/Registro_Evento`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(registroData),
+      body: JSON.stringify({ info: registroData }),
     });
     if (!response.ok) throw new Error('Error al registrar entrada');
     return await response.json();

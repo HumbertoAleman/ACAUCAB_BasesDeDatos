@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getClientesDetallados, getEmpleados, getMiembros, getJueces, createRegistroEvento } from '../../services/api';
+import { getClientesDetallados, getEmpleados, getMiembros, createRegistroEvento } from '../../services/api';
 import type { Evento, RegistroEvento } from '../../interfaces/eventos';
 import type { ClienteDetallado } from '../../interfaces/ventas';
 import type { Miembro } from '../../interfaces/miembros';
@@ -16,7 +16,6 @@ interface FormData {
   fk_clie?: string | null;
   fk_miem?: string | null;
   cantidad_entradas: number;
-  [key: string]: number | string | null | undefined;
 }
 
 const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento }) => {
@@ -30,7 +29,6 @@ const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento
 
   const [clientes, setClientes] = useState<ClienteDetallado[]>([]);
   const [empleados, setEmpleados] = useState<any[]>([]);
-  const [jueces, setJueces] = useState<any[]>([]);
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [loading, setLoading] = useState(false);
   const [tipoParticipante, setTipoParticipante] = useState<'cliente' | 'empleado' | 'miembro'>('cliente');
@@ -69,16 +67,6 @@ const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento
     if (name === 'cantidad_entradas') {
       setFormData(prev => ({ ...prev, cantidad_entradas: Number(value) }));
     } else if (name === 'fk_juez') {
-      setFormData(prev => ({ ...prev, fk_juez: value ? Number(value) : null }));
-    } else if (name === 'fk_clie') {
-      setFormData(prev => ({ ...prev, fk_clie: value || null }));
-    } else if (name === 'fk_miem') {
-      setFormData(prev => ({ ...prev, fk_miem: value || null }));
-    }
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    if (name === 'fk_juez') {
       setFormData(prev => ({ ...prev, fk_juez: value ? Number(value) : null }));
     } else if (name === 'fk_clie') {
       setFormData(prev => ({ ...prev, fk_clie: value || null }));
@@ -132,9 +120,9 @@ const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento
       const registroData: RegistroEvento = {
         cod_regi_even: 0, // Se genera automáticamente
         fk_even: evento.cod_even,
-        fk_juez: tipoParticipante === 'empleado' ? formData.fk_juez : null,
-        fk_clie: tipoParticipante === 'cliente' ? formData.fk_clie : null,
-        fk_miem: tipoParticipante === 'miembro' ? formData.fk_miem : null,
+        fk_juez: tipoParticipante === 'empleado' ? formData.fk_juez || null : null,
+        fk_clie: tipoParticipante === 'cliente' ? formData.fk_clie || null : null,
+        fk_miem: tipoParticipante === 'miembro' ? formData.fk_miem || null : null,
         fecha_hora_regi_even: new Date().toISOString()
       };
 
