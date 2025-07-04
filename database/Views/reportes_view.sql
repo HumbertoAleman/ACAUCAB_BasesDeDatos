@@ -59,6 +59,13 @@ CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
         AND mp.cod_meto_pago = t.fk_meto_pago
     GROUP BY t.credito;
 
+CREATE OR REPLACE VIEW ventas_totales AS
+    SELECT CAST(v.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por tienda"
+    FROM Venta v
+    GROUP BY v.online
+
+-- Procedimientos
+
 CREATE OR REPLACE FUNCTION periodo_tipo_cliente (year integer, modalidad text)
 RETURNS TABLE ("Tipo" varchar(40), "Periodo" integer, "Cantidad" bigint, "Año" integer)
 LANGUAGE plpgsql
