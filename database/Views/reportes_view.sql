@@ -60,17 +60,20 @@ CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
     GROUP BY t.credito;
 
 CREATE OR REPLACE VIEW ventas_totales AS
-    SELECT CAST(Venta.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por tienda", SUM (total_vent) "Total"
+    SELECT fecha_vent "Fecha", CAST(Venta.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por tienda", SUM (total_vent) "Total"
     FROM Venta
-    GROUP BY Venta.online;
+    GROUP BY Venta.online, fecha_vent
+    ORDER BY fecha_vent;
 
 CREATE OR REPLACE VIEW obtener_ventas AS
-    SELECT fecha_vent, SUM (total_vent)
+    SELECT fecha_vent "Fecha", SUM (total_vent) "Total"
     FROM Venta
     GROUP BY fecha_vent
     ORDER BY fecha_vent;
 
 -- Procedimientos
+
+CREATE OR REPLACE FUNCTION crecimiento_ventas
 
 CREATE OR REPLACE FUNCTION periodo_tipo_cliente (year integer, modalidad text)
 RETURNS TABLE ("Tipo" varchar(40), "Periodo" integer, "Cantidad" bigint, "Año" integer)
