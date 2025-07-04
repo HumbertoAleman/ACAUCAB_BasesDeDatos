@@ -59,21 +59,48 @@ CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
         AND mp.cod_meto_pago = t.fk_meto_pago
     GROUP BY t.credito;
 
-CREATE OR REPLACE VIEW ventas_totales AS
-    SELECT fecha_vent "Fecha", CAST(Venta.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por tienda", SUM (total_vent) "Total"
+CREATE OR REPLACE VIEW ventas_totales_view AS
+    SELECT fecha_vent "Fecha de Venta", CAST(Venta.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM (total_vent) "Total de Ventas"
     FROM Venta
     GROUP BY Venta.online, fecha_vent
     ORDER BY fecha_vent;
 
-CREATE OR REPLACE VIEW obtener_ventas AS
-    SELECT fecha_vent "Fecha", SUM (total_vent) "Total"
+CREATE OR REPLACE VIEW obtener_ventas_view AS
+    SELECT fecha_vent "Fecha de Venta", SUM (total_vent) "Total de Ventas"
     FROM Venta
     GROUP BY fecha_vent
     ORDER BY fecha_vent;
 
 -- Procedimientos
 
-CREATE OR REPLACE FUNCTION crecimiento_ventas
+CREATE OR REPLACE periodo_ventas_totales (ini varchar(10), fin varchar(10), modalidad text)
+RETURNS TABLE ()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF modalidad = 'semanal' THEN
+        RETURN QUERY
+        SELECT CAST(Venta.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM (total_vent) "Total de Ventas"
+        FROM ventas_totales_view
+        WHERE DATE_TRUNC('week', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('week', CAST(ini AS date))
+        GROUP BY Venta.online
+    ELSIF modalidad = 'mensual' THEN
+        RETURN QUERY
+        SELECT 
+        FROM ventas_totales_view
+    ELSIF modalidad = 'trimestral' THEN
+        RETURN QUERY
+        SELECT 
+        FROM ventas_totales_view
+    ELSIF modalidad = 'anual' THEN
+        RETURN QUERY
+        SELECT 
+        FROM ventas_totales_view
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION crecimiento_ventas ()
 
 CREATE OR REPLACE FUNCTION periodo_tipo_cliente (year integer, modalidad text)
 RETURNS TABLE ("Tipo" varchar(40), "Periodo" integer, "Cantidad" bigint, "Año" integer)
