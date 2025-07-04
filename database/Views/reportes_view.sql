@@ -60,9 +60,9 @@ CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
     GROUP BY t.credito;
 
 CREATE OR REPLACE VIEW ventas_totales AS
-    SELECT CAST(v.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por tienda"
-    FROM Venta v
-    GROUP BY v.online
+    SELECT CAST(Venta.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por tienda", SUM (total_vent) "Total"
+    FROM Venta
+    GROUP BY Venta.online
 
 -- Procedimientos
 
