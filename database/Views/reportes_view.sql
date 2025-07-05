@@ -73,34 +73,64 @@ CREATE OR REPLACE VIEW obtener_ventas_view AS
 
 -- Procedimientos
 
-CREATE OR REPLACE periodo_ventas_totales (ini varchar(10), fin varchar(10), modalidad text)
+CREATE OR REPLACE FUNCTION periodo_ventas_totales (year int, month int, trimonth int, modalidad text)
+RETURNS TABLE ("Tipo" int, "Cantidad Ventas" bigint, "Total Ventas" numeric)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF modalidad = 'mensual' THEN
+        RETURN QUERY
+        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
+        FROM ventas_totales_view
+        WHERE EXTRACT(MONTH FROM "Fecha de Venta") = month
+            AND EXTRACT(YEAR FROM "Fecha de Venta") = year
+        GROUP BY  "Tipo de Tienda";
+
+    ELSIF modalidad = 'trimestral' THEN
+        RETURN QUERY
+        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
+        FROM ventas_totales_view
+        WHERE EXTRACT(QUARTER FROM "Fecha de Venta") = trimonth
+            AND EXTRACT(YEAR FROM "Fecha de Venta") = year
+        GROUP BY  "Tipo de Tienda";
+
+    ELSIF modalidad = 'anual' THEN
+        RETURN QUERY
+        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
+        FROM ventas_totales_view
+        WHERE EXTRACT(YEAR FROM "Fecha de Venta") = year
+        GROUP BY  "Tipo de Tienda";
+
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION crecimiento_ventas (ini varchar(10), fin varchar(10), modalidad text)
 RETURNS TABLE ()
 LANGUAGE plpgsql
 AS $$
 BEGIN
     IF modalidad = 'semanal' THEN
         RETURN QUERY
-        SELECT CAST(Venta.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM (total_vent) "Total de Ventas"
-        FROM ventas_totales_view
-        WHERE DATE_TRUNC('week', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('week', CAST(ini AS date))
-        GROUP BY Venta.online
+        SELECT (CAST(DATE_TRUNC('week', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('week', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
+        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('week', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('week', CAST(ini AS date))) AS ov1, 
+            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('week', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('week', CAST(fin AS date))) AS ov2
+
     ELSIF modalidad = 'mensual' THEN
         RETURN QUERY
         SELECT 
-        FROM ventas_totales_view
+        FROM obtener_ventas_view
     ELSIF modalidad = 'trimestral' THEN
         RETURN QUERY
         SELECT 
-        FROM ventas_totales_view
+        FROM obtener_ventas_view
     ELSIF modalidad = 'anual' THEN
         RETURN QUERY
         SELECT 
-        FROM ventas_totales_view
+        FROM obtener_ventas_view
     END IF;
 END;
 $$;
-
-CREATE OR REPLACE FUNCTION crecimiento_ventas ()
 
 CREATE OR REPLACE FUNCTION periodo_tipo_cliente (year integer, modalidad text)
 RETURNS TABLE ("Tipo" varchar(40), "Periodo" integer, "Cantidad" bigint, "Año" integer)
