@@ -25,6 +25,7 @@ Bun.serve({
 	routes: {
 		"/ping": () => new Response("pong"),
 		"/quick/:table": {
+			OPTIONS: () => new Response("OK", CORS_HEADERS),
 			GET: async (req, _) => {
 				const sqlString = `SELECT * FROM ${req.params.table}`;
 				const res = await sql.unsafe(sqlString);

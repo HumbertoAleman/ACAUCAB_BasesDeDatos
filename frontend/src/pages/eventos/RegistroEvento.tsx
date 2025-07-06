@@ -38,6 +38,15 @@ interface RegistroEventoData {
   fecha_hora_regi_even: string;
 }
 
+// Utilidad para formatear fecha a yyyy-MM-ddTHH:mm para input type="datetime-local"
+function toDatetimeLocal(dateString: string) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+}
+
 const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState<FormData>({
     nombre_even: '',
@@ -74,6 +83,42 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
       loadData();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isRecursive && formData.fk_even) {
+      const padre = eventos.find(e => e.cod_even === formData.fk_even);
+      if (padre) {
+        setFormData(prev => ({
+          ...prev,
+          direccion_even: padre.direccion_even || '',
+          fecha_hora_ini_even: toDatetimeLocal(padre.fecha_hora_ini_even),
+          fecha_hora_fin_even: toDatetimeLocal(padre.fecha_hora_fin_even),
+          capacidad_even: padre.capacidad_even ?? 0,
+          descripcion_even: padre.descripcion_even || '',
+          precio_entrada_even: padre.precio_entrada_even ?? 0,
+          cant_entradas_evento: padre.cant_entradas_evento ?? 0,
+          fk_tipo_even: padre.fk_tipo_even ?? 0,
+          fk_luga: padre.fk_luga ?? 0
+        }));
+      }
+    }
+    if (!isRecursive) {
+      setFormData(prev => ({
+        ...prev,
+        fk_even: undefined,
+        direccion_even: '',
+        fecha_hora_ini_even: '',
+        fecha_hora_fin_even: '',
+        capacidad_even: 0,
+        descripcion_even: '',
+        precio_entrada_even: 0,
+        cant_entradas_evento: 0,
+        fk_tipo_even: 0,
+        fk_luga: 0
+      }));
+    }
+  // eslint-disable-next-line
+  }, [isRecursive, formData.fk_even]);
 
   const loadData = async () => {
     try {
@@ -261,19 +306,19 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
               </FormControl>
             )}
             <TextField fullWidth required label="Nombre del Evento" name="nombre_even" value={formData.nombre_even} onChange={handleInputChange} />
-            <TextField fullWidth required label="Dirección" name="direccion_even" value={formData.direccion_even} onChange={handleInputChange} />
+            <TextField fullWidth required label="Dirección" name="direccion_even" value={formData.direccion_even} onChange={handleInputChange} disabled={isRecursive} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField fullWidth required label="Fecha y Hora de Inicio" name="fecha_hora_ini_even" type="datetime-local" value={formData.fecha_hora_ini_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-              <TextField fullWidth required label="Fecha y Hora de Fin" name="fecha_hora_fin_even" type="datetime-local" value={formData.fecha_hora_fin_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth required label="Fecha y Hora de Inicio" name="fecha_hora_ini_even" type="datetime-local" value={formData.fecha_hora_ini_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} disabled={isRecursive} />
+              <TextField fullWidth required label="Fecha y Hora de Fin" name="fecha_hora_fin_even" type="datetime-local" value={formData.fecha_hora_fin_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} disabled={isRecursive} />
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField fullWidth required label="Capacidad" name="capacidad_even" type="number" value={formData.capacidad_even} onChange={handleInputChange} inputProps={{ min: 1 }} />
-              <TextField fullWidth required label="Cantidad de Entradas" name="cant_entradas_evento" type="number" value={formData.cant_entradas_evento} onChange={handleInputChange} inputProps={{ min: 1 }} />
-              <TextField fullWidth label="Precio de Entrada (USD)" name="precio_entrada_even" type="number" value={formData.precio_entrada_even} onChange={handleInputChange} inputProps={{ min: 0, step: 0.01 }} />
+              <TextField fullWidth required label="Capacidad" name="capacidad_even" type="number" value={formData.capacidad_even} onChange={handleInputChange} inputProps={{ min: 1 }} disabled={isRecursive} />
+              <TextField fullWidth required label="Cantidad de Entradas" name="cant_entradas_evento" type="number" value={formData.cant_entradas_evento} onChange={handleInputChange} inputProps={{ min: 1 }} disabled={isRecursive} />
+              <TextField fullWidth label="Precio de Entrada (USD)" name="precio_entrada_even" type="number" value={formData.precio_entrada_even} onChange={handleInputChange} inputProps={{ min: 0, step: 0.01 }} disabled={isRecursive} />
             </Stack>
-            <TextField fullWidth required label="Descripción" name="descripcion_even" value={formData.descripcion_even} onChange={handleInputChange} multiline rows={3} />
+            <TextField fullWidth required label="Descripción" name="descripcion_even" value={formData.descripcion_even} onChange={handleInputChange} multiline rows={3} disabled={isRecursive} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl fullWidth required>
+              <FormControl fullWidth required disabled={isRecursive}>
                 <InputLabel>Tipo de Evento</InputLabel>
                 <Select name="fk_tipo_even" value={String(formData.fk_tipo_even || '')} onChange={handleSelectChange} label="Tipo de Evento">
                   <MenuItem value="">Seleccione un tipo</MenuItem>
@@ -282,7 +327,7 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
                   ))}
                 </Select>
               </FormControl>
-              <FormControl fullWidth required>
+              <FormControl fullWidth required disabled={isRecursive}>
                 <InputLabel>Lugar (Parroquia)</InputLabel>
                 <Select name="fk_luga" value={String(formData.fk_luga || '')} onChange={handleSelectChange} label="Lugar (Parroquia)">
                   <MenuItem value="">Seleccione un lugar</MenuItem>
