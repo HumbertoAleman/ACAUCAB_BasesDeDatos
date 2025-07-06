@@ -3,6 +3,12 @@ import { getClientesDetallados, getEmpleados, getMiembros, createRegistroEvento 
 import type { Evento, RegistroEvento } from '../../interfaces/eventos';
 import type { ClienteDetallado } from '../../interfaces/ventas';
 import type { Miembro } from '../../interfaces/miembros';
+import {
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Select, MenuItem, FormControl, InputLabel,
+  Button, Box, Typography, Grid, IconButton, CircularProgress, Radio, RadioGroup, FormControlLabel
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface CompraEntradasProps {
   isOpen: boolean;
@@ -157,184 +163,98 @@ const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento
   if (!isOpen || !evento) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">
-            Comprar Entradas - {evento.nombre_even}
-          </h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Información del evento */}
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <h3 className="font-semibold text-lg mb-2">Información del Evento</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium">Fecha:</span> {new Date(evento.fecha_hora_ini_even).toLocaleDateString()}
-            </div>
-            <div>
-              <span className="font-medium">Hora:</span> {new Date(evento.fecha_hora_ini_even).toLocaleTimeString()}
-            </div>
-            <div>
-              <span className="font-medium">Dirección:</span> {evento.direccion_even}
-            </div>
-            <div>
-              <span className="font-medium">Precio:</span> ${evento.precio_entrada_even || 'Gratis'}
-            </div>
-            <div>
-              <span className="font-medium">Entradas disponibles:</span> {evento.cant_entradas_evento}
-            </div>
-            <div>
-              <span className="font-medium">Capacidad:</span> {evento.capacidad_even}
-            </div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Tipo de participante */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Participante *
-            </label>
-            <div className="flex space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="tipoParticipante"
-                  value="cliente"
-                  checked={tipoParticipante === 'cliente'}
-                  onChange={() => handleTipoParticipanteChange('cliente')}
-                  className="mr-2"
-                />
-                Cliente
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="tipoParticipante"
-                  value="empleado"
-                  checked={tipoParticipante === 'empleado'}
-                  onChange={() => handleTipoParticipanteChange('empleado')}
-                  className="mr-2"
-                />
-                Empleado/Juez
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="tipoParticipante"
-                  value="miembro"
-                  checked={tipoParticipante === 'miembro'}
-                  onChange={() => handleTipoParticipanteChange('miembro')}
-                  className="mr-2"
-                />
-                Miembro
-              </label>
-            </div>
-          </div>
-
-          {/* Selector de participante */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Seleccionar {tipoParticipante === 'cliente' ? 'Cliente' : tipoParticipante === 'empleado' ? 'Empleado/Juez' : 'Miembro'} *
-            </label>
-            <select
+    <Dialog open={isOpen} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h5">Comprar Entradas - {evento.nombre_even}</Typography>
+        <IconButton onClick={handleClose}><CloseIcon /></IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" gutterBottom>Información del Evento</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6}><Typography variant="body2"><b>Fecha:</b> {new Date(evento.fecha_hora_ini_even).toLocaleDateString()}</Typography></Grid>
+            <Grid item xs={6}><Typography variant="body2"><b>Hora:</b> {new Date(evento.fecha_hora_ini_even).toLocaleTimeString()}</Typography></Grid>
+            <Grid item xs={12}><Typography variant="body2"><b>Dirección:</b> {evento.direccion_even}</Typography></Grid>
+            <Grid item xs={6}><Typography variant="body2"><b>Precio:</b> ${evento.precio_entrada_even || 'Gratis'}</Typography></Grid>
+            <Grid item xs={6}><Typography variant="body2"><b>Entradas disponibles:</b> {evento.cant_entradas_evento}</Typography></Grid>
+          </Grid>
+        </Box>
+        <Box component="form" onSubmit={handleSubmit}>
+          <FormControl component="fieldset" sx={{ mb: 2 }}>
+            <Typography variant="subtitle2">Tipo de Participante *</Typography>
+            <RadioGroup row value={tipoParticipante} onChange={e => handleTipoParticipanteChange(e.target.value as any)}>
+              <FormControlLabel value="cliente" control={<Radio />} label="Cliente" />
+              <FormControlLabel value="empleado" control={<Radio />} label="Empleado/Juez" />
+              <FormControlLabel value="miembro" control={<Radio />} label="Miembro" />
+            </RadioGroup>
+          </FormControl>
+          <FormControl fullWidth required sx={{ mb: 2 }}>
+            <InputLabel>{`Seleccionar ${tipoParticipante === 'cliente' ? 'Cliente' : tipoParticipante === 'empleado' ? 'Empleado/Juez' : 'Miembro'}`}</InputLabel>
+            <Select
               name={tipoParticipante === 'cliente' ? 'fk_clie' : tipoParticipante === 'empleado' ? 'fk_juez' : 'fk_miem'}
               value={tipoParticipante === 'cliente' ? formData.fk_clie || '' : tipoParticipante === 'empleado' ? formData.fk_juez || '' : formData.fk_miem || ''}
               onChange={handleInputChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
+              label={`Seleccionar ${tipoParticipante === 'cliente' ? 'Cliente' : tipoParticipante === 'empleado' ? 'Empleado/Juez' : 'Miembro'}`}
             >
-              <option value="">Seleccione un {tipoParticipante}</option>
+              <MenuItem value="">Seleccione un {tipoParticipante}</MenuItem>
               {tipoParticipante === 'cliente' && clientes.map(cliente => (
-                <option key={cliente.rif_clie} value={cliente.rif_clie}>
+                <MenuItem key={cliente.rif_clie} value={cliente.rif_clie}>
                   {cliente.tipo_clie === 'Natural' 
                     ? `${cliente.primer_nom_natu || ''} ${cliente.primer_ape_natu || ''}`.trim()
                     : cliente.razon_social_juri || ''
                   } - {cliente.rif_clie}
-                </option>
+                </MenuItem>
               ))}
               {tipoParticipante === 'empleado' && empleados.map(empleado => (
-                <option key={empleado.cod_empl} value={empleado.cod_empl}>
+                <MenuItem key={empleado.cod_empl} value={empleado.cod_empl}>
                   {empleado.primer_nom_empl} {empleado.primer_ape_empl} - CI: {empleado.ci_empl}
-                </option>
+                </MenuItem>
               ))}
               {tipoParticipante === 'miembro' && miembros.map(miembro => (
-                <option key={miembro.rif_miem} value={miembro.rif_miem}>
+                <MenuItem key={miembro.rif_miem} value={miembro.rif_miem}>
                   {miembro.razon_social_miem} - {miembro.rif_miem}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-          </div>
-
-          {/* Cantidad de entradas */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Cantidad de Entradas *
-            </label>
-            <input
-              type="number"
-              name="cantidad_entradas"
-              value={formData.cantidad_entradas}
-              onChange={handleInputChange}
-              min="1"
-              max={evento.cant_entradas_evento}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Máximo {evento.cant_entradas_evento} entradas disponibles
-            </p>
-          </div>
-
-          {/* Resumen del costo */}
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            required
+            label="Cantidad de Entradas"
+            name="cantidad_entradas"
+            type="number"
+            value={formData.cantidad_entradas}
+            onChange={handleInputChange}
+            inputProps={{ min: 1, max: evento.cant_entradas_evento }}
+            sx={{ mb: 2 }}
+          />
           {evento.precio_entrada_even && evento.precio_entrada_even > 0 && (
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">Resumen del Costo</h4>
-              <div className="flex justify-between text-sm">
+            <Box sx={{ background: '#e3f2fd', p: 2, borderRadius: 2, mb: 2 }}>
+              <Typography variant="subtitle2">Resumen del Costo</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Precio por entrada:</span>
                 <span>${evento.precio_entrada_even}</span>
-              </div>
-              <div className="flex justify-between text-sm">
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Cantidad:</span>
                 <span>{formData.cantidad_entradas}</span>
-              </div>
-              <div className="flex justify-between font-semibold text-blue-800 border-t pt-2 mt-2">
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, mt: 1 }}>
                 <span>Total:</span>
                 <span>${(evento.precio_entrada_even * formData.cantidad_entradas).toFixed(2)}</span>
-              </div>
-              <p className="text-xs text-blue-600 mt-2">
-                * Los pagos se manejan por separado en el módulo de ventas
-              </p>
-            </div>
+              </Box>
+              <Typography variant="caption" color="primary" sx={{ mt: 1 }}>* Los pagos se manejan por separado en el módulo de ventas</Typography>
+            </Box>
           )}
-
-          {/* Botones */}
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Registrando...' : 'Registrar Entrada'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="secondary">Cancelar</Button>
+        <Button type="submit" variant="contained" onClick={handleSubmit} disabled={loading}>
+          {loading ? <CircularProgress size={24} /> : 'Registrar Entrada'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { getTiposEvento, getLugares, getEventos, createEvento, createEventoRecursivo, getJueces, createRegistroEvento } from '../../services/api';
+import { getTiposEvento, getLugares, getEventos, createEvento, createEventoRecursivo, getJueces, createRegistroEvento, createJuez } from '../../services/api';
 import type { Evento, TipoEvento, Juez } from '../../interfaces/eventos';
 import type { Lugar } from '../../interfaces/common';
+import {
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Select, MenuItem, FormControl, InputLabel,
+  Button, Box, Typography, Stack, IconButton, Checkbox, CircularProgress, FormControlLabel
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import type { SelectChangeEvent } from '@mui/material/Select';
 
 interface RegistroEventoProps {
   isOpen: boolean;
@@ -52,6 +59,15 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
   const [selectedJueces, setSelectedJueces] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRecursive, setIsRecursive] = useState(false);
+  const [openJuezModal, setOpenJuezModal] = useState(false);
+  const [nuevoJuez, setNuevoJuez] = useState({
+    primar_nom_juez: '',
+    segundo_nom_juez: '',
+    primar_ape_juez: '',
+    segundo_ape_juez: '',
+    ci_juez: ''
+  });
+  const [juezLoading, setJuezLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -87,11 +103,26 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (["fk_even", "fk_tipo_even", "fk_luga"].includes(name)) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? 0 : Number(value)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name.includes('precio') || name.includes('capacidad') || name.includes('cant_entradas')
+          ? Number(value)
+          : value
+      }));
+    }
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name.includes('precio') || name.includes('capacidad') || name.includes('cant_entradas') || name.includes('fk_') 
-        ? Number(value) 
-        : value
+      [name]: value === '' ? 0 : Number(value)
     }));
   };
 
@@ -103,6 +134,33 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
         return [...prev, juezId];
       }
     });
+  };
+
+  const handleNuevoJuezChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNuevoJuez(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCrearJuez = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setJuezLoading(true);
+    const juezData = {
+      primar_nom_juez: nuevoJuez.primar_nom_juez,
+      segundo_nom_juez: nuevoJuez.segundo_nom_juez || null,
+      primar_ape_juez: nuevoJuez.primar_ape_juez,
+      segundo_ape_juez: nuevoJuez.segundo_ape_juez || null,
+      ci_juez: Number(nuevoJuez.ci_juez)
+    };
+    const res = await createJuez(juezData);
+    setJuezLoading(false);
+    if (res && res[0]) {
+      await loadData();
+      setSelectedJueces(prev => [...prev, res[0].cod_juez]);
+      setOpenJuezModal(false);
+      setNuevoJuez({ primar_nom_juez: '', segundo_nom_juez: '', primar_ape_juez: '', segundo_ape_juez: '', ci_juez: '' });
+    } else {
+      alert('Error al crear juez');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,273 +237,108 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {isRecursive ? 'Registrar Evento Recursivo' : 'Registrar Nuevo Evento'}
-          </h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
-          >
-            ×
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Tipo de evento recursivo */}
-          <div className="flex items-center space-x-2 mb-4">
-            <input
-              type="checkbox"
-              id="isRecursive"
-              checked={isRecursive}
-              onChange={(e) => setIsRecursive(e.target.checked)}
-              className="rounded"
+    <Dialog open={isOpen} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h6" component="span">{isRecursive ? 'Registrar Evento Recursivo' : 'Registrar Nuevo Evento'}</Typography>
+        <IconButton onClick={handleClose}><CloseIcon /></IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+          <Stack spacing={2}>
+            <FormControlLabel
+              control={<Checkbox checked={isRecursive} onChange={e => setIsRecursive(e.target.checked)} />}
+              label="Evento recursivo (basado en otro evento)"
             />
-            <label htmlFor="isRecursive" className="text-sm font-medium text-gray-700">
-              Evento recursivo (basado en otro evento)
-            </label>
-          </div>
-
-          {/* Evento padre para recursividad */}
-          {isRecursive && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Evento Padre *
-              </label>
-              <select
-                name="fk_even"
-                value={formData.fk_even || ''}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Seleccione un evento</option>
-                {eventos.map(evento => (
-                  <option key={evento.cod_even} value={evento.cod_even}>
-                    {evento.nombre_even}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Nombre del evento */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre del Evento *
-            </label>
-            <input
-              type="text"
-              name="nombre_even"
-              value={formData.nombre_even}
-              onChange={handleInputChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          {/* Fechas y horas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fecha y Hora de Inicio *
-              </label>
-              <input
-                type="datetime-local"
-                name="fecha_hora_ini_even"
-                value={formData.fecha_hora_ini_even}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fecha y Hora de Fin *
-              </label>
-              <input
-                type="datetime-local"
-                name="fecha_hora_fin_even"
-                value={formData.fecha_hora_fin_even}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Dirección */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Dirección *
-            </label>
-            <textarea
-              name="direccion_even"
-              value={formData.direccion_even}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          {/* Capacidad y entradas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Capacidad *
-              </label>
-              <input
-                type="number"
-                name="capacidad_even"
-                value={formData.capacidad_even}
-                onChange={handleInputChange}
-                min="1"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cantidad de Entradas *
-              </label>
-              <input
-                type="number"
-                name="cant_entradas_evento"
-                value={formData.cant_entradas_evento}
-                onChange={handleInputChange}
-                min="1"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Precio de entrada */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Precio de Entrada (USD)
-            </label>
-            <input
-              type="number"
-              name="precio_entrada_even"
-              value={formData.precio_entrada_even}
-              onChange={handleInputChange}
-              min="0"
-              step="0.01"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          {/* Descripción */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descripción *
-            </label>
-            <textarea
-              name="descripcion_even"
-              value={formData.descripcion_even}
-              onChange={handleInputChange}
-              rows={4}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          {/* Tipo de evento y lugar */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo de Evento *
-              </label>
-              <select
-                name="fk_tipo_even"
-                value={formData.fk_tipo_even || ''}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Seleccione un tipo</option>
-                {tiposEvento.map(tipo => (
-                  <option key={tipo.cod_tipo_even} value={tipo.cod_tipo_even}>
-                    {tipo.nombre_tipo_even}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Lugar (Parroquia) *
-              </label>
-              <select
-                name="fk_luga"
-                value={formData.fk_luga || ''}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Seleccione un lugar</option>
-                {lugares.map(lugar => (
-                  <option key={lugar.cod_luga} value={lugar.cod_luga}>
-                    {lugar.nombre_luga}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Selección de Jueces */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Jueces del Evento (Opcional)
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
-              {jueces.map(juez => (
-                <div key={juez.cod_juez} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id={`juez-${juez.cod_juez}`}
-                    checked={selectedJueces.includes(juez.cod_juez)}
-                    onChange={() => handleJuezSelection(juez.cod_juez)}
-                    className="rounded"
-                  />
-                  <label htmlFor={`juez-${juez.cod_juez}`} className="text-sm text-gray-700 cursor-pointer">
-                    {juez.primar_nom_juez} {juez.segundo_nom_juez || ''} {juez.primar_ape_juez} {juez.segundo_ape_juez || ''}
-                    <br />
-                    <span className="text-xs text-gray-500">CI: {juez.ci_juez}</span>
-                  </label>
-                </div>
-              ))}
-            </div>
-            {selectedJueces.length > 0 && (
-              <p className="text-sm text-gray-600 mt-2">
-                Jueces seleccionados: {selectedJueces.length}
-              </p>
+            {isRecursive && (
+              <FormControl fullWidth required>
+                <InputLabel>Evento Padre</InputLabel>
+                <Select name="fk_even" value={String(formData.fk_even || '')} onChange={handleSelectChange} label="Evento Padre">
+                  <MenuItem value="">Seleccione un evento</MenuItem>
+                  {eventos.map(evento => (
+                    <MenuItem key={evento.cod_even} value={String(evento.cod_even)}>{evento.nombre_even}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             )}
-          </div>
-
-          {/* Botones */}
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Registrando...' : 'Registrar Evento'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            <TextField fullWidth required label="Nombre del Evento" name="nombre_even" value={formData.nombre_even} onChange={handleInputChange} />
+            <TextField fullWidth required label="Dirección" name="direccion_even" value={formData.direccion_even} onChange={handleInputChange} />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField fullWidth required label="Fecha y Hora de Inicio" name="fecha_hora_ini_even" type="datetime-local" value={formData.fecha_hora_ini_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth required label="Fecha y Hora de Fin" name="fecha_hora_fin_even" type="datetime-local" value={formData.fecha_hora_fin_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+            </Stack>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField fullWidth required label="Capacidad" name="capacidad_even" type="number" value={formData.capacidad_even} onChange={handleInputChange} inputProps={{ min: 1 }} />
+              <TextField fullWidth required label="Cantidad de Entradas" name="cant_entradas_evento" type="number" value={formData.cant_entradas_evento} onChange={handleInputChange} inputProps={{ min: 1 }} />
+              <TextField fullWidth label="Precio de Entrada (USD)" name="precio_entrada_even" type="number" value={formData.precio_entrada_even} onChange={handleInputChange} inputProps={{ min: 0, step: 0.01 }} />
+            </Stack>
+            <TextField fullWidth required label="Descripción" name="descripcion_even" value={formData.descripcion_even} onChange={handleInputChange} multiline rows={3} />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <FormControl fullWidth required>
+                <InputLabel>Tipo de Evento</InputLabel>
+                <Select name="fk_tipo_even" value={String(formData.fk_tipo_even || '')} onChange={handleSelectChange} label="Tipo de Evento">
+                  <MenuItem value="">Seleccione un tipo</MenuItem>
+                  {tiposEvento.map(tipo => (
+                    <MenuItem key={tipo.cod_tipo_even} value={String(tipo.cod_tipo_even)}>{tipo.nombre_tipo_even}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth required>
+                <InputLabel>Lugar (Parroquia)</InputLabel>
+                <Select name="fk_luga" value={String(formData.fk_luga || '')} onChange={handleSelectChange} label="Lugar (Parroquia)">
+                  <MenuItem value="">Seleccione un lugar</MenuItem>
+                  {lugares.map(lugar => (
+                    <MenuItem key={lugar.cod_luga} value={String(lugar.cod_luga)}>{lugar.nombre_luga}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
+            {/* Selección de jueces */}
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>Jueces del Evento (Opcional)</Typography>
+                <Button variant="outlined" size="small" onClick={() => setOpenJuezModal(true)}>Agregar Juez</Button>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {jueces.map(juez => (
+                  <FormControlLabel
+                    key={juez.cod_juez}
+                    control={<Checkbox checked={selectedJueces.includes(juez.cod_juez)} onChange={() => handleJuezSelection(juez.cod_juez)} />}
+                    label={`${juez.primar_nom_juez} ${juez.primar_ape_juez} (CI: ${juez.ci_juez})`}
+                  />
+                ))}
+              </Box>
+            </Box>
+          </Stack>
+        </Box>
+        {/* Submodal para crear juez */}
+        <Dialog open={openJuezModal} onClose={() => setOpenJuezModal(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Registrar Juez</DialogTitle>
+          <DialogContent dividers>
+            <Box component="form" onSubmit={handleCrearJuez} sx={{ mt: 1 }}>
+              <Stack spacing={2}>
+                <TextField fullWidth required label="Primer Nombre" name="primar_nom_juez" value={nuevoJuez.primar_nom_juez} onChange={handleNuevoJuezChange} />
+                <TextField fullWidth label="Segundo Nombre" name="segundo_nom_juez" value={nuevoJuez.segundo_nom_juez} onChange={handleNuevoJuezChange} />
+                <TextField fullWidth required label="Primer Apellido" name="primar_ape_juez" value={nuevoJuez.primar_ape_juez} onChange={handleNuevoJuezChange} />
+                <TextField fullWidth label="Segundo Apellido" name="segundo_ape_juez" value={nuevoJuez.segundo_ape_juez} onChange={handleNuevoJuezChange} />
+                <TextField fullWidth required label="Cédula" name="ci_juez" value={nuevoJuez.ci_juez} onChange={handleNuevoJuezChange} type="number" inputProps={{ min: 1 }} />
+              </Stack>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenJuezModal(false)} color="secondary">Cancelar</Button>
+            <Button type="submit" variant="contained" onClick={handleCrearJuez} disabled={juezLoading}>
+              {juezLoading ? <CircularProgress size={24} /> : 'Registrar Juez'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="secondary">Cancelar</Button>
+        <Button type="submit" variant="contained" onClick={handleSubmit} disabled={loading}>
+          {loading ? <CircularProgress size={24} /> : 'Registrar Evento'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

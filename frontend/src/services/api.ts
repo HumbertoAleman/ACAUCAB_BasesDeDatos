@@ -661,7 +661,7 @@ export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
  */
 export const getCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}`);
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`);
     if (response.status === 204) return null; // No hay carrito
     if (!response.ok) throw new Error('Error al obtener el carrito');
     try {
@@ -680,7 +680,7 @@ export const getCarrito = async (clienteID: string): Promise<any> => {
  */
 export const createCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}`, {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
       method: 'POST',
     });
     if (!response.ok) throw new Error('Error al crear el carrito');
@@ -700,7 +700,7 @@ export const createCarrito = async (clienteID: string): Promise<any> => {
  */
 export const deleteCarrito = async (clienteID: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}`, {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
       method: 'DELETE',
     });
     return response.ok;
@@ -715,7 +715,7 @@ export const deleteCarrito = async (clienteID: string): Promise<boolean> => {
  */
 export const addItemsToCarrito = async (clienteID: string, items: any[]): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}/items`, {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(items),
@@ -737,7 +737,7 @@ export const addItemsToCarrito = async (clienteID: string, items: any[]): Promis
  */
 export const removeItemsFromCarrito = async (clienteID: string, items: any[]): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}/items`, {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(items),
@@ -759,7 +759,7 @@ export const removeItemsFromCarrito = async (clienteID: string, items: any[]): P
  */
 export const payForCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}/pay`);
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`);
     if (response.status === 204) return null;
     if (!response.ok) throw new Error('Error al pagar el carrito');
     try {
@@ -778,7 +778,7 @@ export const payForCarrito = async (clienteID: string): Promise<any> => {
  */
 export const registerPayment = async (clienteID: string, paymentData: any): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/carrito/${clienteID}/pay`, {
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentData),
@@ -931,6 +931,27 @@ export const createRegistroEvento = async (registroData: any): Promise<any> => {
     return await response.json();
   } catch (error) {
     console.error('Error creating registro evento:', error);
+    return null;
+  }
+};
+
+export const createJuez = async (juezData: {
+  primar_nom_juez: string;
+  segundo_nom_juez?: string | null;
+  primar_ape_juez: string;
+  segundo_ape_juez?: string | null;
+  ci_juez: number;
+}): Promise<any> => {
+  try {
+    const response = await fetch(`${API_URL}/quick/Juez`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ info: juezData }),
+    });
+    if (!response.ok) throw new Error('Error al crear juez');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating juez:', error);
     return null;
   }
 }; 

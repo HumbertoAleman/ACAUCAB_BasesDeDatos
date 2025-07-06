@@ -98,11 +98,18 @@ export const getAccessibleRoutes = (): RouteConfig[] => {
   return ROUTES
 }
 
-export const getFirstAccessibleRoute = (): string => {
-  const accessibleRoutes = ROUTES
-  return accessibleRoutes.length > 0 ? accessibleRoutes[0].path : "/dashboard"
+export const getFirstAccessibleRoute = (hasPermission: (perm: string) => boolean): string => {
+  for (const route of ROUTES) {
+    if (!route.permission || hasPermission(route.permission)) {
+      return route.path;
+    }
+  }
+  return "/dashboard";
 }
 
-export const checkRouteAccess = (): boolean => {
-  return true
+export const checkRouteAccess = (path: string, hasPermission: (perm: string) => boolean): boolean => {
+  const route = ROUTES.find(r => r.path === path);
+  if (!route) return false;
+  if (!route.permission) return true;
+  return hasPermission(route.permission);
 } 

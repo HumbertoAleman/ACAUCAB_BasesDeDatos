@@ -4,6 +4,25 @@ import CompraEntradas from './CompraEntradas';
 import { getEventos, getTiposEvento, getLugares } from '../../services/api';
 import type { Evento, TipoEvento } from '../../interfaces/eventos';
 import type { Lugar } from '../../interfaces/common';
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  CircularProgress,
+  Stack,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 
 const GestionEventos: React.FC = () => {
   const [eventos, setEventos] = useState<Evento[]>([]);
@@ -15,6 +34,7 @@ const GestionEventos: React.FC = () => {
   const [eventoSeleccionado, setEventoSeleccionado] = useState<Evento | null>(null);
   const [filtroTipo, setFiltroTipo] = useState<number>(0);
   const [filtroLugar, setFiltroLugar] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -23,20 +43,18 @@ const GestionEventos: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      
-      // Cargar eventos
+      setError(null);
       const eventos = await getEventos();
-      setEventos(eventos);
-
-      // Cargar tipos de evento
       const tipos = await getTiposEvento();
-      setTiposEvento(tipos);
-
-      // Cargar lugares
       const lugares = await getLugares();
+      setEventos(eventos);
+      setTiposEvento(tipos);
       setLugares(lugares);
-    } catch (error) {
-      console.error('Error cargando datos:', error);
+    } catch (err) {
+      setError('Error de conexión o al obtener datos de la API. Intenta de nuevo más tarde.');
+      setEventos([]);
+      setTiposEvento([]);
+      setLugares([]);
     } finally {
       setLoading(false);
     }
@@ -47,7 +65,6 @@ const GestionEventos: React.FC = () => {
   };
 
   const handleCompraSuccess = () => {
-    // Recargar eventos para actualizar entradas disponibles
     loadData();
   };
 
@@ -74,204 +91,134 @@ const GestionEventos: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-xl">Cargando eventos...</div>
-      </div>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+        <CircularProgress size={60} color="primary" />
+        <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
+          Cargando eventos...
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+        <Typography variant="h5" color="error" gutterBottom>
+          {error}
+        </Typography>
+        <Button variant="contained" onClick={loadData} sx={{ mt: 2 }}>
+          Reintentar
+        </Button>
+      </Box>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Gestión de Eventos</h1>
-        <button
-          onClick={() => setShowRegistroModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" gutterBottom>Gestión de Eventos</Typography>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowRegistroModal(true)}>
           Registrar Nuevo Evento
-        </button>
-      </div>
+        </Button>
+      </Box>
 
-      {/* Filtros */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tipo de Evento
-            </label>
-            <select
-              value={filtroTipo}
-              onChange={(e) => setFiltroTipo(Number(e.target.value))}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value={0}>Todos los tipos</option>
-              {tiposEvento.map(tipo => (
-                <option key={tipo.cod_tipo_even} value={tipo.cod_tipo_even}>
-                  {tipo.nombre_tipo_even}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Lugar
-            </label>
-            <select
-              value={filtroLugar}
-              onChange={(e) => setFiltroLugar(Number(e.target.value))}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value={0}>Todos los lugares</option>
-              {lugares.map(lugar => (
-                <option key={lugar.cod_luga} value={lugar.cod_luga}>
-                  {lugar.nombre_luga}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() => {
-                setFiltroTipo(0);
-                setFiltroLugar(0);
-              }}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Limpiar Filtros
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Lista de eventos */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Eventos ({eventosFiltrados.length})
-          </h2>
-        </div>
-        
-        {eventosFiltrados.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            No se encontraron eventos con los filtros aplicados
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Evento
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tipo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha y Hora
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lugar
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Precio
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Entradas
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {eventosFiltrados.map(evento => (
-                  <tr key={evento.cod_even} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {evento.nombre_even}
-                        </div>
-                        <div className="text-sm text-gray-500 max-w-xs truncate">
-                          {evento.descripcion_even}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getTipoEventoNombre(evento.fk_tipo_even)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div>
-                        <div>{new Date(evento.fecha_hora_ini_even).toLocaleDateString()}</div>
-                        <div className="text-gray-500">
-                          {new Date(evento.fecha_hora_ini_even).toLocaleTimeString()}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getLugarNombre(evento.fk_luga)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {evento.precio_entrada_even ? `$${evento.precio_entrada_even}` : 'Gratis'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex items-center">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          evento.cant_entradas_evento > 0 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {evento.cant_entradas_evento} disponibles
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => openCompraModal(evento)}
-                          disabled={evento.cant_entradas_evento <= 0}
-                          className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                        >
-                          Comprar Entrada
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEventoSeleccionado(evento);
-                            setShowRegistroModal(true);
-                          }}
-                          className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs"
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>Filtros</Typography>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
+          <Box flex={1}>
+            <FormControl fullWidth>
+              <InputLabel>Tipo de Evento</InputLabel>
+              <Select
+                value={filtroTipo}
+                label="Tipo de Evento"
+                onChange={(e) => setFiltroTipo(Number(e.target.value))}
+              >
+                <MenuItem value={0}>Todos los tipos</MenuItem>
+                {tiposEvento.map(tipo => (
+                  <MenuItem key={tipo.cod_tipo_even} value={tipo.cod_tipo_even}>
+                    {tipo.nombre_tipo_even}
+                  </MenuItem>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </Select>
+            </FormControl>
+          </Box>
+          <Box flex={1}>
+            <FormControl fullWidth>
+              <InputLabel>Lugar</InputLabel>
+              <Select
+                value={filtroLugar}
+                label="Lugar"
+                onChange={(e) => setFiltroLugar(Number(e.target.value))}
+              >
+                <MenuItem value={0}>Todos los lugares</MenuItem>
+                {lugares.map(lugar => (
+                  <MenuItem key={lugar.cod_luga} value={lugar.cod_luga}>
+                    {lugar.nombre_luga}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box flexShrink={0} minWidth={{ xs: '100%', md: 140 }}>
+            <Button fullWidth variant="outlined" color="secondary" onClick={() => { setFiltroTipo(0); setFiltroLugar(0); }}>
+              Limpiar Filtros
+            </Button>
+          </Box>
+        </Stack>
+      </Paper>
+
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="h6" gutterBottom>Eventos ({eventosFiltrados.length})</Typography>
+        {eventosFiltrados.length === 0 ? (
+          <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
+            No se encontraron eventos con los filtros aplicados
+          </Box>
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Evento</TableCell>
+                <TableCell>Tipo</TableCell>
+                <TableCell>Fecha y Hora</TableCell>
+                <TableCell>Lugar</TableCell>
+                <TableCell>Precio</TableCell>
+                <TableCell>Entradas</TableCell>
+                <TableCell>Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {eventosFiltrados.map(evento => (
+                <TableRow key={evento.cod_even} hover>
+                  <TableCell>
+                    <Typography fontWeight={600}>{evento.nombre_even}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {evento.descripcion_even}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{getTipoEventoNombre(evento.fk_tipo_even)}</TableCell>
+                  <TableCell>{new Date(evento.fecha_hora_ini_even).toLocaleString()}</TableCell>
+                  <TableCell>{getLugarNombre(evento.fk_luga)}</TableCell>
+                  <TableCell>{evento.precio_entrada_even != null ? `$${evento.precio_entrada_even}` : 'Gratis'}</TableCell>
+                  <TableCell>{evento.cant_entradas_evento}</TableCell>
+                  <TableCell>
+                    <Button size="small" variant="outlined" onClick={() => openCompraModal(evento)}>
+                      Comprar
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </div>
-
-      {/* Modales */}
-      <RegistroEvento
-        isOpen={showRegistroModal}
-        onClose={() => {
-          setShowRegistroModal(false);
-          setEventoSeleccionado(null);
-        }}
-        onSuccess={handleRegistroSuccess}
-      />
-
-      <CompraEntradas
-        isOpen={showCompraModal}
-        onClose={() => {
-          setShowCompraModal(false);
-          setEventoSeleccionado(null);
-        }}
-        evento={eventoSeleccionado}
-      />
-    </div>
+      </Paper>
+      {showRegistroModal && (
+        <RegistroEvento
+          isOpen={showRegistroModal}
+          onClose={() => setShowRegistroModal(false)}
+          onSuccess={handleRegistroSuccess}
+        />
+      )}
+    </Box>
   );
 };
 

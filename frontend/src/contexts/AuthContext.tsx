@@ -59,14 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth()
   }, [])
 
-  const hasPermission = (permission: string): boolean => {
-    // La única comprobación de permisos que queda es para el rol de administrador.
-    // El resto de la lógica de privilegios ha sido eliminada.
-    if (permission === 'admin_only') {
-      return user?.rol === 'Administrador'
-    }
-    // Para todo lo demás, se concede el acceso.
-    return true
+  const hasPermission = (_permission: string): boolean => {
+    return !!user;
   };
 
   const login = async (credentials: LoginCredentials) => {
