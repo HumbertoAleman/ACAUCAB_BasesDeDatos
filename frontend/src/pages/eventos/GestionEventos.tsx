@@ -35,6 +35,8 @@ const GestionEventos: React.FC = () => {
   const [filtroTipo, setFiltroTipo] = useState<number>(0);
   const [filtroLugar, setFiltroLugar] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const eventosPorPagina = 15;
 
   useEffect(() => {
     loadData();
@@ -88,6 +90,13 @@ const GestionEventos: React.FC = () => {
     if (filtroLugar && evento.fk_luga !== filtroLugar) return false;
     return true;
   });
+
+  const totalPaginas = Math.ceil(eventosFiltrados.length / eventosPorPagina);
+  const eventosPagina = eventosFiltrados.slice((paginaActual - 1) * eventosPorPagina, paginaActual * eventosPorPagina);
+
+  useEffect(() => {
+    setPaginaActual(1); // Reiniciar a la primera página al cambiar filtros o eventos
+  }, [filtroTipo, filtroLugar, eventos.length]);
 
   if (loading) {
     return (
@@ -187,7 +196,7 @@ const GestionEventos: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {eventosFiltrados.map(evento => (
+              {eventosPagina.map(evento => (
                 <TableRow key={evento.cod_even} hover>
                   <TableCell>
                     <Typography fontWeight={600}>{evento.nombre_even}</Typography>
@@ -209,6 +218,29 @@ const GestionEventos: React.FC = () => {
               ))}
             </TableBody>
           </Table>
+        )}
+        {totalPaginas > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+              disabled={paginaActual === 1}
+              sx={{ mr: 1 }}
+            >
+              Anterior
+            </Button>
+            <Typography variant="body2" sx={{ mx: 2 }}>
+              Página {paginaActual} de {totalPaginas}
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+              disabled={paginaActual === totalPaginas}
+              sx={{ ml: 1 }}
+            >
+              Siguiente
+            </Button>
+          </Box>
         )}
       </Paper>
       {showRegistroModal && (
