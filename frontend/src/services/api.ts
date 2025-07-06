@@ -802,7 +802,7 @@ export const registerPayment = async (clienteID: string, paymentData: any): Prom
  */
 export const getTiposEvento = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/quick/Tipo_Evento`);
+    const response = await fetch(`${API_URL}/quick/Tipo_Evento`);
     if (!response.ok) throw new Error('Error al obtener tipos de evento');
     return await response.json();
   } catch (error) {
@@ -830,7 +830,7 @@ export const getLugares = async (): Promise<any[]> => {
  */
 export const getEventos = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/quick/Evento`);
+    const response = await fetch(`${API_URL}/quick/Evento`);
     if (!response.ok) throw new Error('Error al obtener eventos');
     return await response.json();
   } catch (error) {
@@ -880,7 +880,7 @@ export const createEventoRecursivo = async (eventoId: number, eventoData: any): 
  */
 export const getJueces = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/quick/Juez`);
+    const response = await fetch(`${API_URL}/quick/Juez`);
     if (!response.ok) throw new Error('Error al obtener jueces');
     return await response.json();
   } catch (error) {
