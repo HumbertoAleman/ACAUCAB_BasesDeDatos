@@ -25,7 +25,7 @@ class AuthService {
 			POST: async (req: any) => {
 				const body = await req.json() as { username: string, password: string };
 				const authorization: Array<any> = await sql`
-					SELECT U.cod_usua, U.username_usua, R.nombre_rol
+					SELECT U.cod_usua, U.username_usua, R.nombre_rol, U.fk_clie, U.fk_empl, U.fk_miem
 					FROM USUARIO AS U
 					JOIN ROL AS R ON R.cod_rol = U.fk_rol
 					WHERE username_usua = ${body.username} AND contra_usua = ${body.password}`
@@ -39,7 +39,10 @@ class AuthService {
 							"token": token,
 							"user": {
 								"username": user.username_usua,
-								"rol": user.nombre_rol
+								"rol": user.nombre_rol,
+								"fk_clie": user.fk_clie,
+								"fk_empl": user.fk_empl,
+								"fk_miem": user.fk_miem
 							}
 						}
 						, CORS_HEADERS)

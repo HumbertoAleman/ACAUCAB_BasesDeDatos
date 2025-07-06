@@ -64,11 +64,15 @@ class CarritoService {
 			return new Response("", { ...CORS_HEADERS, status: 204 }); // If no carrito found, return No Content
 
 		const detalles = await sql`
-			SELECT *
-			FROM Detalle_Venta
-			WHERE fk_vent = ${carrito.cod_vent}`;
+			SELECT d.*, CAST(d.precio_unitario_vent AS FLOAT) AS precio_unitario, 
+			       d.cant_deta_vent AS cantidad, c.nombre_cerv, p.nombre_pres, l.nombre_luga_tien
+			FROM Detalle_Venta d
+			LEFT JOIN Cerveza c ON d.fk_inve_tien_1 = c.cod_cerv
+			LEFT JOIN Presentacion p ON d.fk_inve_tien_2 = p.cod_pres
+			LEFT JOIN Lugar_Tienda l ON d.fk_inve_tien_4 = l.cod_luga_tien
+			WHERE d.fk_vent = ${carrito.cod_vent}`;
 
-		return Response.json({ ...carrito, items: detalles });
+		return Response.json({ ...carrito, items: detalles }, CORS_HEADERS);
 	}
 
 	@sqlProtection

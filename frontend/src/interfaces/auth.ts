@@ -57,6 +57,9 @@ export interface PrivRol {
 export interface UsuarioFront {
   username: string;
   rol: string;
+  fk_clie?: string | null;
+  fk_empl?: number | null;
+  fk_miem?: string | null;
 }
 
 export interface RolFront {

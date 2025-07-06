@@ -32,6 +32,9 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
   const metodosPagoDisponibles: MetodoPagoCompleto[] = [ { cod_meto_pago: 2, tipo: "Tarjeta", credito: true } ];
   const { user } = useAuth();
 
+  // Verifica si el usuario es cliente
+  const esCliente = !!user?.fk_clie;
+
   useEffect(() => {
     const cargarProductos = async () => {
       try {
@@ -95,21 +98,56 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
   }, [itemsVenta, tasaActual]);
 
   useEffect(() => {
-    // Cargar carrito guardado si existe
+    // Solo reconstruir el carrito si la lista de productos ya está cargada
+    if (!esCliente || !productos || productos.length === 0) return;
     const cargarCarritoGuardado = async () => {
-      if (!user?.username) return;
-      const carrito = await getCarrito(user.username);
+      const carrito = await getCarrito(user.fk_clie!);
       if (carrito && carrito.items && Array.isArray(carrito.items) && carrito.items.length > 0) {
-        setItemsVenta(carrito.items.map((item: any) => ({
-          producto: item.producto,
-          cantidad: item.cantidad,
-          precio_unitario: item.precio_unitario,
-          subtotal: item.subtotal
-        })));
+        setItemsVenta(carrito.items.map((item: any, idx: number) => {
+          // Usa SIEMPRE los IDs del backend si existen
+          let fk_cerv_pres_1 = item.cerveza ?? item.fk_inve_tien_1;
+          let fk_cerv_pres_2 = item.presentacion ?? item.fk_inve_tien_2;
+          let fk_luga_tien = item.lugar_tien ?? item.fk_inve_tien_4 ?? 1;
+
+          let producto = {
+            fk_cerv_pres_1,
+            fk_cerv_pres_2,
+            fk_luga_tien,
+            nombre_cerv: item.nombre_cerv || 'Producto no disponible',
+            nombre_pres: item.nombre_pres || '',
+            _key: `fallback-${idx}`
+          };
+
+          // Si falta algún ID, intenta buscarlo por nombre en la lista de productos
+          if (!fk_cerv_pres_1 || !fk_cerv_pres_2) {
+            const prod = productos.find(p =>
+              p.nombre_cerv === item.nombre_cerv &&
+              p.nombre_pres === item.nombre_pres
+            );
+            if (prod) {
+              producto.fk_cerv_pres_1 = prod.fk_cerv_pres_1;
+              producto.fk_cerv_pres_2 = prod.fk_cerv_pres_2;
+              producto.fk_luga_tien = prod.fk_luga_tien ?? 1;
+              producto._key = prod._key;
+            }
+          }
+
+          const precio_unitario = typeof item.precio_unitario === 'number' && !isNaN(item.precio_unitario)
+            ? item.precio_unitario
+            : 0;
+          const cantidad = typeof item.cantidad === 'number' && !isNaN(item.cantidad) ? item.cantidad : 1;
+          return {
+            producto,
+            cantidad,
+            precio_unitario,
+            subtotal: precio_unitario * cantidad
+          };
+        }));
       }
     };
     cargarCarritoGuardado();
-  }, [user?.username]);
+  // eslint-disable-next-line
+  }, [user?.fk_clie, productos]);
 
   const agregarProducto = (producto: any) => {
     const itemExistente = itemsVenta.find((item) => (item.producto as any)._key === (producto as any)._key);
@@ -187,11 +225,12 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
     setProcesandoVenta(true);
     try {
       const apiItems = itemsVenta.map((item) => ({
-        fk_cerv_pres_1: (item.producto as any).fk_cerv_pres_1,
-        fk_cerv_pres_2: (item.producto as any).fk_cerv_pres_2,
-        fk_tien: 1,
-        fk_luga_tien: 1,
+        cerveza: item.producto.fk_cerv_pres_1,
+        presentacion: item.producto.fk_cerv_pres_2,
+        lugar_tien: item.producto.fk_luga_tien ?? 1,
+        precio_unitario: item.precio_unitario,
         cantidad: item.cantidad,
+        tienda: 1
       }));
       const apiPagos = pagos.map((pago) => {
         const pagoData: any = {
@@ -252,6 +291,10 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
   );
   const totalCarrito = itemsVenta.reduce((total, item) => total + (typeof item.subtotal === 'number' ? item.subtotal : Number(item.subtotal) || 0), 0);
   const guardarComoPresupuesto = async () => {
+    if (!esCliente) {
+      alert('Solo los usuarios cliente pueden usar el carrito online.');
+      return;
+    }
     if (!resumenVenta || !tasaActual) {
       alert('No hay productos en el carrito.');
       return;
@@ -259,10 +302,12 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
     setProcesandoVenta(true);
     try {
       const apiItems = itemsVenta.map((item) => ({
-        producto: item.producto,
-        cantidad: item.cantidad,
+        cerveza: item.producto.fk_cerv_pres_1,
+        presentacion: item.producto.fk_cerv_pres_2,
+        lugar_tien: item.producto.fk_luga_tien ?? 1,
         precio_unitario: item.precio_unitario,
-        subtotal: item.subtotal
+        cantidad: item.cantidad,
+        tienda: 1
       }));
       const carritoData = {
         usuario: user?.username,
@@ -272,18 +317,13 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
       };
       let resultado;
       // Verificar si ya existe un carrito para el usuario
-      const carritoExistente = user?.username ? await getCarrito(user.username) : null;
-      if (!user?.username) {
-        alert('No hay usuario autenticado.');
-        setProcesandoVenta(false);
-        return;
-      }
+      const carritoExistente = await getCarrito(user.fk_clie!);
       if (!carritoExistente || carritoExistente.error) {
         // Si no existe, crear el carrito
-        resultado = await createCarrito(user.username, carritoData);
+        resultado = await createCarrito(user.fk_clie!);
       } else {
         // Si existe, actualizar los items
-        resultado = await addItemsToCarrito(user.username, apiItems);
+        resultado = await addItemsToCarrito(user.fk_clie!, apiItems);
       }
       if (resultado && !resultado.error) {
         alert('Carrito guardado exitosamente.');
@@ -399,7 +439,7 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}><Typography>Fecha de compra:</Typography><Typography variant="body2">{resumenVenta.fecha_venta ? new Date(resumenVenta.fecha_venta).toLocaleDateString() : 'N/A'}</Typography></Box>
               </Box>
               <Button fullWidth variant="contained" size="large" startIcon={<Payment />} onClick={iniciarPago} sx={{ backgroundColor: "#2E7D32", "&:hover": { backgroundColor: "#1B5E20" } }}>Pagar con Tarjeta</Button>
-              <Button fullWidth variant="outlined" size="large" sx={{ mt: 1 }} onClick={guardarComoPresupuesto} disabled={procesandoVenta}>Guardar y Salir</Button></>)}
+              <Button fullWidth variant="outlined" size="large" sx={{ mt: 1 }} onClick={guardarComoPresupuesto} disabled={!esCliente || procesandoVenta}>Guardar y Salir</Button></>)}
             {itemsVenta.length > 0 && (<Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Total:</Typography><Typography variant="h6" color="primary">${typeof totalCarrito === 'number' ? totalCarrito.toFixed(2) : totalCarrito}</Typography></Box>)}
           </Paper>
         </Grid>

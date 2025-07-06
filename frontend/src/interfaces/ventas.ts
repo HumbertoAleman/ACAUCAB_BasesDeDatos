@@ -293,6 +293,7 @@ export interface ProductoInventario {
   
   // Estado calculado
   estado: "Disponible" | "Bajo Stock" | "Agotado";
+  _key?: string; // Clave única para el frontend (opcional)
 }
 
 /**

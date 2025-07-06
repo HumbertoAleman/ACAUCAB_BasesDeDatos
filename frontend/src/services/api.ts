@@ -664,8 +664,11 @@ export const getCarrito = async (clienteID: string): Promise<any> => {
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`);
     if (response.status === 204) return null; // No hay carrito
     if (!response.ok) throw new Error('Error al obtener el carrito');
+    // Manejar respuesta vacía o no JSON
+    const text = await response.text();
+    if (!text) return null;
     try {
-      return await response.json();
+      return JSON.parse(text);
     } catch {
       return null;
     }
