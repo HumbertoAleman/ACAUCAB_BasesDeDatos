@@ -117,6 +117,10 @@ class CarritoService {
 					cant_deta_vent = ${item.cantidad},
 					fk_inve_tien_4 = ${item.lugar_tien}`
 		}
+
+		// Actualizar los totales de la venta después de modificar los items
+		await this.updateVentaTotals(carrito.cod_vent)
+
 		return await this.getCarritoAndItems(clienteID)
 	}
 
@@ -137,18 +141,43 @@ class CarritoService {
 				AND fk_inve_tien_4 = ${item.lugar_tien}`)
 		await Promise.all(deletions)
 
+		// Actualizar los totales de la venta después de eliminar items
+		await this.updateVentaTotals(carrito.cod_vent)
+
 		return await this.getCarritoAndItems(clienteID);
 	}
 
 	@sqlProtection
 	@LogFunctionExecution
+	async updateVentaTotals(ventaID: number) {
+		// Calcular base imponible (suma de todos los subtotales)
+		const baseImponible = await sql`
+			SELECT COALESCE(SUM(cant_deta_vent * precio_unitario_vent), 0) as base_imponible
+			FROM Detalle_Venta 
+			WHERE fk_vent = ${ventaID}
+		`
+		
+		const baseImponibleValue = baseImponible[0]?.base_imponible || 0
+		const ivaValue = baseImponibleValue * 0.16 // 16% IVA
+		const totalValue = baseImponibleValue + ivaValue
+
+		// Actualizar la venta con los nuevos totales
+		await sql`
+			UPDATE Venta 
+			SET 
+				base_imponible_vent = ${baseImponibleValue},
+				iva_vent = ${ivaValue},
+				total_vent = ${totalValue}
+			WHERE cod_vent = ${ventaID}
+		`
+	}
+
+	@sqlProtection
+	@LogFunctionExecution
 	async payForCarrito(clienteID: string) {
-		const carrito = await this.getCarritoObjectFromCliente(clienteID);
-		if (carrito === undefined)
-			return new Response('', { ...CORS_HEADERS, status: 204 })
-		const res = await sql`INSERT INTO ESTA_VENT (fk_vent, fk_esta, fecha_ini)
-			VALUES (${carrito.cod_vent}, 5, CURRENT_DATE) RETURNING *`;
-		return Response.json(res, { ...CORS_HEADERS, status: 200 })
+		// Este método ya no se usa en el nuevo flujo
+		// Se mantiene por compatibilidad pero retorna error
+		return new Response('Este método está deprecado. Use /api/venta para procesar la venta.', { ...CORS_HEADERS, status: 400 })
 	}
 
 	@sqlProtection

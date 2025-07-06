@@ -469,8 +469,6 @@ export const procesarVenta = async (venta: VentaCompleta): Promise<{ success: bo
     // Lógica para enviar la venta al backend
     // Aquí es donde realizarías la petición POST al endpoint /venta
     // Ejemplo usando fetch:
-    console.log("Enviando venta al backend:", venta);
-
 
     const response = await fetch(`${API_BASE_URL}/venta`, {
       method: 'POST',
