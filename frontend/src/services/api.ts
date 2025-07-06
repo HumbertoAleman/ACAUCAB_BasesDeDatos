@@ -830,7 +830,7 @@ export const getLugares = async (): Promise<any[]> => {
  */
 export const getEventos = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/evento`);
+    const response = await fetch(`${API_BASE_URL}/quick/Evento`);
     if (!response.ok) throw new Error('Error al obtener eventos');
     return await response.json();
   } catch (error) {
