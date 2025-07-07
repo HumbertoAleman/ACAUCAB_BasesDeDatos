@@ -59,6 +59,81 @@ CREATE OR REPLACE VIEW proporcion_tarjetas_view AS
         AND mp.cod_meto_pago = t.fk_meto_pago
     GROUP BY t.credito;
 
+CREATE OR REPLACE VIEW ventas_totales_view AS
+    SELECT fecha_vent "Fecha de Venta", CAST(Venta.online AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM (total_vent) "Total de Ventas"
+    FROM Venta
+    GROUP BY Venta.online, fecha_vent
+    ORDER BY fecha_vent;
+
+CREATE OR REPLACE VIEW obtener_ventas_view AS
+    SELECT fecha_vent "Fecha de Venta", SUM (total_vent) "Total de Ventas"
+    FROM Venta
+    GROUP BY fecha_vent
+    ORDER BY fecha_vent;
+
+-- Procedimientos
+
+CREATE OR REPLACE FUNCTION periodo_ventas_totales (year int, month int, trimonth int, modalidad text)
+RETURNS TABLE ("Tipo" int, "Cantidad Ventas" bigint, "Total Ventas" numeric)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF modalidad = 'mensual' THEN
+        RETURN QUERY
+        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
+        FROM ventas_totales_view
+        WHERE EXTRACT(MONTH FROM "Fecha de Venta") = month
+            AND EXTRACT(YEAR FROM "Fecha de Venta") = year
+        GROUP BY  "Tipo de Tienda";
+
+    ELSIF modalidad = 'trimestral' THEN
+        RETURN QUERY
+        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
+        FROM ventas_totales_view
+        WHERE EXTRACT(QUARTER FROM "Fecha de Venta") = trimonth
+            AND EXTRACT(YEAR FROM "Fecha de Venta") = year
+        GROUP BY  "Tipo de Tienda";
+
+    ELSIF modalidad = 'anual' THEN
+        RETURN QUERY
+        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
+        FROM ventas_totales_view
+        WHERE EXTRACT(YEAR FROM "Fecha de Venta") = year
+        GROUP BY  "Tipo de Tienda";
+
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION crecimiento_ventas (ini varchar(10), fin varchar(10), modalidad text)
+RETURNS TABLE ("Rango de Fechas" text, "Diferencia" numeric, "Conclusión" text)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF modalidad = 'semanal' THEN
+        RETURN QUERY
+        SELECT (CAST(DATE_TRUNC('week', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('week', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
+        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('week', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('week', CAST(ini AS date))) AS ov1, 
+            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('week', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('week', CAST(fin AS date))) AS ov2;
+    ELSIF modalidad = 'mensual' THEN
+        RETURN QUERY
+        SELECT (CAST(DATE_TRUNC('month', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('month', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
+        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('month', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('month', CAST(ini AS date))) AS ov1, 
+            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('month', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('month', CAST(fin AS date))) AS ov2;
+    ELSIF modalidad = 'trimestral' THEN
+        RETURN QUERY
+        SELECT (CAST(DATE_TRUNC('quarter', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('quarter', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
+        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('quarter', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('quarter', CAST(ini AS date))) AS ov1, 
+            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('quarter', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('quarter', CAST(fin AS date))) AS ov2;
+    ELSIF modalidad = 'anual' THEN
+        RETURN QUERY
+        SELECT (CAST(DATE_TRUNC('year', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('year', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
+        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('year', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('year', CAST(ini AS date))) AS ov1, 
+            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('year', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('year', CAST(fin AS date))) AS ov2;
+    END IF;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION periodo_tipo_cliente (year integer, modalidad text)
 RETURNS TABLE ("Tipo" varchar(40), "Periodo" integer, "Cantidad" bigint, "Año" integer)
 LANGUAGE plpgsql
@@ -201,3 +276,73 @@ BEGIN
     END IF;
 END;
 $$;
+
+-- =============================
+-- INDICADORES Y REPORTES FALTANTES
+-- =============================
+
+-- 1. Ticket Promedio (VMP)
+CREATE OR REPLACE VIEW ticket_promedio_view AS
+SELECT fecha_vent "Fecha de Venta", 
+       COALESCE(SUM(total_vent) / NULLIF(COUNT(*),0),0) AS "Ticket Promedio"
+FROM Venta
+GROUP BY fecha_vent;
+
+-- 2. Volumen de Unidades Vendidas
+CREATE OR REPLACE VIEW volumen_unidades_vendidas_view AS
+SELECT v.fecha_vent "Fecha de Venta", SUM(dv.cant_deta_vent) AS "Total Unidades Vendidas"
+FROM Detalle_Venta dv
+JOIN Venta v ON dv.fk_vent = v.cod_vent
+GROUP BY v.fecha_vent;
+
+-- 3. Clientes Nuevos vs. Recurrentes
+CREATE OR REPLACE VIEW clientes_nuevos_recurrentes_view AS
+SELECT c.rif_clie, 
+       MIN(v.fecha_vent) AS "Primera Compra", 
+       COUNT(v.cod_vent) AS "Total Compras",
+       CASE WHEN COUNT(v.cod_vent) = 1 THEN 'Nuevo' ELSE 'Recurrente' END AS "Tipo Cliente"
+FROM Cliente c
+JOIN Venta v ON c.rif_clie = v.fk_clie
+GROUP BY c.rif_clie;
+
+-- 4. Tasa de Retención de Clientes
+CREATE OR REPLACE VIEW tasa_retencion_clientes_view AS
+SELECT 
+  COUNT(DISTINCT CASE WHEN sub."Total Compras" > 1 THEN sub.rif_clie END) * 100.0 / NULLIF(COUNT(DISTINCT sub.rif_clie),0) AS "Tasa Retencion (%)"
+FROM (
+  SELECT c.rif_clie, COUNT(v.cod_vent) AS "Total Compras"
+  FROM Cliente c
+  JOIN Venta v ON c.rif_clie = v.fk_clie
+  GROUP BY c.rif_clie
+) sub;
+
+-- 5. Rotación de Inventario (simple)
+CREATE OR REPLACE VIEW rotacion_inventario_view AS
+SELECT 
+  SUM(dv.cant_deta_vent) / NULLIF(AVG(it.cant_pres),0) AS "Rotacion Inventario"
+FROM Detalle_Venta dv
+JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2;
+
+-- 6. Tasa de Ruptura de Stock
+CREATE OR REPLACE VIEW tasa_ruptura_stock_view AS
+SELECT COUNT(*) AS "Rupturas de Stock"
+FROM Inventario_Tienda
+WHERE cant_pres = 0;
+
+-- -- 7. Ventas por Empleado FALTA MODIFICAR A NIVEL DE DDL PARA AGREGAR EL NUMERO DE EMPLEADO
+-- CREATE OR REPLACE VIEW ventas_por_empleado_view AS
+-- SELECT v.fk_empl AS "Empleado", COUNT(*) AS "Ventas Realizadas", SUM(v.total_vent) AS "Total Ventas"
+-- FROM Venta v
+-- GROUP BY v.fk_empl;
+
+-- 8. Productos con Mejor Rendimiento
+CREATE OR REPLACE VIEW productos_mejor_rendimiento_view AS
+SELECT dv.fk_inve_tien_1 AS "Producto 1", dv.fk_inve_tien_2 AS "Producto 2", SUM(dv.cant_deta_vent) AS "Total Vendido"
+FROM Detalle_Venta dv
+GROUP BY dv.fk_inve_tien_1, dv.fk_inve_tien_2
+ORDER BY "Total Vendido" DESC
+LIMIT 10;
+
+-- 9. Reporte de Inventario Actual
+CREATE OR REPLACE VIEW inventario_actual_view AS
+SELECT * FROM Inventario_Tienda;

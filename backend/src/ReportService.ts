@@ -366,7 +366,7 @@ class ReportService {
 					y -= 20;
 
 					for (const row of data) {
-						let booleanValue = row["Es de Crédito"] == 1 ? "Sí" : "No";
+						let booleanValue = row["Es de Crédito"] == 1 ? "Sí" : "No"; // Permite saber si es crédito o no
 						page.drawText(booleanValue, { x: 50, y, size: 10, font });
 						page.drawText(String(row["count"]), { x: 250, y, size: 10, font });
 						y -= 15;
