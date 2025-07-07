@@ -802,14 +802,7 @@ export const registerPayment = async (clienteID: string, paymentData: any): Prom
  * Obtiene todos los tipos de evento
  */
 export const getTiposEvento = async (): Promise<any[]> => {
-  try {
-    const response = await fetch(`${API_URL}/quick/Tipo_Evento`);
-    if (!response.ok) throw new Error('Error al obtener tipos de evento');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching tipos de evento:', error);
-    return [];
-  }
+  return apiRequest<any[]>('/tipo_evento');
 };
 
 /**
@@ -918,24 +911,6 @@ export const getMiembros = async (): Promise<any[]> => {
   }
 };
 
-/**
- * Crea un registro de evento (compra de entrada)
- */
-export const createRegistroEvento = async (registroData: any): Promise<any> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/quick/Registro_Evento`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ info: registroData }),
-    });
-    if (!response.ok) throw new Error('Error al registrar entrada');
-    return await response.json();
-  } catch (error) {
-    console.error('Error creating registro evento:', error);
-    return null;
-  }
-};
-
 export const createJuez = async (juezData: {
   primar_nom_juez: string;
   segundo_nom_juez?: string | null;
@@ -955,4 +930,34 @@ export const createJuez = async (juezData: {
     console.error('Error creating juez:', error);
     return null;
   }
+};
+
+export const createTipoEvento = async (tipoEventoData: { nombre_tipo_even: string; fk_tipo_even?: number | null }): Promise<any> => {
+  return apiRequest<any>('/tipo_evento', {
+    method: 'POST',
+    body: JSON.stringify(tipoEventoData),
+  });
+};
+
+export const updateTipoEvento = async (cod_tipo_even: number, tipoEventoData: { fk_tipo_even?: number | null }) => {
+  return apiRequest<any>(`/tipo_evento/${cod_tipo_even}`, {
+    method: 'PUT',
+    body: JSON.stringify(tipoEventoData),
+  });
+};
+
+// Obtener jueces de un evento
+export const getJuecesEvento = async (eventoId: number): Promise<any[]> => {
+  const response = await fetch(`${API_BASE_URL}/evento/${eventoId}/jueces`);
+  if (!response.ok) return [];
+  return await response.json();
+};
+
+export const addJuecesEvento = async (eventoId: number, jueces: number[], fecha_hora_regi_even: string): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}/evento/${eventoId}/jueces`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jueces, fecha_hora_regi_even })
+  });
+  return await response.json();
 }; 

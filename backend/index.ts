@@ -18,6 +18,7 @@ import CompraService from "./src/CompraService";
 import BancoService from "./src/BancoService";
 import CarritoService from "./src/CarritoService";
 import EventoService from "./src/EventoService";
+import TipoEventoService from "./src/TipoEventoService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -100,6 +101,7 @@ Bun.serve({
 		...BancoService.routes,
 		...CarritoService.routes,
 		...EventoService.routes,
+		...TipoEventoService.routes,
 
 		"/api/carrito/:clienteID": {
 			OPTIONS: () => new Response("OK", CORS_HEADERS),

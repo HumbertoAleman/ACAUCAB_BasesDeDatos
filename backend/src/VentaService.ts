@@ -69,8 +69,53 @@ class VentaService {
 
 	@sqlProtection
 	@LogFunctionExecution
-	async registerVenta(venta: APIVenta) {
-		if (venta.online) {
+	async registerVenta(venta: APIVenta & { fk_even?: number }) {
+		if (venta.fk_even) {
+			// Venta de entradas para evento
+			try {
+				const ventaRes = (await sql`
+					INSERT INTO Venta (fecha_vent, iva_vent, base_imponible_vent, total_vent, online, fk_clie, fk_even)
+					VALUES (${venta.fecha_vent}, ${venta.iva_vent}, ${venta.base_imponible_vent}, ${venta.iva_vent + venta.base_imponible_vent}, true, ${venta.fk_clie}, ${venta.fk_even})
+					RETURNING *
+				`)[0];
+				const cod_vent = ventaRes.cod_vent;
+				// Insertar detalle de venta: solo un item, cantidad de entradas
+				for (const item of venta.items) {
+					await sql`
+						INSERT INTO Detalle_Venta (cant_deta_vent, precio_unitario_vent, fk_vent, fk_inve_even_3)
+						VALUES (${item.cantidad}, ${item.precio_unitario}, ${cod_vent}, ${venta.fk_even})
+					`;
+				}
+				// Descontar entradas del evento
+				await sql`
+					UPDATE Evento SET cant_entradas_evento = cant_entradas_evento - ${venta.items[0].cantidad}
+					WHERE cod_even = ${venta.fk_even}
+				`;
+				// Insertar pago
+				const tasa = (await TasaService.getTasaDiaActualObject())[0];
+				const metodos_de_pago: number[] = [];
+				for (const pago of venta.pagos) {
+					const metodoPagoId = await this.getOrInsertMetodoPago(pago);
+					metodos_de_pago.push(Number(metodoPagoId));
+				}
+				for (let i = 0; i < venta.pagos.length; i++) {
+					const pago = venta.pagos[i];
+					const monto = Math.round(pago.monto * 100) / 100;
+					await sql`
+						INSERT INTO Pago (fk_vent, fk_meto_pago, monto_pago, fecha_pago, fk_tasa)
+						VALUES (${cod_vent}, ${metodos_de_pago[i]}, ${monto}, ${venta.fecha_vent}, ${tasa.cod_tasa})
+					`;
+				}
+				await sql`
+					INSERT INTO ESTA_VENT (fk_vent, fk_esta, fecha_ini)
+					VALUES (${cod_vent}, 5, ${venta.fecha_vent})
+				`;
+				return { success: true, cod_vent };
+			} catch (e) {
+				const msg = "No se pudo completar la compra de entradas";
+				return { success: false, message: msg };
+			}
+		} else if (venta.online) {
 			// --- FLUJO ONLINE: Actualizar carrito existente ---
 			const carritoActivo = await this.getCarritoActivo(venta.fk_clie)
 			if (!carritoActivo) {

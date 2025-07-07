@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getTiposEvento, getLugares, getEventos, createEvento, createEventoRecursivo, getJueces, createRegistroEvento, createJuez } from '../../services/api';
+import { getTiposEvento, getLugares, createEvento, getJueces, createJuez, createTipoEvento, updateTipoEvento, addJuecesEvento } from '../../services/api';
 import type { Evento, TipoEvento, Juez } from '../../interfaces/eventos';
 import type { Lugar } from '../../interfaces/common';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Select, MenuItem, FormControl, InputLabel,
-  Button, Box, Typography, Stack, IconButton, Checkbox, CircularProgress, FormControlLabel
+  Button, Box, Typography, Stack, IconButton, Checkbox, CircularProgress, FormControlLabel, List, ListItem, ListItemText, ListSubheader
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import type { SelectChangeEvent } from '@mui/material/Select';
@@ -27,7 +27,6 @@ interface FormData {
   cant_entradas_evento: number;
   fk_tipo_even: number;
   fk_luga: number;
-  fk_even?: number; // Para eventos recursivos
 }
 
 interface RegistroEventoData {
@@ -45,6 +44,34 @@ function toDatetimeLocal(dateString: string) {
   const offset = date.getTimezoneOffset();
   const localDate = new Date(date.getTime() - offset * 60 * 1000);
   return localDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+}
+
+// Componente para mostrar la jerarquía de tipos de evento
+const TipoEventoTree: React.FC<{ tipos: TipoEvento[], rootId?: number | null }> = ({ tipos, rootId }) => {
+  const buildTree = (parentId: number | null) => {
+    return tipos
+      .filter(tipo => (tipo.fk_tipo_even ?? null) === parentId)
+      .map(tipo => (
+        <li key={tipo.cod_tipo_even}>
+          {tipo.nombre_tipo_even}
+          <ul>{buildTree(tipo.cod_tipo_even)}</ul>
+        </li>
+      ));
+  };
+  if (rootId) {
+    const root = tipos.find(t => t.cod_tipo_even === rootId);
+    if (!root) return null;
+    return <ul><li>{root.nombre_tipo_even}<ul>{buildTree(root.cod_tipo_even)}</ul></li></ul>;
+  }
+  return null;
+};
+
+// Función para obtener todos los descendientes de un tipo de evento
+function getDescendants(tipos: TipoEvento[], parentId: number): number[] {
+  const directChildren = tipos.filter(t => t.fk_tipo_even === parentId).map(t => t.cod_tipo_even);
+  return directChildren.reduce((acc, childId) => (
+    acc.concat(childId, getDescendants(tipos, childId))
+  ), [] as number[]);
 }
 
 const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSuccess }) => {
@@ -67,7 +94,6 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
   const [jueces, setJueces] = useState<Juez[]>([]);
   const [selectedJueces, setSelectedJueces] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isRecursive, setIsRecursive] = useState(false);
   const [openJuezModal, setOpenJuezModal] = useState(false);
   const [nuevoJuez, setNuevoJuez] = useState({
     primar_nom_juez: '',
@@ -77,6 +103,14 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
     ci_juez: ''
   });
   const [juezLoading, setJuezLoading] = useState(false);
+  const [openTipoEventoModal, setOpenTipoEventoModal] = useState(false);
+  const [nuevoTipoEvento, setNuevoTipoEvento] = useState({ nombre_tipo_even: '', fk_tipo_even: null });
+  const [tipoEventoLoading, setTipoEventoLoading] = useState(false);
+  const [selectedTipoPadre, setSelectedTipoPadre] = useState<number | null>(null);
+  const [selectedHijos, setSelectedHijos] = useState<number[]>([]);
+  const [gestionandoTipos, setGestionandoTipos] = useState(false);
+  const [mostrarJerarquia, setMostrarJerarquia] = useState(false);
+  const [mostrarJueces, setMostrarJueces] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -85,40 +119,15 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
   }, [isOpen]);
 
   useEffect(() => {
-    if (isRecursive && formData.fk_even) {
-      const padre = eventos.find(e => e.cod_even === formData.fk_even);
-      if (padre) {
-        setFormData(prev => ({
-          ...prev,
-          direccion_even: padre.direccion_even || '',
-          fecha_hora_ini_even: toDatetimeLocal(padre.fecha_hora_ini_even),
-          fecha_hora_fin_even: toDatetimeLocal(padre.fecha_hora_fin_even),
-          capacidad_even: padre.capacidad_even ?? 0,
-          descripcion_even: padre.descripcion_even || '',
-          precio_entrada_even: padre.precio_entrada_even ?? 0,
-          cant_entradas_evento: padre.cant_entradas_evento ?? 0,
-          fk_tipo_even: padre.fk_tipo_even ?? 0,
-          fk_luga: padre.fk_luga ?? 0
-        }));
-      }
+    if (gestionandoTipos && selectedTipoPadre) {
+      setSelectedHijos(
+        tiposEvento.filter(tipo => tipo.fk_tipo_even === selectedTipoPadre).map(tipo => tipo.cod_tipo_even)
+      );
     }
-    if (!isRecursive) {
-      setFormData(prev => ({
-        ...prev,
-        fk_even: undefined,
-        direccion_even: '',
-        fecha_hora_ini_even: '',
-        fecha_hora_fin_even: '',
-        capacidad_even: 0,
-        descripcion_even: '',
-        precio_entrada_even: 0,
-        cant_entradas_evento: 0,
-        fk_tipo_even: 0,
-        fk_luga: 0
-      }));
+    if (!gestionandoTipos) {
+      setSelectedHijos([]);
     }
-  // eslint-disable-next-line
-  }, [isRecursive, formData.fk_even]);
+  }, [gestionandoTipos, selectedTipoPadre, tiposEvento]);
 
   const loadData = async () => {
     try {
@@ -132,10 +141,6 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
       const lugares = await getLugares();
       setLugares(lugares);
 
-      // Cargar eventos existentes para recursividad
-      const eventos = await getEventos();
-      setEventos(eventos);
-
       // Cargar jueces disponibles
       const jueces = await getJueces();
       setJueces(jueces);
@@ -148,7 +153,7 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (["fk_even", "fk_tipo_even", "fk_luga"].includes(name)) {
+    if (["fk_tipo_even", "fk_luga"].includes(name)) {
       setFormData(prev => ({
         ...prev,
         [name]: value === '' ? 0 : Number(value)
@@ -161,14 +166,6 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
           : value
       }));
     }
-  };
-
-  const handleSelectChange = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value === '' ? 0 : Number(value)
-    }));
   };
 
   const handleJuezSelection = (juezId: number) => {
@@ -208,45 +205,85 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
     }
   };
 
+  const handleNuevoTipoEventoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNuevoTipoEvento(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleNuevoTipoEventoSelectChange = (e: SelectChangeEvent<string>) => {
+    const name = e.target.name as string;
+    const value = e.target.value;
+    setNuevoTipoEvento(prev => ({ ...prev, [name]: value === '' ? null : Number(value) }));
+  };
+
+  const handleCrearTipoEvento = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTipoEventoLoading(true);
+    try {
+      const res = await createTipoEvento(nuevoTipoEvento);
+      if (res && res.data && res.data[0]) {
+        await loadData();
+        setOpenTipoEventoModal(false);
+        setNuevoTipoEvento({ nombre_tipo_even: '', fk_tipo_even: null });
+      } else {
+        alert('Error al crear tipo de evento');
+      }
+    } catch (error) {
+      alert('Error al crear tipo de evento');
+    } finally {
+      setTipoEventoLoading(false);
+    }
+  };
+
+  const handleGestionarTipos = () => setGestionandoTipos(true);
+  const handleCerrarGestion = () => {
+    setGestionandoTipos(false);
+    setSelectedTipoPadre(null);
+    setSelectedHijos([]);
+  };
+  const handleSeleccionarPadre = (e: SelectChangeEvent<string>) => {
+    setSelectedTipoPadre(e.target.value === '' ? null : Number(e.target.value));
+  };
+  const handleSeleccionarHijo = (id: number) => {
+    setSelectedHijos(prev => prev.includes(id) ? prev.filter(h => h !== id) : [...prev, id]);
+  };
+  const handleGuardarJerarquia = async () => {
+    if (!selectedTipoPadre) return;
+    // Para cada tipo de evento (excepto el padre), ver si debe asignarse o desasignarse
+    for (const tipo of tiposEvento) {
+      if (tipo.cod_tipo_even === selectedTipoPadre) continue;
+      const debeSerHijo = selectedHijos.includes(tipo.cod_tipo_even);
+      const esHijo = tipo.fk_tipo_even === selectedTipoPadre;
+      if (debeSerHijo && !esHijo) {
+        // Asignar padre
+        await updateTipoEvento(tipo.cod_tipo_even, { fk_tipo_even: selectedTipoPadre });
+      } else if (!debeSerHijo && esHijo) {
+        // Desasignar padre
+        await updateTipoEvento(tipo.cod_tipo_even, { fk_tipo_even: null });
+      }
+    }
+    await loadData();
+    handleCerrarGestion();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.nombre_even || !formData.fecha_hora_ini_even || !formData.fecha_hora_fin_even) {
       alert('Por favor complete todos los campos obligatorios');
       return;
     }
-
     if (new Date(formData.fecha_hora_ini_even) >= new Date(formData.fecha_hora_fin_even)) {
       alert('La fecha de inicio debe ser anterior a la fecha de fin');
       return;
     }
-
     try {
       setLoading(true);
-      
-      let eventoResponse;
-      if (isRecursive && formData.fk_even) {
-        eventoResponse = await createEventoRecursivo(formData.fk_even, formData);
-      } else {
-        eventoResponse = await createEvento(formData);
-      }
-
+      const eventoResponse = await createEvento(formData);
       if (eventoResponse && eventoResponse.length > 0) {
         const nuevoEvento = eventoResponse[0];
-        
-        // Registrar jueces para el evento
         if (selectedJueces.length > 0) {
-          for (const juezId of selectedJueces) {
-            const registroData: RegistroEventoData = {
-              fk_even: nuevoEvento.cod_even,
-              fk_juez: juezId,
-              fecha_hora_regi_even: formData.fecha_hora_ini_even
-            };
-            
-            await createRegistroEvento(registroData);
-          }
+          await addJuecesEvento(nuevoEvento.cod_even, selectedJueces, formData.fecha_hora_ini_even);
         }
-
         alert('Evento registrado exitosamente con los jueces seleccionados');
         onSuccess();
         handleClose();
@@ -275,87 +312,118 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
       fk_luga: 0
     });
     setSelectedJueces([]);
-    setIsRecursive(false);
     onClose();
   };
 
   if (!isOpen) return null;
 
+  // Calcular tipos de evento que son padres (tienen hijos)
+  const tiposPadre = tiposEvento.filter(padre => tiposEvento.some(hijo => hijo.fk_tipo_even === padre.cod_tipo_even)).map(t => t.cod_tipo_even);
+
+  // En el selector de tipo de evento, mostrar solo el tipo seleccionado y sus descendientes
+  const tipoEventoOptions = formData.fk_tipo_even
+    ? [
+        tiposEvento.find(t => t.cod_tipo_even === formData.fk_tipo_even),
+        ...getDescendants(tiposEvento, formData.fk_tipo_even).map(id => tiposEvento.find(t => t.cod_tipo_even === id))
+      ].filter(Boolean)
+    : tiposEvento.filter(t => !t.fk_tipo_even); // Si no hay seleccionado, mostrar raíces
+
   return (
     <Dialog open={isOpen} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h6" component="span">{isRecursive ? 'Registrar Evento Recursivo' : 'Registrar Nuevo Evento'}</Typography>
+        <Typography variant="h6" component="span">Registrar Nuevo Evento</Typography>
         <IconButton onClick={handleClose}><CloseIcon /></IconButton>
       </DialogTitle>
       <DialogContent dividers>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
           <Stack spacing={2}>
-            <FormControlLabel
-              control={<Checkbox checked={isRecursive} onChange={e => setIsRecursive(e.target.checked)} />}
-              label="Evento recursivo (basado en otro evento)"
-            />
-            {isRecursive && (
-              <FormControl fullWidth required>
-                <InputLabel>Evento Padre</InputLabel>
-                <Select name="fk_even" value={String(formData.fk_even || '')} onChange={handleSelectChange} label="Evento Padre">
-                  <MenuItem value="">Seleccione un evento</MenuItem>
-                  {eventos.map(evento => (
-                    <MenuItem key={evento.cod_even} value={String(evento.cod_even)}>{evento.nombre_even}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
             <TextField fullWidth required label="Nombre del Evento" name="nombre_even" value={formData.nombre_even} onChange={handleInputChange} />
-            <TextField fullWidth required label="Dirección" name="direccion_even" value={formData.direccion_even} onChange={handleInputChange} disabled={isRecursive} />
+            <TextField fullWidth required label="Dirección" name="direccion_even" value={formData.direccion_even} onChange={handleInputChange} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField fullWidth required label="Fecha y Hora de Inicio" name="fecha_hora_ini_even" type="datetime-local" value={formData.fecha_hora_ini_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} disabled={isRecursive} />
-              <TextField fullWidth required label="Fecha y Hora de Fin" name="fecha_hora_fin_even" type="datetime-local" value={formData.fecha_hora_fin_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} disabled={isRecursive} />
+              <TextField fullWidth required label="Fecha y Hora de Inicio" name="fecha_hora_ini_even" type="datetime-local" value={formData.fecha_hora_ini_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth required label="Fecha y Hora de Fin" name="fecha_hora_fin_even" type="datetime-local" value={formData.fecha_hora_fin_even} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField fullWidth required label="Capacidad" name="capacidad_even" type="number" value={formData.capacidad_even} onChange={handleInputChange} inputProps={{ min: 1 }} disabled={isRecursive} />
-              <TextField fullWidth required label="Cantidad de Entradas" name="cant_entradas_evento" type="number" value={formData.cant_entradas_evento} onChange={handleInputChange} inputProps={{ min: 1 }} disabled={isRecursive} />
-              <TextField fullWidth label="Precio de Entrada (USD)" name="precio_entrada_even" type="number" value={formData.precio_entrada_even} onChange={handleInputChange} inputProps={{ min: 0, step: 0.01 }} disabled={isRecursive} />
+              <TextField fullWidth required label="Capacidad" name="capacidad_even" type="number" value={formData.capacidad_even} onChange={handleInputChange} inputProps={{ min: 1 }} />
+              <TextField fullWidth required label="Cantidad de Entradas" name="cant_entradas_evento" type="number" value={formData.cant_entradas_evento} onChange={handleInputChange} inputProps={{ min: 1 }} />
+              <TextField fullWidth label="Precio de Entrada (USD)" name="precio_entrada_even" type="number" value={formData.precio_entrada_even} onChange={handleInputChange} inputProps={{ min: 0, step: 0.01 }} />
             </Stack>
-            <TextField fullWidth required label="Descripción" name="descripcion_even" value={formData.descripcion_even} onChange={handleInputChange} multiline rows={3} disabled={isRecursive} />
+            <TextField fullWidth required label="Descripción" name="descripcion_even" value={formData.descripcion_even} onChange={handleInputChange} multiline rows={3} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <FormControl fullWidth required disabled={isRecursive}>
-                <InputLabel>Tipo de Evento</InputLabel>
-                <Select name="fk_tipo_even" value={String(formData.fk_tipo_even || '')} onChange={handleSelectChange} label="Tipo de Evento">
-                  <MenuItem value="">Seleccione un tipo</MenuItem>
-                  {tiposEvento.map(tipo => (
-                    <MenuItem key={tipo.cod_tipo_even} value={String(tipo.cod_tipo_even)}>{tipo.nombre_tipo_even}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth required disabled={isRecursive}>
+              <FormControl fullWidth required sx={{ mb: 2 }}>
                 <InputLabel>Lugar (Parroquia)</InputLabel>
-                <Select name="fk_luga" value={String(formData.fk_luga || '')} onChange={handleSelectChange} label="Lugar (Parroquia)">
+                <Select name="fk_luga" value={String(formData.fk_luga || '')} onChange={handleInputChange} label="Lugar (Parroquia)">
                   <MenuItem value="">Seleccione un lugar</MenuItem>
                   {lugares.map(lugar => (
                     <MenuItem key={lugar.cod_luga} value={String(lugar.cod_luga)}>{lugar.nombre_luga}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
+              <FormControl fullWidth required sx={{ mb: 2 }}>
+                <InputLabel>Tipo de Evento</InputLabel>
+                <Select name="fk_tipo_even" value={String(formData.fk_tipo_even || '')} onChange={handleInputChange} label="Tipo de Evento">
+                  <MenuItem value="">Seleccione un tipo</MenuItem>
+                  {tipoEventoOptions.map(tipo => (
+                    <MenuItem key={tipo.cod_tipo_even} value={String(tipo.cod_tipo_even)}>{tipo.nombre_tipo_even}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Stack>
-            {/* Selección de jueces */}
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>Jueces del Evento (Opcional)</Typography>
-                <Button variant="outlined" size="small" onClick={() => setOpenJuezModal(true)}>Agregar Juez</Button>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Box sx={{ flex: 1, pr: 1 }}>
+                <Button fullWidth variant="outlined" size="small" onClick={() => setOpenTipoEventoModal(true)}>
+                  Agregar Tipo de Evento
+                </Button>
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {jueces.map(juez => (
-                  <FormControlLabel
-                    key={juez.cod_juez}
-                    control={<Checkbox checked={selectedJueces.includes(juez.cod_juez)} onChange={() => handleJuezSelection(juez.cod_juez)} />}
-                    label={`${juez.primar_nom_juez} ${juez.primar_ape_juez} (CI: ${juez.ci_juez})`}
-                  />
-                ))}
+              <Box sx={{ flex: 1, pl: 1 }}>
+                <Button fullWidth variant="outlined" size="small" onClick={handleGestionarTipos}>
+                  Gestionar Jerarquía de Tipos de Evento
+                </Button>
               </Box>
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Button fullWidth variant="text" size="small" onClick={() => setMostrarJerarquia(v => !v)}>
+                {mostrarJerarquia ? 'Ocultar Jerarquía de Tipos de Evento' : 'Mostrar Jerarquía de Tipos de Evento'}
+              </Button>
+              {mostrarJerarquia && (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="subtitle2">Jerarquía de Tipos de Evento:</Typography>
+                  {formData.fk_tipo_even ? (
+                    <TipoEventoTree tipos={tiposEvento} rootId={formData.fk_tipo_even} />
+                  ) : (
+                    <Typography variant="body2">Seleccione un tipo de evento para ver su jerarquía.</Typography>
+                  )}
+                </Box>
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1">Jueces del Evento (Opcional)</Typography>
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button variant="outlined" size="small" onClick={() => setOpenJuezModal(true)}>
+                  Agregar Juez
+                </Button>
+              </Box>
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Button fullWidth variant="text" size="small" onClick={() => setMostrarJueces(v => !v)}>
+                {mostrarJueces ? 'Ocultar Jueces' : 'Mostrar Jueces'}
+              </Button>
+              {mostrarJueces && (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                  {jueces.map(juez => (
+                    <FormControlLabel
+                      key={juez.cod_juez}
+                      control={<Checkbox checked={selectedJueces.includes(juez.cod_juez)} onChange={() => handleJuezSelection(juez.cod_juez)} />}
+                      label={`${juez.primar_nom_juez} ${juez.primar_ape_juez} (CI: ${juez.ci_juez})`}
+                    />
+                  ))}
+                </Box>
+              )}
             </Box>
           </Stack>
         </Box>
-        {/* Submodal para crear juez */}
         <Dialog open={openJuezModal} onClose={() => setOpenJuezModal(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Registrar Juez</DialogTitle>
           <DialogContent dividers>
@@ -374,6 +442,60 @@ const RegistroEvento: React.FC<RegistroEventoProps> = ({ isOpen, onClose, onSucc
             <Button type="submit" variant="contained" onClick={handleCrearJuez} disabled={juezLoading}>
               {juezLoading ? <CircularProgress size={24} /> : 'Registrar Juez'}
             </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={openTipoEventoModal} onClose={() => setOpenTipoEventoModal(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Registrar Tipo de Evento</DialogTitle>
+          <DialogContent dividers>
+            <Box component="form" onSubmit={handleCrearTipoEvento} sx={{ mt: 1 }}>
+              <Stack spacing={2}>
+                <TextField fullWidth required label="Nombre del Tipo de Evento" name="nombre_tipo_even" value={nuevoTipoEvento.nombre_tipo_even} onChange={handleNuevoTipoEventoInputChange} />
+                <FormControl fullWidth>
+                  <InputLabel>Tipo de Evento Padre (opcional)</InputLabel>
+                  <Select name="fk_tipo_even" value={nuevoTipoEvento.fk_tipo_even ? String(nuevoTipoEvento.fk_tipo_even) : ''} onChange={(e, _) => handleNuevoTipoEventoSelectChange(e as SelectChangeEvent<string>)} label="Tipo de Evento Padre (opcional)">
+                    <MenuItem value="">Ninguno</MenuItem>
+                    {tiposEvento.map(tipo => (
+                      <MenuItem key={tipo.cod_tipo_even} value={String(tipo.cod_tipo_even)}>{tipo.nombre_tipo_even}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenTipoEventoModal(false)} color="secondary">Cancelar</Button>
+            <Button type="submit" variant="contained" onClick={handleCrearTipoEvento} disabled={tipoEventoLoading}>
+              {tipoEventoLoading ? <CircularProgress size={24} /> : 'Registrar Tipo de Evento'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={gestionandoTipos} onClose={handleCerrarGestion} maxWidth="sm" fullWidth>
+          <DialogTitle>Gestionar Jerarquía de Tipos de Evento</DialogTitle>
+          <DialogContent dividers>
+            <Stack spacing={2}>
+              <FormControl fullWidth>
+                <InputLabel>Selecciona el Tipo de Evento Padre</InputLabel>
+                <Select value={selectedTipoPadre ? String(selectedTipoPadre) : ''} onChange={handleSeleccionarPadre} label="Selecciona el Tipo de Evento Padre">
+                  <MenuItem value="">Ninguno</MenuItem>
+                  {tiposEvento.map(tipo => (
+                    <MenuItem key={tipo.cod_tipo_even} value={String(tipo.cod_tipo_even)}>{tipo.nombre_tipo_even}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Typography variant="subtitle1">Selecciona los Tipos de Evento Hijos</Typography>
+              <List>
+                {tiposEvento.filter(tipo => tipo.cod_tipo_even !== selectedTipoPadre && !tiposPadre.includes(tipo.cod_tipo_even)).map(tipo => (
+                  <ListItem key={tipo.cod_tipo_even} onClick={() => handleSeleccionarHijo(tipo.cod_tipo_even)} selected={selectedHijos.includes(tipo.cod_tipo_even)}>
+                    <Checkbox checked={selectedHijos.includes(tipo.cod_tipo_even)} />
+                    <ListItemText primary={tipo.nombre_tipo_even} />
+                  </ListItem>
+                ))}
+              </List>
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCerrarGestion} color="secondary">Cancelar</Button>
+            <Button onClick={handleGuardarJerarquia} variant="contained" disabled={!selectedTipoPadre}>Guardar Cambios</Button>
           </DialogActions>
         </Dialog>
       </DialogContent>

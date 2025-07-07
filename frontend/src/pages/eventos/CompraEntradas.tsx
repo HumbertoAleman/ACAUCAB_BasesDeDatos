@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { getClientesDetallados, getEmpleados, getMiembros, createRegistroEvento } from '../../services/api';
+import { getTasaActual, procesarVenta } from '../../services/api';
 import type { Evento, RegistroEvento } from '../../interfaces/eventos';
-import type { ClienteDetallado } from '../../interfaces/ventas';
-import type { Miembro } from '../../interfaces/miembros';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Select, MenuItem, FormControl, InputLabel,
-  Button, Box, Typography, Grid, IconButton, CircularProgress, Radio, RadioGroup, FormControlLabel
+  Button, Box, Typography, Grid, IconButton, CircularProgress, Radio, RadioGroup, FormControlLabel, Checkbox, Divider, Stack, Alert
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface CompraEntradasProps {
   isOpen: boolean;
@@ -25,233 +24,192 @@ interface FormData {
 }
 
 const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento }) => {
-  const [formData, setFormData] = useState<FormData>({
-    fk_even: 0,
-    fk_juez: null,
-    fk_clie: null,
-    fk_miem: null,
-    cantidad_entradas: 1
-  });
-
-  const [clientes, setClientes] = useState<ClienteDetallado[]>([]);
-  const [empleados, setEmpleados] = useState<any[]>([]);
-  const [miembros, setMiembros] = useState<Miembro[]>([]);
+  const { user } = useAuth();
+  const [cantidad, setCantidad] = useState(1);
+  const [tasa, setTasa] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [tipoParticipante, setTipoParticipante] = useState<'cliente' | 'empleado' | 'miembro'>('cliente');
+  const [camposTarjeta, setCamposTarjeta] = useState({ numero_tarj: '', fecha_venci_tarj: '', cvv_tarj: '', nombre_titu_tarj: '', credito: false });
+  const [resumen, setResumen] = useState<any>(null);
+  const [procesando, setProcesando] = useState(false);
+  const [mensajeExito, setMensajeExito] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && evento) {
-      setFormData(prev => ({ ...prev, fk_even: evento.cod_even }));
-      loadData();
+      setCantidad(1);
+      setCamposTarjeta({ numero_tarj: '', fecha_venci_tarj: '', cvv_tarj: '', nombre_titu_tarj: '', credito: false });
+      setResumen(null);
+      setProcesando(false);
+      getTasaActual().then(t => setTasa(Array.isArray(t) ? t[0] : t));
     }
   }, [isOpen, evento]);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      
-      // Cargar clientes
-      const clientes = await getClientesDetallados();
-      setClientes(clientes);
-
-      // Cargar empleados
-      const empleados = await getEmpleados();
-      setEmpleados(empleados);
-
-      // Cargar miembros
-      const miembros = await getMiembros();
-      setMiembros(miembros);
-    } catch (error) {
-      console.error('Error cargando datos:', error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (evento && tasa) {
+      const subtotal = (evento.precio_entrada_even || 0) * cantidad;
+      const iva = subtotal * 0.16;
+      const total = subtotal + iva;
+      const totalBs = total * tasa.tasa_dolar_bcv;
+      setResumen({ subtotal, iva, total, totalBs, tasa: tasa.tasa_dolar_bcv });
     }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === 'cantidad_entradas') {
-      setFormData(prev => ({ ...prev, cantidad_entradas: Number(value) }));
-    } else if (name === 'fk_juez') {
-      setFormData(prev => ({ ...prev, fk_juez: value ? Number(value) : null }));
-    } else if (name === 'fk_clie') {
-      setFormData(prev => ({ ...prev, fk_clie: value || null }));
-    } else if (name === 'fk_miem') {
-      setFormData(prev => ({ ...prev, fk_miem: value || null }));
-    }
-  };
-
-  const handleTipoParticipanteChange = (tipo: 'cliente' | 'empleado' | 'miembro') => {
-    setTipoParticipante(tipo);
-    setFormData(prev => ({
-      ...prev,
-      fk_juez: null,
-      fk_clie: null,
-      fk_miem: null
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!evento) {
-      alert('No hay evento seleccionado');
-      return;
-    }
-
-    if (formData.cantidad_entradas <= 0) {
-      alert('La cantidad de entradas debe ser mayor a 0');
-      return;
-    }
-
-    if (formData.cantidad_entradas > evento.cant_entradas_evento) {
-      alert(`Solo hay ${evento.cant_entradas_evento} entradas disponibles`);
-      return;
-    }
-
-    // Validar que se haya seleccionado un participante
-    const participanteSeleccionado = 
-      (tipoParticipante === 'cliente' && formData.fk_clie) ||
-      (tipoParticipante === 'empleado' && formData.fk_juez) ||
-      (tipoParticipante === 'miembro' && formData.fk_miem);
-
-    if (!participanteSeleccionado) {
-      alert('Debe seleccionar un participante');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      const registroData: RegistroEvento = {
-        cod_regi_even: 0, // Se genera automáticamente
-        fk_even: evento.cod_even,
-        fk_juez: tipoParticipante === 'empleado' ? formData.fk_juez || null : null,
-        fk_clie: tipoParticipante === 'cliente' ? formData.fk_clie || null : null,
-        fk_miem: tipoParticipante === 'miembro' ? formData.fk_miem || null : null,
-        fecha_hora_regi_even: new Date().toISOString()
-      };
-
-      const response = await createRegistroEvento(registroData);
-
-      if (response) {
-        alert('Entrada registrada exitosamente');
-        onClose();
-      } else {
-        alert('Error al registrar la entrada');
-      }
-    } catch (error) {
-      console.error('Error registrando entrada:', error);
-      alert('Error al registrar la entrada');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleClose = () => {
-    setFormData({
-      fk_even: 0,
-      fk_juez: null,
-      fk_clie: null,
-      fk_miem: null,
-      cantidad_entradas: 1
-    });
-    setTipoParticipante('cliente');
-    onClose();
-  };
+  }, [cantidad, evento, tasa]);
 
   if (!isOpen || !evento) return null;
+  if (!user || (!user.fk_clie && !user.fk_miem)) {
+    return (
+      <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Comprar Entradas</DialogTitle>
+        <DialogContent>
+          <Typography>Debes iniciar sesión como cliente o miembro para comprar entradas.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
+
+  const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = Math.max(1, Math.min(Number(e.target.value), evento.cant_entradas_evento));
+    setCantidad(val);
+  };
+
+  const handleTarjetaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setCamposTarjeta(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handlePagar = async () => {
+    if (!resumen || !tasa) return;
+    if (!camposTarjeta.numero_tarj || !camposTarjeta.fecha_venci_tarj || !camposTarjeta.cvv_tarj || !camposTarjeta.nombre_titu_tarj) {
+      alert('Completa todos los datos de la tarjeta');
+      return;
+    }
+    setProcesando(true);
+    setMensajeExito(null);
+    try {
+      const pago = {
+        metodo_pago: {
+          cod_meto_pago: 2, // Asumimos 2 = Tarjeta
+          tipo: 'Tarjeta' as 'Tarjeta',
+          numero_tarj: Number(camposTarjeta.numero_tarj),
+          fecha_venci_tarj: camposTarjeta.fecha_venci_tarj,
+          cvv_tarj: Number(camposTarjeta.cvv_tarj),
+          nombre_titu_tarj: camposTarjeta.nombre_titu_tarj,
+          credito: camposTarjeta.credito
+        },
+        monto: resumen.totalBs,
+        fecha_pago: new Date().toISOString().split('T')[0],
+        fk_tasa: tasa.cod_tasa
+      };
+      const ventaData = {
+        fecha_vent: new Date().toISOString().split('T')[0],
+        iva_vent: resumen.iva,
+        base_imponible_vent: resumen.subtotal,
+        total_vent: resumen.total,
+        online: true,
+        fk_clie: user.fk_clie || '',
+        fk_miem: user.fk_miem || undefined,
+        fk_even: evento.cod_even,
+        items: [{
+          producto: {
+            fk_cerv_pres_1: 0,
+            fk_cerv_pres_2: 0,
+            fk_tien: 0,
+            fk_luga_tien: 0,
+            nombre_cerv: evento.nombre_even,
+            nombre_pres: '',
+            capacidad_pres: 0,
+            tipo_cerveza: '',
+            miembro_proveedor: '',
+            cant_pres: 0,
+            precio_actual_pres: evento.precio_entrada_even || 0,
+            lugar_tienda: '',
+            estado: 'Disponible' as 'Disponible',
+            _key: ''
+          },
+          cantidad,
+          precio_unitario: evento.precio_entrada_even || 0,
+          subtotal: resumen.subtotal
+        }],
+        pagos: [pago]
+      };
+      const resultado = await procesarVenta(ventaData);
+      if (resultado.success && resultado.cod_vent) {
+        setMensajeExito(`¡Compra realizada exitosamente! Código de venta: ${resultado.cod_vent}`);
+        setTimeout(() => {
+          setMensajeExito(null);
+          onClose(); // El padre debe recargar eventos
+        }, 2000);
+      } else {
+        alert('Error al procesar la compra: ' + (resultado.message || ''));
+      }
+    } catch (error) {
+      alert('Error inesperado al procesar la compra');
+    } finally {
+      setProcesando(false);
+    }
+  };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h5">Comprar Entradas - {evento.nombre_even}</Typography>
-        <IconButton onClick={handleClose}><CloseIcon /></IconButton>
+        Comprar Entradas - {evento.nombre_even}
+        <IconButton onClick={onClose}><CloseIcon /></IconButton>
       </DialogTitle>
       <DialogContent dividers>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle1" gutterBottom>Información del Evento</Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={6}><Typography variant="body2"><b>Fecha:</b> {new Date(evento.fecha_hora_ini_even).toLocaleDateString()}</Typography></Grid>
-            <Grid item xs={6}><Typography variant="body2"><b>Hora:</b> {new Date(evento.fecha_hora_ini_even).toLocaleTimeString()}</Typography></Grid>
-            <Grid item xs={12}><Typography variant="body2"><b>Dirección:</b> {evento.direccion_even}</Typography></Grid>
-            <Grid item xs={6}><Typography variant="body2"><b>Precio:</b> ${evento.precio_entrada_even || 'Gratis'}</Typography></Grid>
-            <Grid item xs={6}><Typography variant="body2"><b>Entradas disponibles:</b> {evento.cant_entradas_evento}</Typography></Grid>
-          </Grid>
-        </Box>
-        <Box component="form" onSubmit={handleSubmit}>
-          <FormControl component="fieldset" sx={{ mb: 2 }}>
-            <Typography variant="subtitle2">Tipo de Participante *</Typography>
-            <RadioGroup row value={tipoParticipante} onChange={e => handleTipoParticipanteChange(e.target.value as any)}>
-              <FormControlLabel value="cliente" control={<Radio />} label="Cliente" />
-              <FormControlLabel value="empleado" control={<Radio />} label="Empleado/Juez" />
-              <FormControlLabel value="miembro" control={<Radio />} label="Miembro" />
-            </RadioGroup>
-          </FormControl>
-          <FormControl fullWidth required sx={{ mb: 2 }}>
-            <InputLabel>{`Seleccionar ${tipoParticipante === 'cliente' ? 'Cliente' : tipoParticipante === 'empleado' ? 'Empleado/Juez' : 'Miembro'}`}</InputLabel>
-            <Select
-              name={tipoParticipante === 'cliente' ? 'fk_clie' : tipoParticipante === 'empleado' ? 'fk_juez' : 'fk_miem'}
-              value={tipoParticipante === 'cliente' ? formData.fk_clie || '' : tipoParticipante === 'empleado' ? formData.fk_juez || '' : formData.fk_miem || ''}
-              onChange={handleInputChange}
-              label={`Seleccionar ${tipoParticipante === 'cliente' ? 'Cliente' : tipoParticipante === 'empleado' ? 'Empleado/Juez' : 'Miembro'}`}
-            >
-              <MenuItem value="">Seleccione un {tipoParticipante}</MenuItem>
-              {tipoParticipante === 'cliente' && clientes.map(cliente => (
-                <MenuItem key={cliente.rif_clie} value={cliente.rif_clie}>
-                  {cliente.tipo_clie === 'Natural' 
-                    ? `${cliente.primer_nom_natu || ''} ${cliente.primer_ape_natu || ''}`.trim()
-                    : cliente.razon_social_juri || ''
-                  } - {cliente.rif_clie}
-                </MenuItem>
-              ))}
-              {tipoParticipante === 'empleado' && empleados.map(empleado => (
-                <MenuItem key={empleado.cod_empl} value={empleado.cod_empl}>
-                  {empleado.primer_nom_empl} {empleado.primer_ape_empl} - CI: {empleado.ci_empl}
-                </MenuItem>
-              ))}
-              {tipoParticipante === 'miembro' && miembros.map(miembro => (
-                <MenuItem key={miembro.rif_miem} value={miembro.rif_miem}>
-                  {miembro.razon_social_miem} - {miembro.rif_miem}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <Stack spacing={2}>
+          <Box>
+            <Typography variant="subtitle1" gutterBottom>Información del Evento</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <Typography variant="body2"><b>Fecha:</b> {new Date(evento.fecha_hora_ini_even).toLocaleDateString()} <b>Hora:</b> {new Date(evento.fecha_hora_ini_even).toLocaleTimeString()}</Typography>
+              <Typography variant="body2"><b>Dirección:</b> {evento.direccion_even}</Typography>
+            </Stack>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <Typography variant="body2"><b>Precio:</b> ${evento.precio_entrada_even || 'Gratis'}</Typography>
+              <Typography variant="body2"><b>Entradas disponibles:</b> {evento.cant_entradas_evento}</Typography>
+            </Stack>
+          </Box>
+          <Divider />
           <TextField
-            fullWidth
-            required
             label="Cantidad de Entradas"
-            name="cantidad_entradas"
             type="number"
-            value={formData.cantidad_entradas}
-            onChange={handleInputChange}
+            value={cantidad}
+            onChange={handleCantidadChange}
             inputProps={{ min: 1, max: evento.cant_entradas_evento }}
-            sx={{ mb: 2 }}
+            fullWidth
           />
-          {evento.precio_entrada_even && evento.precio_entrada_even > 0 && (
-            <Box sx={{ background: '#e3f2fd', p: 2, borderRadius: 2, mb: 2 }}>
-              <Typography variant="subtitle2">Resumen del Costo</Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Precio por entrada:</span>
-                <span>${evento.precio_entrada_even}</span>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Cantidad:</span>
-                <span>{formData.cantidad_entradas}</span>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, mt: 1 }}>
-                <span>Total:</span>
-                <span>${(evento.precio_entrada_even * formData.cantidad_entradas).toFixed(2)}</span>
-              </Box>
-              <Typography variant="caption" color="primary" sx={{ mt: 1 }}>* Los pagos se manejan por separado en el módulo de ventas</Typography>
+          <Divider />
+          {resumen && (
+            <Box>
+              <Typography variant="subtitle2">Resumen de Compra</Typography>
+              <Stack direction="row" spacing={2}>
+                <Typography>Subtotal: <b>${resumen.subtotal.toFixed(2)}</b></Typography>
+                <Typography>IVA (16%): <b>${resumen.iva.toFixed(2)}</b></Typography>
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <Typography>Total: <b>${resumen.total.toFixed(2)}</b></Typography>
+                <Typography>Total en Bs: <b>{resumen.totalBs.toFixed(2)}</b> (Tasa: {resumen.tasa})</Typography>
+              </Stack>
             </Box>
           )}
-        </Box>
+          <Divider />
+          <Box>
+            <Typography variant="subtitle2">Pago con Tarjeta</Typography>
+            <Stack spacing={1}>
+              <TextField label="Número de Tarjeta" name="numero_tarj" value={camposTarjeta.numero_tarj} onChange={handleTarjetaChange} fullWidth />
+              <TextField label="Fecha de Vencimiento" name="fecha_venci_tarj" value={camposTarjeta.fecha_venci_tarj} onChange={handleTarjetaChange} fullWidth />
+              <TextField label="CVV" name="cvv_tarj" value={camposTarjeta.cvv_tarj} onChange={handleTarjetaChange} fullWidth />
+              <TextField label="Nombre del Titular" name="nombre_titu_tarj" value={camposTarjeta.nombre_titu_tarj} onChange={handleTarjetaChange} fullWidth />
+              <FormControlLabel control={<Checkbox name="credito" checked={camposTarjeta.credito} onChange={handleTarjetaChange} />} label="¿Es tarjeta de crédito?" />
+            </Stack>
+          </Box>
+          {mensajeExito && <Alert severity="success">{mensajeExito}</Alert>}
+        </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="secondary">Cancelar</Button>
-        <Button type="submit" variant="contained" onClick={handleSubmit} disabled={loading}>
-          {loading ? <CircularProgress size={24} /> : 'Registrar Entrada'}
+        <Button onClick={onClose} color="secondary">Cancelar</Button>
+        <Button onClick={handlePagar} color="primary" variant="contained" disabled={procesando || cantidad < 1 || cantidad > evento.cant_entradas_evento}>
+          {procesando ? 'Procesando...' : 'Pagar'}
         </Button>
       </DialogActions>
     </Dialog>

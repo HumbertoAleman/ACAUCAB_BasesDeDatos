@@ -10,6 +10,7 @@ import type { CervPres } from './'; // Import ICervPres
 export interface TipoEvento {
   cod_tipo_even: number;
   nombre_tipo_even: string; // varchar(60)
+  fk_tipo_even?: number | null; // Recursividad: puede tener tipo padre
 }
 
 /**
