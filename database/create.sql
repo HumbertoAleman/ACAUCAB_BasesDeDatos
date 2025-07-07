@@ -80,7 +80,9 @@ CREATE TABLE IF NOT EXISTS Lugar_Tienda (
 CREATE TABLE IF NOT EXISTS Tipo_Evento (
     cod_tipo_even serial,
     nombre_tipo_even varchar(60) NOT NULL,
-    PRIMARY KEY (cod_tipo_even)
+    fk_tipo_even integer,
+    PRIMARY KEY (cod_tipo_even),
+    CONSTRAINT actividad FOREIGN KEY (fk_tipo_even) REFERENCES Tipo_Evento (cod_tipo_even)
 );
 
 CREATE TABLE IF NOT EXISTS Evento (
@@ -95,11 +97,9 @@ CREATE TABLE IF NOT EXISTS Evento (
     cant_entradas_evento integer NOT NULL,
     fk_tipo_even integer NOT NULL,
     fk_luga integer NOT NULL,
-	fk_even integer,
     PRIMARY KEY (cod_even),
     CONSTRAINT es FOREIGN KEY (fk_tipo_even) REFERENCES Tipo_Evento (cod_tipo_even),
-    CONSTRAINT desarrollado FOREIGN KEY (fk_luga) REFERENCES Lugar (cod_luga),
-    CONSTRAINT organiza FOREIGN KEY (fk_even) REFERENCES Evento (cod_even)
+    CONSTRAINT desarrollado FOREIGN KEY (fk_luga) REFERENCES Lugar (cod_luga)
 );
 
 CREATE TABLE IF NOT EXISTS Empleado (
