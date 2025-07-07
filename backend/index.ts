@@ -25,6 +25,7 @@ Bun.serve({
 	routes: {
 		"/ping": () => new Response("pong"),
 		"/quick/:table": {
+			OPTIONS: () => new Response("OK", CORS_HEADERS),
 			GET: async (req, _) => {
 				const sqlString = `SELECT * FROM ${req.params.table}`;
 				const res = await sql.unsafe(sqlString);
@@ -98,6 +99,16 @@ Bun.serve({
 		...CompraService.routes,
 		...BancoService.routes,
 		...CarritoService.routes,
-		...EventoService.routes
+		...EventoService.routes,
+
+		"/api/carrito/:clienteID": {
+			OPTIONS: () => new Response("OK", CORS_HEADERS),
+			GET: async (req: any) =>
+				await CarritoService.getCarritoAndItems(req.params.clienteID),
+			POST: async (req: any) =>
+				await CarritoService.createCarritoForCliente(req.params.clienteID),
+			DELETE: async (req: any) =>
+				await CarritoService.clearCarritoForCliente(req.params.clienteID),
+		},
 	},
 });

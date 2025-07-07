@@ -70,11 +70,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onCartClick }) => {
                 {user && user.username ? user.username.charAt(0).toUpperCase() : <Person />}
               </Avatar>
             </IconButton>
-            <IconButton color="inherit" sx={{ ml: 0 }} onClick={onCartClick}>
-              <Badge badgeContent={items.length} color="error">
-                <ShoppingCart />
-              </Badge>
-            </IconButton>
+            {user.fk_clie && (
+              <IconButton color="inherit" sx={{ ml: 0 }} onClick={onCartClick}>
+                <Badge badgeContent={items.length} color="error">
+                  <ShoppingCart />
+                </Badge>
+              </IconButton>
+            )}
             <Menu
               id="menu-appbar"
               anchorEl={anchorEl}

@@ -6,7 +6,7 @@ import {
 } from "@mui/material"
 import { Add, Remove, Delete, Payment, Search, ShoppingCart, CreditCard, Close } from "@mui/icons-material"
 import type { ProductoInventario, TasaVenta, MetodoPagoCompleto, ItemVenta, PagoVenta, ResumenVenta } from "../../interfaces/ventas"
-import { getProductosInventario, getTasaActual, procesarVenta, getBancos, getTableData, getCarrito, createCarrito, addItemsToCarrito } from "../../services/api"
+import { getProductosInventario, getTasaActual, procesarVenta, getBancos, getTableData, getCarrito, createCarrito, addItemsToCarrito, deleteCarrito, removeItemsFromCarrito } from "../../services/api"
 import { useAuth } from '../../contexts/AuthContext'
 
 interface PuntoVentaOnlineProps {
@@ -31,6 +31,9 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
   const [paginaActual, setPaginaActual] = useState(1);
   const metodosPagoDisponibles: MetodoPagoCompleto[] = [ { cod_meto_pago: 2, tipo: "Tarjeta", credito: true } ];
   const { user } = useAuth();
+
+  // Verifica si el usuario es cliente
+  const esCliente = !!user?.fk_clie;
 
   useEffect(() => {
     const cargarProductos = async () => {
@@ -95,52 +98,172 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
   }, [itemsVenta, tasaActual]);
 
   useEffect(() => {
-    // Cargar carrito guardado si existe
+    // Solo reconstruir el carrito si la lista de productos ya está cargada
+    if (!esCliente || !productos || productos.length === 0) return;
     const cargarCarritoGuardado = async () => {
-      if (!user?.username) return;
-      const carrito = await getCarrito(user.username);
-      if (carrito && carrito.items && Array.isArray(carrito.items) && carrito.items.length > 0) {
-        setItemsVenta(carrito.items.map((item: any) => ({
-          producto: item.producto,
-          cantidad: item.cantidad,
-          precio_unitario: item.precio_unitario,
-          subtotal: item.subtotal
-        })));
+      if (!user?.fk_clie) {
+        setItemsVenta([]);
+        return;
+      }
+      
+      const carrito = await getCarrito(user.fk_clie);
+      
+      // Verificar si el carrito existe y tiene items válidos
+      if (carrito && 
+          !carrito.error && 
+          carrito.items && 
+          Array.isArray(carrito.items) && 
+          carrito.items.length > 0) {
+        setItemsVenta(carrito.items.map((item: any, idx: number) => {
+          // Usa SIEMPRE los IDs del backend si existen
+          let fk_cerv_pres_1 = item.cerveza ?? item.fk_inve_tien_1;
+          let fk_cerv_pres_2 = item.presentacion ?? item.fk_inve_tien_2;
+          let fk_luga_tien = item.lugar_tien ?? item.fk_inve_tien_4 ?? 1;
+
+          let producto = {
+            fk_cerv_pres_1,
+            fk_cerv_pres_2,
+            fk_luga_tien,
+            nombre_cerv: item.nombre_cerv || 'Producto no disponible',
+            nombre_pres: item.nombre_pres || '',
+            _key: `fallback-${idx}`
+          };
+
+          // Si falta algún ID, intenta buscarlo por nombre en la lista de productos
+          if (!fk_cerv_pres_1 || !fk_cerv_pres_2) {
+            const prod = productos.find(p =>
+              p.nombre_cerv === item.nombre_cerv &&
+              p.nombre_pres === item.nombre_pres
+            );
+            if (prod) {
+              producto.fk_cerv_pres_1 = prod.fk_cerv_pres_1;
+              producto.fk_cerv_pres_2 = prod.fk_cerv_pres_2;
+              producto.fk_luga_tien = prod.fk_luga_tien ?? 1;
+              producto._key = prod._key || '';
+            }
+          }
+
+          const precio_unitario = typeof item.precio_unitario === 'number' && !isNaN(item.precio_unitario)
+            ? item.precio_unitario
+            : 0;
+          const cantidad = typeof item.cantidad === 'number' && !isNaN(item.cantidad) ? item.cantidad : 1;
+          return {
+            producto,
+            cantidad,
+            precio_unitario,
+            subtotal: precio_unitario * cantidad
+          };
+        }));
+      } else {
+        // Si no hay carrito, hay error, o está vacío, limpiar la interfaz
+        setItemsVenta([]);
       }
     };
     cargarCarritoGuardado();
-  }, [user?.username]);
+  // eslint-disable-next-line
+  }, [user?.fk_clie, productos]);
 
-  const agregarProducto = (producto: any) => {
-    const itemExistente = itemsVenta.find((item) => (item.producto as any)._key === (producto as any)._key);
-    if (itemExistente) {
-      setItemsVenta(
-        itemsVenta.map((item) =>
+  const agregarProducto = async (producto: any) => {
+    try {
+      const itemExistente = itemsVenta.find((item) => (item.producto as any)._key === (producto as any)._key);
+      if (itemExistente) {
+        const nuevaCantidad = itemExistente.cantidad + 1;
+        const itemsActualizados = itemsVenta.map((item) =>
           (item.producto as any)._key === (producto as any)._key
-            ? { ...item, cantidad: item.cantidad + 1, subtotal: (item.cantidad + 1) * item.precio_unitario }
+            ? { ...item, cantidad: nuevaCantidad, subtotal: nuevaCantidad * item.precio_unitario }
             : item,
-        ),
-      );
-    } else {
-      const nuevoItem = { producto, cantidad: 1, precio_unitario: producto.precio_actual_pres, subtotal: producto.precio_actual_pres };
-      setItemsVenta([...itemsVenta, nuevoItem]);
+        );
+        setItemsVenta(itemsActualizados);
+        
+        // Actualizar en backend
+        if (user?.fk_clie) {
+          const itemToUpdate = [{
+            cerveza: producto.fk_cerv_pres_1,
+            presentacion: producto.fk_cerv_pres_2,
+            lugar_tien: producto.fk_luga_tien,
+            precio_unitario: producto.precio_actual_pres,
+            cantidad: nuevaCantidad,
+            tienda: 1
+          }];
+          await addItemsToCarrito(user.fk_clie, itemToUpdate);
+        }
+      } else {
+        const nuevoItem = { producto, cantidad: 1, precio_unitario: producto.precio_actual_pres, subtotal: producto.precio_actual_pres };
+        setItemsVenta([...itemsVenta, nuevoItem]);
+        
+        // Agregar en backend
+        if (user?.fk_clie) {
+          const itemToAdd = [{
+            cerveza: producto.fk_cerv_pres_1,
+            presentacion: producto.fk_cerv_pres_2,
+            lugar_tien: producto.fk_luga_tien,
+            precio_unitario: producto.precio_actual_pres,
+            cantidad: 1,
+            tienda: 1
+          }];
+          await addItemsToCarrito(user.fk_clie, itemToAdd);
+        }
+      }
+    } catch (error) {
+      console.error('Error al agregar producto:', error);
     }
   };
-  const modificarCantidad = (item: any, nuevaCantidad: number) => {
-    if (nuevaCantidad <= 0) {
-      setItemsVenta(itemsVenta.filter((i) => (i.producto as any)._key !== (item.producto as any)._key));
-    } else {
-      setItemsVenta(
-        itemsVenta.map((i) =>
+  const modificarCantidad = async (item: any, nuevaCantidad: number) => {
+    try {
+      if (nuevaCantidad <= 0) {
+        // Eliminar item
+        setItemsVenta(itemsVenta.filter((i) => (i.producto as any)._key !== (item.producto as any)._key));
+        // Actualizar en backend
+        if (user?.fk_clie) {
+          const itemToRemove = [{
+            cerveza: item.producto.fk_cerv_pres_1,
+            presentacion: item.producto.fk_cerv_pres_2,
+            lugar_tien: item.producto.fk_luga_tien
+          }];
+          await removeItemsFromCarrito(user.fk_clie, itemToRemove);
+        }
+      } else {
+        // Actualizar cantidad
+        const itemsActualizados = itemsVenta.map((i) =>
           (i.producto as any)._key === (item.producto as any)._key
             ? { ...i, cantidad: nuevaCantidad, subtotal: nuevaCantidad * i.precio_unitario }
             : i,
-        ),
-      );
+        );
+        setItemsVenta(itemsActualizados);
+        
+        // Actualizar en backend
+        if (user?.fk_clie) {
+          const itemToUpdate = [{
+            cerveza: item.producto.fk_cerv_pres_1,
+            presentacion: item.producto.fk_cerv_pres_2,
+            lugar_tien: item.producto.fk_luga_tien,
+            precio_unitario: item.precio_unitario,
+            cantidad: nuevaCantidad,
+            tienda: 1
+          }];
+          await addItemsToCarrito(user.fk_clie, itemToUpdate);
+        }
+      }
+    } catch (error) {
+      console.error('Error al modificar cantidad:', error);
     }
   };
-  const eliminarItem = (item: any) => {
-    setItemsVenta(itemsVenta.filter((i) => (i.producto as any)._key !== (item.producto as any)._key));
+  const eliminarItem = async (item: any) => {
+    try {
+      setItemsVenta(itemsVenta.filter((i) => (i.producto as any)._key !== (item.producto as any)._key));
+      
+      // Actualizar en backend
+      if (user?.fk_clie) {
+        const itemToRemove = [{
+          cerveza: item.producto.fk_cerv_pres_1,
+          presentacion: item.producto.fk_cerv_pres_2,
+          lugar_tien: item.producto.fk_luga_tien
+        }];
+        await removeItemsFromCarrito(user.fk_clie, itemToRemove);
+      }
+    } catch (error) {
+      console.error('Error al eliminar item:', error);
+    }
   };
   const iniciarPago = () => {
     setDialogPago(true);
@@ -178,6 +301,9 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
     setCamposTarjeta({ numero_tarj: "", fecha_venci_tarj: "", cvv_tarj: "", nombre_titu_tarj: "", credito: false });
   };
   const procesarVentaFinal = async () => {
+    // Evitar doble envío
+    if (procesandoVenta) return;
+    
     const montoTotalPagosBs = pagos.reduce((total, pago) => total + pago.monto, 0);
     const montoRestanteBs = (resumenVenta?.total_bs || 0) - montoTotalPagosBs;
     if (!resumenVenta || !tasaActual || montoRestanteBs > 0.01) {
@@ -186,13 +312,8 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
     }
     setProcesandoVenta(true);
     try {
-      const apiItems = itemsVenta.map((item) => ({
-        fk_cerv_pres_1: (item.producto as any).fk_cerv_pres_1,
-        fk_cerv_pres_2: (item.producto as any).fk_cerv_pres_2,
-        fk_tien: 1,
-        fk_luga_tien: 1,
-        cantidad: item.cantidad,
-      }));
+      // En el nuevo flujo, NO enviamos los items porque ya están en el carrito
+      // Solo enviamos los pagos y los totales para actualizar la venta existente
       const apiPagos = pagos.map((pago) => {
         const pagoData: any = {
           tipo: pago.metodo_pago.tipo,
@@ -207,18 +328,24 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
         }
         return pagoData;
       });
+      
       const ventaData = {
         fecha_vent: new Date().toISOString().split('T')[0],
         iva_vent: resumenVenta.iva,
         base_imponible_vent: resumenVenta.subtotal,
         online: true,
-        fk_clie: user?.username,
+        fk_clie: user?.fk_clie || 0,
         fk_tien: 1,
-        items: apiItems,
+        items: [], // No enviamos items, ya están en el carrito
         pagos: apiPagos,
       };
+      
       const resultado = await procesarVenta(ventaData as any);
       if (resultado.success) {
+        // Eliminar el carrito del backend después de procesar la venta exitosamente
+        if (user?.fk_clie) {
+          await deleteCarrito(user.fk_clie);
+        }
         alert(`Venta online procesada exitosamente. Código: ${resultado.cod_vent}`);
         setItemsVenta([]);
         setPagos([]);
@@ -251,44 +378,39 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
     paginaActual * TAM_PAGINA
   );
   const totalCarrito = itemsVenta.reduce((total, item) => total + (typeof item.subtotal === 'number' ? item.subtotal : Number(item.subtotal) || 0), 0);
-  const guardarComoPresupuesto = async () => {
+  const guardarComoPresupuesto = async (redirigir = true) => {
+    if (!esCliente) {
+      alert('Solo los usuarios cliente pueden usar el carrito online.');
+      return;
+    }
     if (!resumenVenta || !tasaActual) {
       alert('No hay productos en el carrito.');
       return;
     }
     setProcesandoVenta(true);
     try {
-      const apiItems = itemsVenta.map((item) => ({
-        producto: item.producto,
-        cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario,
-        subtotal: item.subtotal
-      }));
+      const apiItemsCarrito = itemsVenta.map(mapItemToCarrito);
+      const apiItemsVenta = itemsVenta.map(mapItemToVenta);
       const carritoData = {
         usuario: user?.username,
         fecha: new Date().toISOString().split('T')[0],
-        items: apiItems,
+        items: apiItemsCarrito,
         resumen: resumenVenta
       };
       let resultado;
-      // Verificar si ya existe un carrito para el usuario
-      const carritoExistente = user?.username ? await getCarrito(user.username) : null;
-      if (!user?.username) {
-        alert('No hay usuario autenticado.');
-        setProcesandoVenta(false);
-        return;
-      }
+      const carritoExistente = await getCarrito(user.fk_clie!);
       if (!carritoExistente || carritoExistente.error) {
-        // Si no existe, crear el carrito
-        resultado = await createCarrito(user.username, carritoData);
+        await createCarrito(user.fk_clie!);
+        resultado = await addItemsToCarrito(user.fk_clie!, apiItemsCarrito);
       } else {
-        // Si existe, actualizar los items
-        resultado = await addItemsToCarrito(user.username, apiItems);
+        resultado = await addItemsToCarrito(user.fk_clie!, apiItemsCarrito);
       }
       if (resultado && !resultado.error) {
-        alert('Carrito guardado exitosamente.');
-        setItemsVenta([]);
-        if (window.location) window.location.href = '/dashboard';
+        if (redirigir) {
+          alert('Carrito guardado exitosamente.');
+          setItemsVenta([]);
+          if (window.location) window.location.href = '/dashboard';
+        }
       } else {
         alert(`Error al guardar el carrito: ${resultado?.message || resultado?.error || 'Error desconocido'}`);
       }
@@ -298,6 +420,22 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
       setProcesandoVenta(false);
     }
   };
+  // Define los mapeos fuera de las funciones
+  const mapItemToCarrito = (item: any) => ({
+    cerveza: item.producto.fk_cerv_pres_1,
+    presentacion: item.producto.fk_cerv_pres_2,
+    lugar_tien: item.producto.fk_luga_tien,
+    precio_unitario: item.precio_unitario,
+    cantidad: item.cantidad,
+    tienda: 1
+  });
+  const mapItemToVenta = (item: any) => ({
+    fk_cerv_pres_1: item.producto.fk_cerv_pres_1,
+    fk_cerv_pres_2: item.producto.fk_cerv_pres_2,
+    fk_tien: 1,
+    fk_luga_tien: item.producto.fk_luga_tien,
+    cantidad: item.cantidad
+  });
   if (loading) {
     return (
       <Box sx={{ p: 3, textAlign: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
@@ -361,6 +499,16 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
         <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 2, position: "sticky", top: 20 }}>
             <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}><ShoppingCart />Carrito de Venta Online</Typography>
+            {itemsVenta.length > 0 && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+                <IconButton color="error" size="small" title="Vaciar carrito" onClick={async () => {
+                  if (user?.fk_clie) await deleteCarrito(user.fk_clie);
+                  setItemsVenta([]);
+                }}>
+                  <Delete />
+                </IconButton>
+              </Box>
+            )}
             <Paper elevation={2} sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Cliente Online</Typography>
               <Typography variant="body2"><b>Usuario:</b> {user?.username || 'N/A'}</Typography>
@@ -398,9 +546,12 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}><Typography>Puntos a generar:</Typography><Typography variant="body2" color="success.main">+{typeof resumenVenta.puntos_generados === 'number' ? resumenVenta.puntos_generados.toFixed(0) : (Number(resumenVenta.puntos_generados) ? Number(resumenVenta.puntos_generados).toFixed(0) : resumenVenta.puntos_generados)} pts</Typography></Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}><Typography>Fecha de compra:</Typography><Typography variant="body2">{resumenVenta.fecha_venta ? new Date(resumenVenta.fecha_venta).toLocaleDateString() : 'N/A'}</Typography></Box>
               </Box>
-              <Button fullWidth variant="contained" size="large" startIcon={<Payment />} onClick={iniciarPago} sx={{ backgroundColor: "#2E7D32", "&:hover": { backgroundColor: "#1B5E20" } }}>Pagar con Tarjeta</Button>
-              <Button fullWidth variant="outlined" size="large" sx={{ mt: 1 }} onClick={guardarComoPresupuesto} disabled={procesandoVenta}>Guardar y Salir</Button></>)}
-            {itemsVenta.length > 0 && (<Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Total:</Typography><Typography variant="h6" color="primary">${typeof totalCarrito === 'number' ? totalCarrito.toFixed(2) : totalCarrito}</Typography></Box>)}
+              <Button fullWidth variant="contained" size="large" startIcon={<Payment />} onClick={async () => {
+                await guardarComoPresupuesto(false);
+                iniciarPago();
+              }} sx={{ backgroundColor: "#2E7D32", "&:hover": { backgroundColor: "#1B5E20" } }}>Pagar con Tarjeta</Button>
+              <Button fullWidth variant="outlined" size="large" sx={{ mt: 1 }} onClick={() => guardarComoPresupuesto()} disabled={!esCliente || procesandoVenta}>Guardar y Salir</Button></>)}
+            {itemsVenta.length > 0 && resumenVenta && (<Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Total:</Typography><Typography variant="h6" color="primary">${typeof resumenVenta.total === 'number' ? resumenVenta.total.toFixed(2) : resumenVenta.total}</Typography></Box>)}
           </Paper>
         </Grid>
       </Grid>
@@ -417,28 +568,90 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
                 </Box>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <FormControl fullWidth>
-                      <InputLabel>Método de Pago</InputLabel>
-                      <Select value={metodoPagoSeleccionado?.cod_meto_pago || ""} onChange={(e) => { const metodo = metodosPagoDisponibles.find(m => m.cod_meto_pago === e.target.value); setMetodoPagoSeleccionado(metodo || null); }} label="Método de Pago">
-                        {metodosPagoDisponibles.map((metodo) => (<MenuItem key={metodo.cod_meto_pago} value={metodo.cod_meto_pago}><Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><CreditCard /><Typography>Tarjeta</Typography></Box></MenuItem>))}
-                      </Select>
-                    </FormControl>
+                    <TextField
+                      fullWidth
+                      label="Método de Pago"
+                      value="Tarjeta"
+                      InputProps={{ readOnly: true, startAdornment: <CreditCard sx={{ mr: 1 }} /> }}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField fullWidth label="Monto" type="number" value={montoPago} onChange={(e) => setMontoPago(e.target.value)} inputProps={{ min: 0, step: 0.01 }} />
+                    <TextField
+                      fullWidth
+                      label="Monto"
+                      type="number"
+                      value={typeof resumenVenta?.total_bs === 'number' ? resumenVenta.total_bs.toFixed(2) : ''}
+                      InputProps={{ readOnly: true }}
+                    />
                   </Grid>
                 </Grid>
-                {metodoPagoSeleccionado?.tipo === "Tarjeta" && (<Box sx={{ mt: 2 }}><Typography variant="h6" gutterBottom>Información de Tarjeta</Typography><Grid container spacing={2}><Grid size={{ xs: 12, md: 6 }}><TextField fullWidth label="Número de Tarjeta" value={camposTarjeta.numero_tarj} onChange={(e) => setCamposTarjeta({...camposTarjeta, numero_tarj: e.target.value})} /></Grid><Grid size={{ xs: 12, md: 3 }}><TextField fullWidth label="Fecha Vencimiento" placeholder="MM/YY" value={camposTarjeta.fecha_venci_tarj} onChange={(e) => setCamposTarjeta({...camposTarjeta, fecha_venci_tarj: e.target.value})} /></Grid><Grid size={{ xs: 12, md: 3 }}><TextField fullWidth label="CVV" value={camposTarjeta.cvv_tarj} onChange={(e) => setCamposTarjeta({...camposTarjeta, cvv_tarj: e.target.value})} /></Grid><Grid size={{ xs: 12, md: 8 }}><TextField fullWidth label="Nombre del Titular" value={camposTarjeta.nombre_titu_tarj} onChange={(e) => setCamposTarjeta({...camposTarjeta, nombre_titu_tarj: e.target.value})} /></Grid><Grid size={{ xs: 12, md: 4 }}><FormControl fullWidth><InputLabel>Tipo</InputLabel><Select value={camposTarjeta.credito ? "credito" : "debito"} onChange={(e) => setCamposTarjeta({...camposTarjeta, credito: e.target.value === "credito"})} label="Tipo"><MenuItem value="debito">Débito</MenuItem><MenuItem value="credito">Crédito</MenuItem></Select></FormControl></Grid></Grid></Box>)}
-                <Box sx={{ mt: 2 }}><Button variant="contained" onClick={agregarPago} disabled={!metodoPagoSeleccionado || !montoPago || parseFloat(montoPago) <= 0 || pagos.length >= 1}>Agregar Pago</Button>{pagos.length > 0 && (<Button variant="outlined" onClick={() => setPasoActual(1)} sx={{ ml: 1 }}>Confirmar Pago</Button>)}</Box>
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="h6" gutterBottom>Información de Tarjeta</Typography>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField fullWidth label="Número de Tarjeta" value={camposTarjeta.numero_tarj} onChange={(e) => setCamposTarjeta({...camposTarjeta, numero_tarj: e.target.value})} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 3 }}>
+                      <TextField fullWidth label="Fecha Vencimiento" placeholder="MM/YY" value={camposTarjeta.fecha_venci_tarj} onChange={(e) => setCamposTarjeta({...camposTarjeta, fecha_venci_tarj: e.target.value})} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 3 }}>
+                      <TextField fullWidth label="CVV" value={camposTarjeta.cvv_tarj} onChange={(e) => setCamposTarjeta({...camposTarjeta, cvv_tarj: e.target.value})} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 8 }}>
+                      <TextField fullWidth label="Nombre del Titular" value={camposTarjeta.nombre_titu_tarj} onChange={(e) => setCamposTarjeta({...camposTarjeta, nombre_titu_tarj: e.target.value})} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <FormControl fullWidth>
+                        <InputLabel>Tipo</InputLabel>
+                        <Select value={camposTarjeta.credito ? "credito" : "debito"} onChange={(e) => setCamposTarjeta({...camposTarjeta, credito: e.target.value === "credito"})} label="Tipo">
+                          <MenuItem value="debito">Débito</MenuItem>
+                          <MenuItem value="credito">Crédito</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </Box>
+                <Box sx={{ mt: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      // Crear el pago único automáticamente
+                      const pagoUnico = {
+                        metodo_pago: {
+                          cod_meto_pago: 2,
+                          tipo: "Tarjeta" as const,
+                          numero_tarj: camposTarjeta.numero_tarj ? parseInt(camposTarjeta.numero_tarj) : undefined,
+                          fecha_venci_tarj: camposTarjeta.fecha_venci_tarj,
+                          cvv_tarj: camposTarjeta.cvv_tarj ? parseInt(camposTarjeta.cvv_tarj) : undefined,
+                          nombre_titu_tarj: camposTarjeta.nombre_titu_tarj,
+                          credito: camposTarjeta.credito
+                        },
+                        monto: resumenVenta?.total_bs || 0,
+                        fecha_pago: new Date().toISOString().split('T')[0],
+                        fk_tasa: tasaActual?.cod_tasa || 1
+                      };
+                      setPagos([pagoUnico]);
+                      setPasoActual(1);
+                    }}
+                    disabled={
+                      !camposTarjeta.numero_tarj ||
+                      !camposTarjeta.fecha_venci_tarj ||
+                      !camposTarjeta.cvv_tarj ||
+                      !camposTarjeta.nombre_titu_tarj
+                    }
+                  >
+                    Confirmar Pago
+                  </Button>
+                </Box>
               </StepContent>
             </Step>
             <Step>
               <StepLabel>Confirmar Pago</StepLabel>
               <StepContent>
                 <Typography variant="h6" gutterBottom>Pago Registrado:</Typography>
-                <List>{pagos.map((pago, index) => (<ListItem key={index}><ListItemText primary={`Tarjeta - ${pago.monto.toFixed(2)} Bs`} secondary={`Fecha: ${pago.fecha_pago}`} /><ListItemSecondaryAction><IconButton edge="end" onClick={() => eliminarPago(index)}><Delete /></IconButton></ListItemSecondaryAction></ListItem>))}</List>
+                <List>{pagos.map((pago, index) => (<ListItem key={index}><ListItemText primary={`Tarjeta - ${pago.monto.toFixed(2)} Bs`} secondary={`Fecha: ${pago.fecha_pago}`} /></ListItem>))}</List>
                 <Box sx={{ mt: 2 }}><Typography variant="h6">Total pago: {pagos.reduce((total, pago) => total + pago.monto, 0).toFixed(2)} Bs</Typography><Typography variant="body2" color="success.main">Pago completo</Typography></Box>
-                <Box sx={{ mt: 2 }}><Button variant="contained" onClick={procesarVentaFinal} disabled={procesandoVenta}>{procesandoVenta ? "Procesando..." : "Confirmar Venta Online"}</Button><Button variant="outlined" onClick={() => setPasoActual(0)} sx={{ ml: 1 }}>Modificar Pago</Button></Box>
+                <Box sx={{ mt: 2 }}><Button variant="contained" onClick={procesarVentaFinal} disabled={procesandoVenta}>{procesandoVenta ? "Procesando..." : "Confirmar Venta Online"}</Button><Button variant="outlined" onClick={() => setPasoActual(0)} sx={{ ml: 1 }} disabled={procesandoVenta}>Modificar Pago</Button></Box>
               </StepContent>
             </Step>
           </Stepper>

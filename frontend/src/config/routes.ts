@@ -6,6 +6,7 @@ import { PuntoVenta } from "../pages/ventas/PuntoVenta";
 import { GestionPrivilegios } from "../pages/privilegios/GestionPrivilegios";
 import { GestionOrdenes } from "../pages/compras/GestionOrdenes";
 import PuntoVentaOnline from '../pages/ventas/PuntoVentaOnline';
+import GestionEventos from '../pages/eventos/GestionEventos';
 
 export interface RouteConfig {
   path: string
@@ -76,6 +77,15 @@ export const ROUTES: RouteConfig[] = [
     inMenu: false,
   },
   {
+    path: "/eventos",
+    permission: "evento_read",
+    title: "Eventos",
+    icon: "event",
+    description: "Gestión de eventos y entradas",
+    component: GestionEventos,
+    inMenu: true,
+  },
+  {
     path: '/ventas-online',
     title: 'Venta Online',
     description: 'Punto de venta para clientes online',
@@ -88,11 +98,18 @@ export const getAccessibleRoutes = (): RouteConfig[] => {
   return ROUTES
 }
 
-export const getFirstAccessibleRoute = (): string => {
-  const accessibleRoutes = ROUTES
-  return accessibleRoutes.length > 0 ? accessibleRoutes[0].path : "/dashboard"
+export const getFirstAccessibleRoute = (hasPermission: (perm: string) => boolean): string => {
+  for (const route of ROUTES) {
+    if (!route.permission || hasPermission(route.permission)) {
+      return route.path;
+    }
+  }
+  return "/dashboard";
 }
 
-export const checkRouteAccess = (): boolean => {
-  return true
+export const checkRouteAccess = (path: string, hasPermission: (perm: string) => boolean): boolean => {
+  const route = ROUTES.find(r => r.path === path);
+  if (!route) return false;
+  if (!route.permission) return true;
+  return hasPermission(route.permission);
 } 

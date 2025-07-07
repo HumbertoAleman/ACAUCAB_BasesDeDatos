@@ -59,14 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth()
   }, [])
 
-  const hasPermission = (permission: string): boolean => {
-    // La única comprobación de permisos que queda es para el rol de administrador.
-    // El resto de la lógica de privilegios ha sido eliminada.
-    if (permission === 'admin_only') {
-      return user?.rol === 'Administrador'
-    }
-    // Para todo lo demás, se concede el acceso.
-    return true
+  const hasPermission = (_permission: string): boolean => {
+    return !!user;
   };
 
   const login = async (credentials: LoginCredentials) => {
@@ -78,6 +72,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const userToStore: UsuarioFront = {
           username: userData.username,
           rol: userData.rol,
+          fk_clie: 'fk_clie' in userData ? (userData.fk_clie !== undefined && userData.fk_clie !== null ? String(userData.fk_clie) : null) : null,
+          fk_empl: 'fk_empl' in userData ? (userData.fk_empl !== undefined && userData.fk_empl !== null ? Number(userData.fk_empl) : null) : null,
+          fk_miem: 'fk_miem' in userData ? (userData.fk_miem !== undefined && userData.fk_miem !== null ? String(userData.fk_miem) : null) : null
         }
         localStorage.setItem("acaucab_token", token)
         localStorage.setItem("acaucab_user", JSON.stringify(userToStore))

@@ -67,7 +67,7 @@ export interface RegistroEvento {
   cod_regi_even: number;
   fk_even: number; // Foreign Key to Evento (part of composite PK)
   fk_juez?: number | null; // Foreign Key to Juez (arc)
-  fk_clie?: number | null; // Foreign Key to Cliente (arc)
+  fk_clie?: string | null; // Foreign Key to Cliente (arc) - RIF del cliente
   fk_miem?: string | null; // Foreign Key to Miembro (arc)
   fecha_hora_regi_even: string; // timestamp
 }

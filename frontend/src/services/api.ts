@@ -7,6 +7,8 @@ import type {
   VentaCompleta 
 } from '../interfaces/ventas'
 import type { Lugar, Banco } from '../interfaces/common'
+import type { Evento, TipoEvento, RegistroEvento } from '../interfaces/eventos'
+import type { Miembro } from '../interfaces/miembros'
 
 // Configuración base de la API
 const API_URL = 'http://127.0.0.1:3000' // URL Base para todos los endpoints
@@ -467,8 +469,6 @@ export const procesarVenta = async (venta: VentaCompleta): Promise<{ success: bo
     // Lógica para enviar la venta al backend
     // Aquí es donde realizarías la petición POST al endpoint /venta
     // Ejemplo usando fetch:
-    console.log("Enviando venta al backend:", venta);
-
 
     const response = await fetch(`${API_BASE_URL}/venta`, {
       method: 'POST',
@@ -660,8 +660,16 @@ export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
 export const getCarrito = async (clienteID: string): Promise<any> => {
   try {
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`);
+    if (response.status === 204) return null; // No hay carrito
     if (!response.ok) throw new Error('Error al obtener el carrito');
-    return await response.json();
+    // Manejar respuesta vacía o no JSON
+    const text = await response.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error fetching carrito:', error);
     return null;
@@ -671,15 +679,17 @@ export const getCarrito = async (clienteID: string): Promise<any> => {
 /**
  * Crea un carrito para un cliente
  */
-export const createCarrito = async (clienteID: string, data: any): Promise<any> => {
+export const createCarrito = async (clienteID: string): Promise<any> => {
   try {
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Error al crear el carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error creating carrito:', error);
     return null;
@@ -702,20 +712,6 @@ export const deleteCarrito = async (clienteID: string): Promise<boolean> => {
 };
 
 /**
- * Obtiene los items del carrito de un cliente
- */
-export const getCarritoItems = async (clienteID: string): Promise<any[]> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`);
-    if (!response.ok) throw new Error('Error al obtener items del carrito');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching carrito items:', error);
-    return [];
-  }
-};
-
-/**
  * Agrega items al carrito de un cliente
  */
 export const addItemsToCarrito = async (clienteID: string, items: any[]): Promise<any> => {
@@ -723,10 +719,14 @@ export const addItemsToCarrito = async (clienteID: string, items: any[]): Promis
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify(items),
     });
     if (!response.ok) throw new Error('Error al agregar items al carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error adding items to carrito:', error);
     return null;
@@ -741,10 +741,14 @@ export const removeItemsFromCarrito = async (clienteID: string, items: any[]): P
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify(items),
     });
     if (!response.ok) throw new Error('Error al eliminar items del carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error removing items from carrito:', error);
     return null;
@@ -752,13 +756,18 @@ export const removeItemsFromCarrito = async (clienteID: string, items: any[]): P
 };
 
 /**
- * Realiza el pago del carrito de un cliente
+ * Marca el carrito como pagado (concreta la compra)
  */
 export const payForCarrito = async (clienteID: string): Promise<any> => {
   try {
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`);
+    if (response.status === 204) return null;
     if (!response.ok) throw new Error('Error al pagar el carrito');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error paying for carrito:', error);
     return null;
@@ -776,9 +785,174 @@ export const registerPayment = async (clienteID: string, paymentData: any): Prom
       body: JSON.stringify(paymentData),
     });
     if (!response.ok) throw new Error('Error al registrar el pago');
-    return await response.json();
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error('Error registering payment:', error);
+    return null;
+  }
+};
+
+// ===== SERVICIOS DE EVENTOS =====
+
+/**
+ * Obtiene todos los tipos de evento
+ */
+export const getTiposEvento = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_URL}/quick/Tipo_Evento`);
+    if (!response.ok) throw new Error('Error al obtener tipos de evento');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching tipos de evento:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los lugares (parroquias)
+ */
+export const getLugares = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/parroquias`);
+    if (!response.ok) throw new Error('Error al obtener lugares');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching lugares:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los eventos
+ */
+export const getEventos = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_URL}/quick/Evento`);
+    if (!response.ok) throw new Error('Error al obtener eventos');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching eventos:', error);
+    return [];
+  }
+};
+
+/**
+ * Crea un nuevo evento
+ */
+export const createEvento = async (eventoData: any): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/evento`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventoData),
+    });
+    if (!response.ok) throw new Error('Error al crear evento');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating evento:', error);
+    return null;
+  }
+};
+
+/**
+ * Crea un evento recursivo
+ */
+export const createEventoRecursivo = async (eventoId: number, eventoData: any): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/evento/${eventoId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventoData),
+    });
+    if (!response.ok) throw new Error('Error al crear evento recursivo');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating evento recursivo:', error);
+    return null;
+  }
+};
+
+/**
+ * Obtiene todos los jueces
+ */
+export const getJueces = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_URL}/quick/Juez`);
+    if (!response.ok) throw new Error('Error al obtener jueces');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching jueces:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los empleados
+ */
+export const getEmpleados = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Empleado`);
+    if (!response.ok) throw new Error('Error al obtener empleados');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching empleados:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene todos los miembros
+ */
+export const getMiembros = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Miembro`);
+    if (!response.ok) throw new Error('Error al obtener miembros');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching miembros:', error);
+    return [];
+  }
+};
+
+/**
+ * Crea un registro de evento (compra de entrada)
+ */
+export const createRegistroEvento = async (registroData: any): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quick/Registro_Evento`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ info: registroData }),
+    });
+    if (!response.ok) throw new Error('Error al registrar entrada');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating registro evento:', error);
+    return null;
+  }
+};
+
+export const createJuez = async (juezData: {
+  primar_nom_juez: string;
+  segundo_nom_juez?: string | null;
+  primar_ape_juez: string;
+  segundo_ape_juez?: string | null;
+  ci_juez: number;
+}): Promise<any> => {
+  try {
+    const response = await fetch(`${API_URL}/quick/Juez`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ info: juezData }),
+    });
+    if (!response.ok) throw new Error('Error al crear juez');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating juez:', error);
     return null;
   }
 }; 

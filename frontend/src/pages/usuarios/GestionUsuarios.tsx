@@ -137,7 +137,6 @@ export const GestionUsuarios: React.FC = () => {
       fk_clie: newRelacionado.rif_clie,
       tipo_clie: newRelacionado.tipo_clie,
     };
-    console.log("Payload enviado a /api/clientes:", payload);
     const res = await createUsuarioCliente(payload);
     if (res.success) {
       setCreateModalOpen(false);
