@@ -144,3 +144,6 @@ DROP TABLE IF EXISTS Miembro CASCADE;
 
 -- DROP Lugar
 DROP TABLE IF EXISTS Lugar CASCADE;
+
+-- Drop Detalle_Entrada
+DROP TABLE IF EXISTS Detalle_Entrada CASCADE;

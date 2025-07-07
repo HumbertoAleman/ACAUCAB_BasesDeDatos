@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getTasaActual, procesarVenta } from '../../services/api';
+import { getTasaActual, procesarVenta, procesarVentaEntrada } from '../../services/api';
 import type { Evento, RegistroEvento } from '../../interfaces/eventos';
+import type { DetalleEntrada, PagoVenta } from '../../interfaces/ventas';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Select, MenuItem, FormControl, InputLabel,
@@ -87,53 +88,35 @@ const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento
     setProcesando(true);
     setMensajeExito(null);
     try {
-      const pago = {
-        metodo_pago: {
-          cod_meto_pago: 2, // Asumimos 2 = Tarjeta
-          tipo: 'Tarjeta' as 'Tarjeta',
-          numero_tarj: Number(camposTarjeta.numero_tarj),
-          fecha_venci_tarj: camposTarjeta.fecha_venci_tarj,
-          cvv_tarj: Number(camposTarjeta.cvv_tarj),
-          nombre_titu_tarj: camposTarjeta.nombre_titu_tarj,
-          credito: camposTarjeta.credito
-        },
-        monto: resumen.totalBs,
-        fecha_pago: new Date().toISOString().split('T')[0],
-        fk_tasa: tasa.cod_tasa
-      };
-      const ventaData = {
+      const ventaEntradaData = {
         fecha_vent: new Date().toISOString().split('T')[0],
         iva_vent: resumen.iva,
         base_imponible_vent: resumen.subtotal,
         total_vent: resumen.total,
         online: true,
         fk_clie: user.fk_clie || '',
-        fk_miem: user.fk_miem || undefined,
         fk_even: evento.cod_even,
         items: [{
-          producto: {
-            fk_cerv_pres_1: 0,
-            fk_cerv_pres_2: 0,
-            fk_tien: 0,
-            fk_luga_tien: 0,
-            nombre_cerv: evento.nombre_even,
-            nombre_pres: '',
-            capacidad_pres: 0,
-            tipo_cerveza: '',
-            miembro_proveedor: '',
-            cant_pres: 0,
-            precio_actual_pres: evento.precio_entrada_even || 0,
-            lugar_tienda: '',
-            estado: 'Disponible' as 'Disponible',
-            _key: ''
+          cant_deta_entr: cantidad,
+          precio_unitario_entr: evento.precio_entrada_even || 0,
+          fk_even: evento.cod_even
+        } as Partial<DetalleEntrada>],
+        pagos: [{
+          metodo_pago: {
+            cod_meto_pago: 2,
+            tipo: 'Tarjeta',
+            numero_tarj: Number(camposTarjeta.numero_tarj),
+            fecha_venci_tarj: camposTarjeta.fecha_venci_tarj,
+            cvv_tarj: Number(camposTarjeta.cvv_tarj),
+            nombre_titu_tarj: camposTarjeta.nombre_titu_tarj,
+            credito: camposTarjeta.credito
           },
-          cantidad,
-          precio_unitario: evento.precio_entrada_even || 0,
-          subtotal: resumen.subtotal
-        }],
-        pagos: [pago]
+          monto: resumen.totalBs,
+          fecha_pago: new Date().toISOString().split('T')[0],
+          fk_tasa: tasa.cod_tasa
+        } as PagoVenta]
       };
-      const resultado = await procesarVenta(ventaData);
+      const resultado = await procesarVentaEntrada(ventaEntradaData);
       if (resultado.success && resultado.cod_vent) {
         setMensajeExito(`¡Compra realizada exitosamente! Código de venta: ${resultado.cod_vent}`);
         setTimeout(() => {

@@ -106,6 +106,19 @@ export interface DetalleVenta {
 }
 
 /**
+ * @interface DetalleEntrada
+ * @description Interfaz para la tabla 'Detalle_Entrada'.
+ * Detalla los tickets incluidos en una venta de entradas.
+ */
+export interface DetalleEntrada {
+  cod_deta_entr?: number;
+  cant_deta_entr: number; // integer
+  precio_unitario_entr: number; // numeric(8, 2)
+  fk_vent?: number; // Foreign Key to Venta
+  fk_even: number; // Foreign Key to Evento
+}
+
+/**
  * @interface MetodoPago
  * @description Interfaz para la tabla 'Metodo_Pago'.
  * Supertipo para los métodos de pago.
@@ -447,4 +460,35 @@ export interface ResumenVenta {
   tasa_actual: number;
   puntos_generados: number;
   fecha_venta: string;
+}
+
+/**
+ * @interface VentaEntradaCompleta
+ * @description Interfaz para una venta completa de entradas
+ * Basada en Venta + Detalle_Entrada + Pago
+ */
+export interface VentaEntradaCompleta {
+  cod_vent?: number;
+  fecha_vent: string;
+  iva_vent: number;
+  base_imponible_vent: number;
+  total_vent: number;
+  online: boolean;
+
+  // Cliente
+  fk_clie?: string;
+
+  // Evento
+  fk_even: number;
+
+  // Items de la venta de entradas
+  items: DetalleEntrada[];
+
+  // Pagos múltiples
+  pagos: PagoVenta[];
+
+  // Información adicional
+  tasa_dia?: TasaVenta;
+  total_usd?: number;
+  total_bs?: number;
 }

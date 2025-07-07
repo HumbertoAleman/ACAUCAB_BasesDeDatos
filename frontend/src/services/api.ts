@@ -4,7 +4,8 @@ import type {
   ClienteDetallado, 
   TasaVenta, 
   MetodoPagoCompleto, 
-  VentaCompleta 
+  VentaCompleta,
+  VentaEntradaCompleta
 } from '../interfaces/ventas'
 import type { Lugar, Banco } from '../interfaces/common'
 import type { Evento, TipoEvento, RegistroEvento } from '../interfaces/eventos'
@@ -960,4 +961,31 @@ export const addJuecesEvento = async (eventoId: number, jueces: number[], fecha_
     body: JSON.stringify({ jueces, fecha_hora_regi_even })
   });
   return await response.json();
+};
+
+/**
+ * Procesa una venta completa de entradas
+ */
+export const procesarVentaEntrada = async (venta: VentaEntradaCompleta): Promise<{ success: boolean; cod_vent?: number; message?: string }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/venta-entrada`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(venta),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error al procesar la venta de entradas');
+    }
+    const result = await response.json();
+    return { success: true, cod_vent: result.cod_vent };
+  } catch (error) {
+    console.error('Error processing venta de entradas:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error desconocido al procesar la venta de entradas'
+    };
+  }
 }; 

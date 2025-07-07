@@ -626,3 +626,15 @@ CREATE TABLE IF NOT EXISTS PUNT_CLIE (
     CONSTRAINT cambia FOREIGN KEY (fk_tasa) REFERENCES Tasa (cod_tasa),
     CONSTRAINT generado FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent)
 );
+
+CREATE TABLE IF NOT EXISTS Detalle_Entrada (
+    cod_deta_entr serial,
+    cant_deta_entr integer NOT NULL,
+    precio_unitario_entr numeric(32, 2) NOT NULL,
+    fk_vent integer NOT NULL,
+    fk_even integer NOT NULL,
+    CONSTRAINT incluye_entrada FOREIGN KEY (fk_vent) REFERENCES Venta (cod_vent),
+    CONSTRAINT pertenece_evento FOREIGN KEY (fk_even) REFERENCES Evento (cod_even),
+    -- El mismo ticket no puede estar presente en la misma venta mas de una vez
+    CONSTRAINT unique_keys_entrada UNIQUE (fk_vent, fk_even)
+);
