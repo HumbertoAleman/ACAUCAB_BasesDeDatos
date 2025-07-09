@@ -329,6 +329,7 @@ CREATE TABLE IF NOT EXISTS Venta (
     fk_even integer,
     fk_tien integer,
     fk_cuot integer,
+	fk_empl integer,
     PRIMARY KEY (cod_vent),
     -- Arco entre fk_clie - fk_miem
     CONSTRAINT compra FOREIGN KEY (fk_clie) REFERENCES Cliente (rif_clie) ON DELETE CASCADE,
@@ -338,7 +339,9 @@ CREATE TABLE IF NOT EXISTS Venta (
     CONSTRAINT promociona FOREIGN KEY (fk_even) REFERENCES Evento (cod_even) ON DELETE CASCADE,
     CONSTRAINT hace FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien) ON DELETE CASCADE,
     CONSTRAINT cobra FOREIGN KEY (fk_cuot) REFERENCES Cuota (cod_cuot) ON DELETE CASCADE,
-    CHECK ((fk_even IS NOT NULL AND fk_tien IS NULL AND fk_cuot IS NULL) OR (fk_tien IS NOT NULL AND fk_cuot IS NULL AND fk_even IS NULL) OR (fk_cuot IS NOT NULL AND fk_even IS NULL AND fk_tien IS NULL))
+    CHECK ((fk_even IS NOT NULL AND fk_tien IS NULL AND fk_cuot IS NULL) OR (fk_tien IS NOT NULL AND fk_cuot IS NULL AND fk_even IS NULL) OR (fk_cuot IS NOT NULL AND fk_even IS NULL AND fk_tien IS NULL)),
+	-- Empleado foreign
+	CONSTRAINT efectua FOREIGN KEY (fk_empl) REFERENCES Empleado (cod_empl) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Usuario (
