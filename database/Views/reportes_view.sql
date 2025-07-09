@@ -284,7 +284,7 @@ $$;
 -- 1. Ticket Promedio (VMP)
 CREATE OR REPLACE VIEW ticket_promedio_view AS
 SELECT fecha_vent "Fecha de Venta", 
-       COALESCE(SUM(total_vent) / NULLIF(COUNT(*),0),0) AS "Ticket Promedio"
+    COALESCE(SUM(total_vent) / NULLIF(COUNT(*),0),0) AS "Ticket Promedio"
 FROM Venta
 GROUP BY fecha_vent;
 
@@ -298,9 +298,9 @@ GROUP BY v.fecha_vent;
 -- 3. Clientes Nuevos vs. Recurrentes
 CREATE OR REPLACE VIEW clientes_nuevos_recurrentes_view AS
 SELECT c.rif_clie, 
-       MIN(v.fecha_vent) AS "Primera Compra", 
-       COUNT(v.cod_vent) AS "Total Compras",
-       CASE WHEN COUNT(v.cod_vent) = 1 THEN 'Nuevo' ELSE 'Recurrente' END AS "Tipo Cliente"
+        MIN(v.fecha_vent) AS "Primera Compra", 
+        COUNT(v.cod_vent) AS "Total Compras",
+        CASE WHEN COUNT(v.cod_vent) = 1 THEN 'Nuevo' ELSE 'Recurrente' END AS "Tipo Cliente"
 FROM Cliente c
 JOIN Venta v ON c.rif_clie = v.fk_clie
 GROUP BY c.rif_clie;
@@ -310,16 +310,16 @@ CREATE OR REPLACE VIEW tasa_retencion_clientes_view AS
 SELECT 
   COUNT(DISTINCT CASE WHEN sub."Total Compras" > 1 THEN sub.rif_clie END) * 100.0 / NULLIF(COUNT(DISTINCT sub.rif_clie),0) AS "Tasa Retencion (%)"
 FROM (
-  SELECT c.rif_clie, COUNT(v.cod_vent) AS "Total Compras"
-  FROM Cliente c
-  JOIN Venta v ON c.rif_clie = v.fk_clie
-  GROUP BY c.rif_clie
+    SELECT c.rif_clie, COUNT(v.cod_vent) AS "Total Compras"
+    FROM Cliente c
+    JOIN Venta v ON c.rif_clie = v.fk_clie
+    GROUP BY c.rif_clie
 ) sub;
 
 -- 5. Rotación de Inventario (simple)
 CREATE OR REPLACE VIEW rotacion_inventario_view AS
 SELECT 
-  SUM(dv.cant_deta_vent) / NULLIF(AVG(it.cant_pres),0) AS "Rotacion Inventario"
+    SUM(dv.cant_deta_vent) / NULLIF(AVG(it.cant_pres),0) AS "Rotacion Inventario"
 FROM Detalle_Venta dv
 JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2;
 
