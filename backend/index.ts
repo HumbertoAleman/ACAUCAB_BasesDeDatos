@@ -102,15 +102,5 @@ Bun.serve({
 		...CarritoService.routes,
 		...EventoService.routes,
 		...TipoEventoService.routes,
-
-		"/api/carrito/:clienteID": {
-			OPTIONS: () => new Response("OK", CORS_HEADERS),
-			GET: async (req: any) =>
-				await CarritoService.getCarritoAndItems(req.params.clienteID),
-			POST: async (req: any) =>
-				await CarritoService.createCarritoForCliente(req.params.clienteID),
-			DELETE: async (req: any) =>
-				await CarritoService.clearCarritoForCliente(req.params.clienteID),
-		},
-	},
+	}
 });
