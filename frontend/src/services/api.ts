@@ -57,7 +57,6 @@ async function apiRequest<T>(
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
         ...(codUsua && { Authorization: codUsua }),
         ...options.headers,
       },
