@@ -1,3 +1,189 @@
+-- [[ SETUP DATABASE USERS ]] --
+CREATE OR REPLACE FUNCTION auto_asign_rol_to_user ()
+    RETURNS TRIGGER
+    AS $$
+DECLARE
+    rol_codigo int;
+    rol_nombre text;
+    usename text;
+    groname text;
+BEGIN
+    SELECT
+        cod_rol,
+        nombre_rol INTO rol_codigo,
+        rol_nombre
+    FROM
+        Rol
+    WHERE
+        cod_rol = NEW.fk_rol;
+    usename = rol_codigo || '_' || rol_nombre;
+    groname = NEW.cod_usua || '_' || NEW.username_usua;
+    EXECUTE format('CREATE USER %I WITH PASSWORD %L', groname, NEW.contra_usua);
+    EXECUTE format('GRANT %I TO %I', usename, groname);
+    RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER auto_asign_rol_to_user_tri
+    AFTER INSERT ON Usuario
+    FOR EACH ROW
+    EXECUTE FUNCTION auto_asign_rol_to_user ();
+
+CREATE OR REPLACE FUNCTION auto_change_rol_on_user_change ()
+    RETURNS TRIGGER
+    AS $$
+DECLARE
+    rol_codigo int;
+    rol_nombre text;
+    old_rol_codigo int;
+    old_rol_nombre text;
+    usename text;
+    groname text;
+    old_usename text;
+BEGIN
+    SELECT
+        cod_rol,
+        nombre_rol INTO rol_codigo,
+        rol_nombre
+    FROM
+        Rol
+    WHERE
+        cod_rol = NEW.fk_rol;
+    SELECT
+        cod_rol,
+        nombre_rol INTO old_rol_codigo,
+        old_rol_nombre
+    FROM
+        Rol
+    WHERE
+        cod_rol = OLD.fk_rol;
+    usename = rol_codigo || '_' || rol_nombre;
+    old_usename = old_rol_codigo || '_' || old_rol_nombre;
+    groname = NEW.cod_usua || '_' || NEW.username_usua;
+    EXECUTE format('REVOKE %I FROM %I', old_usename, groname);
+    EXECUTE format('GRANT %I TO %I', usename, groname);
+    RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER auto_change_rol_on_user_change_tri
+    AFTER UPDATE ON Usuario
+    FOR EACH ROW
+    EXECUTE FUNCTION auto_change_rol_on_user_change ();
+
+CREATE OR REPLACE FUNCTION auto_create_group ()
+    RETURNS TRIGGER
+    AS $$
+BEGIN
+    EXECUTE format('CREATE ROLE %I', NEW.cod_rol || '_' || NEW.nombre_rol);
+    RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER auto_create_group_tri
+    AFTER INSERT ON Rol
+    FOR EACH ROW
+    EXECUTE FUNCTION auto_create_group ();
+
+CREATE OR REPLACE FUNCTION grant_privilege_on_priv_rol_add ()
+    RETURNS TRIGGER
+    AS $$
+DECLARE
+    rol record;
+    priv record;
+    permission text;
+    table_name text;
+    group_name text;
+BEGIN
+    SELECT
+        *
+    FROM
+        Rol
+    WHERE
+        NEW.fk_rol = cod_rol INTO rol;
+    SELECT
+        *
+    FROM
+        Privilegio
+    WHERE
+        NEW.fk_priv = cod_priv INTO priv;
+    group_name = rol.cod_rol || '_' || rol.nombre_rol;
+    SELECT
+        substring(priv.nombre_priv FROM 1 FOR position('_' IN priv.nombre_priv) - 1),
+        substring(priv.nombre_priv FROM position('_' IN priv.nombre_priv) + 1) INTO permission,
+        table_name;
+    IF permission = 'insert' THEN
+        EXECUTE format('GRANT INSERT ON TABLE %I TO %I', table_name, group_name);
+    ELSIF permission = 'select' THEN
+        EXECUTE format('GRANT SELECT ON TABLE %I TO %I', table_name, group_name);
+    ELSIF permission = 'update' THEN
+        EXECUTE format('GRANT UPDATE ON TABLE %I TO %I', table_name, group_name);
+    ELSIF permission = 'delete' THEN
+        EXECUTE format('GRANT DELETE ON TABLE %I TO %I', table_name, group_name);
+    ELSE
+        RAISE NOTICE 'Unknown permission: %', permission;
+    END IF;
+    RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER grant_privilege_on_priv_rol_add_tri
+    AFTER INSERT ON PRIV_ROL
+    FOR EACH ROW
+    EXECUTE FUNCTION grant_privilege_on_priv_rol_add ();
+
+CREATE OR REPLACE FUNCTION revoke_privilege_on_rol_delete ()
+    RETURNS TRIGGER
+    AS $$
+DECLARE
+    rol record;
+    priv record;
+    permission text;
+    table_name text;
+    group_name text;
+BEGIN
+    SELECT
+        *
+    FROM
+        Rol
+    WHERE
+        OLD.fk_rol = cod_rol INTO rol;
+    SELECT
+        *
+    FROM
+        Privilegio
+    WHERE
+        OLD.fk_priv = cod_priv INTO priv;
+    group_name = rol.cod_rol || '_' || rol.nombre_rol;
+    SELECT
+        substring(priv.nombre_priv FROM 1 FOR position('_' IN priv.nombre_priv) - 1),
+        substring(priv.nombre_priv FROM position('_' IN priv.nombre_priv) + 1) INTO permission,
+        table_name;
+    IF permission = 'insert' THEN
+        EXECUTE format('REVOKE INSERT ON TABLE %I FROM %I', table_name, group_name);
+    ELSIF permission = 'select' THEN
+        EXECUTE format('REVOKE SELECT ON TABLE %I FROM %I', table_name, group_name);
+    ELSIF permission = 'update' THEN
+        EXECUTE format('REVOKE UPDATE ON TABLE %I FROM %I', table_name, group_name);
+    ELSIF permission = 'delete' THEN
+        EXECUTE format('REVOKE DELETE ON TABLE %I FROM %I', table_name, group_name);
+    ELSE
+        RAISE NOTICE 'Unknown permission: %', permission;
+    END IF;
+    RETURN OLD;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER revoke_privilege_on_rol_delete_tri
+    AFTER DELETE ON PRIV_ROL
+    FOR EACH ROW
+    EXECUTE FUNCTION revoke_privilege_on_rol_delete ();
+
 --[[[ FUNCTION BEGIN ]]]--
 CREATE OR REPLACE FUNCTION create_or_insert_tasa (curr_date date)
     RETURNS integer
@@ -854,7 +1040,7 @@ CREATE OR REPLACE PROCEDURE privileges ()
 DECLARE
     x text;
     y text;
-    perms varchar(10)[] = ARRAY['create', 'read', 'update', 'delete'];
+    perms varchar(10)[] = ARRAY['insert', 'select', 'update', 'delete'];
 BEGIN
     FOR x IN (
         SELECT
@@ -864,7 +1050,7 @@ BEGIN
         LOOP
             FOREACH y IN ARRAY perms LOOP
                 INSERT INTO Privilegio (nombre_priv, descripcion_priv)
-                    VALUES (x || '_' || y, 'Privilegio para ' || y || ' la tabla ' || x);
+                    VALUES (y || '_' || x, 'Privilegio para ' || y || ' la tabla ' || x);
             END LOOP;
         END LOOP;
 END
