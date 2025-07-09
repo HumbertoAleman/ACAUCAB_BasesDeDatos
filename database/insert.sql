@@ -1579,7 +1579,7 @@ BEGIN
         monto := (SELECT precio_entrada_even FROM Evento WHERE cod_even = fk_even);
         iva := monto*0.16;
         total := monto+iva;
-        INSERT INTO Venta (fecha_vent, iva_vent, base_imponible_vent, total_vent, fk_clie, fk_miem, fk_even, fk_tien, fk_cuot, fk_empl) VALUES (CURRENT_DATE, iva, monto, total, get_random_juridico(), null, fk_even, null, null, (SELECT cod_empl FROM Empleado ORDER BY RANDOM() LIMIT 1));
+        INSERT INTO Venta (fecha_vent, iva_vent, base_imponible_vent, total_vent, fk_clie, fk_miem, fk_even, fk_tien, fk_cuot, fk_empl) VALUES (CURRENT_DATE, iva, monto, total, get_random_juridico(), null, fk_even, null, null, null);
     END LOOP;
 END;
 $$;
