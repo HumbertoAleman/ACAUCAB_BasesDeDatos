@@ -8,7 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { Layout } from "./components/layout/Layout"
 import { LoginForm } from "./components/auth/LoginForm"
-import { Dashboard } from "./pages/Dashboard"
+import { Homepage } from "./pages/Homepage"
 import { PuntoVenta } from "./pages/ventas/PuntoVenta"
 import { GestionInventario } from "./pages/inventario/GestionInventario"
 import { GestionUsuarios } from "./pages/usuarios/GestionUsuarios"
@@ -19,6 +19,7 @@ import { RegistroCliente } from "./pages/clientes/RegistroCliente"
 import { GestionOrdenes } from "./pages/compras/GestionOrdenes"
 import PuntoVentaOnline from './pages/ventas/PuntoVentaOnline'
 import GestionEventos from './pages/eventos/GestionEventos'
+import Dashboard from "./pages/reportes/Dashboard";
 
 // Crear cliente de React Query
 const queryClient = new QueryClient({
@@ -124,18 +125,19 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <Routes>
-                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/" element={<Navigate to="/homepage" replace />} />
+                        <Route path="/homepage" element={<Homepage />} />
                         <Route path="/ventas" element={<PuntoVenta />} />
                         <Route path="/inventario" element={<GestionInventario />} />
                         <Route path="/compras" element={<GestionOrdenes />} />
                         <Route path="/usuarios" element={<GestionUsuarios />} />
                         <Route path="/reportes" element={<Reportes />} />
+                        <Route path="/reportes/dashboard" element={<Dashboard />} />
                         <Route path="/privilegios" element={<GestionPrivilegios />} />
                         <Route path="/miembros/registro" element={<RegistroMiembro />} />
                         <Route path="/ventas-online" element={<PuntoVentaOnline />} />
                         <Route path="/eventos" element={<GestionEventos />} />
-                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="*" element={<Navigate to="/homepage" replace />} />
                       </Routes>
                     </Layout>
                   </ProtectedRoute>

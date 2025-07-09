@@ -409,7 +409,7 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
         if (redirigir) {
           alert('Carrito guardado exitosamente.');
           setItemsVenta([]);
-          if (window.location) window.location.href = '/dashboard';
+          if (window.location) window.location.href = '/homepage';
         }
       } else {
         alert(`Error al guardar el carrito: ${resultado?.message || resultado?.error || 'Error desconocido'}`);

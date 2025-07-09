@@ -74,13 +74,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           rol: userData.rol,
           fk_clie: 'fk_clie' in userData ? (userData.fk_clie !== undefined && userData.fk_clie !== null ? String(userData.fk_clie) : null) : null,
           fk_empl: 'fk_empl' in userData ? (userData.fk_empl !== undefined && userData.fk_empl !== null ? Number(userData.fk_empl) : null) : null,
-          fk_miem: 'fk_miem' in userData ? (userData.fk_miem !== undefined && userData.fk_miem !== null ? String(userData.fk_miem) : null) : null,
-          ...('cod_usua' in userData && typeof userData.cod_usua === 'number' ? { cod_usua: userData.cod_usua } : {})
+          fk_miem: 'fk_miem' in userData ? (userData.fk_miem !== undefined && userData.fk_miem !== null ? String(userData.fk_miem) : null) : null
+        };
+        if ('cod_usua' in userData) {
+          (userToStore as any).cod_usua = userData.cod_usua;
         }
         localStorage.setItem("acaucab_token", token)
         localStorage.setItem("acaucab_user", JSON.stringify(userToStore))
         setUser(userToStore)
-        navigate("/dashboard", { replace: true })
+        navigate("/homepage", { replace: true })
       } else {
         throw new Error(response.error || "Credenciales inválidas")
       }
