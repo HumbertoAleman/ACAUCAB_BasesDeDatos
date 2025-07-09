@@ -147,3 +147,37 @@ DROP TABLE IF EXISTS Lugar CASCADE;
 
 -- Drop Detalle_Entrada
 DROP TABLE IF EXISTS Detalle_Entrada CASCADE;
+
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN
+    SELECT
+        usename
+    FROM
+        pg_user
+    WHERE
+        usename <> 'postgres' LOOP
+            EXECUTE 'DROP USER ' || quote_ident(r.usename) || ';';
+        END LOOP;
+END
+$$;
+
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN
+    SELECT
+        rolname
+    FROM
+        pg_roles
+    WHERE
+        rolname NOT IN ('postgres', 'pg_create_subscription', 'pg_maintain', 'pg_use_reserved_connections', 'pg_checkpoint', 'pg_read_server_files', 'pg_write_server_files', 'pg_write_server_files', 'pg_database_owner', 'pg_read_all_settings', 'pg_stat_scan_tables', 'pg_read_all_data', 'pg_write_all_data', 'pg_execute_server_program', 'pg_monitor', 'pg_signal_backend', 'pg_read_all_stats', 'pg_write_all_stats')
+        LOOP
+            EXECUTE 'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM ' || quote_ident(r.rolname);
+            EXECUTE 'DROP ROLE ' || quote_ident(r.rolname);
+        END LOOP;
+END
+$$;
