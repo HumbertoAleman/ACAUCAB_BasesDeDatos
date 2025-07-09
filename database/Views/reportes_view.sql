@@ -506,3 +506,66 @@ BEGIN
     GROUP BY c.nombre_cerv;
 END;
 $$;
+
+-- Vista para factura de venta de productos (física/online)
+CREATE OR REPLACE VIEW factura_venta_productos_view AS
+SELECT 
+    v.cod_vent AS id_venta,
+    v.fecha_vent AS fecha,
+    v.iva_vent AS iva,
+    v.base_imponible_vent AS base_imponible,
+    v.total_vent AS total,
+    v.online AS venta_online,
+    v.fk_tien AS id_tienda,
+    t.nombre_tien AS nombre_tienda,
+    t.direccion_tien AS direccion_tienda,
+    cl.rif_clie AS rif_cliente,
+    cl.tipo_clie AS tipo_cliente,
+    cl.primer_nom_natu AS nombre_cliente,
+    cl.primer_ape_natu AS apellido_cliente,
+    cl.razon_social_juri AS razon_social,
+    cl.direccion_fiscal_clie AS direccion_fiscal,
+    cr.prefijo_corr || '@' || cr.dominio_corr AS correo_cliente,
+    dv.cant_deta_vent AS cantidad,
+    dv.precio_unitario_vent AS precio_unitario,
+    (dv.cant_deta_vent * dv.precio_unitario_vent) AS subtotal,
+    c.nombre_cerv AS producto,
+    p.nombre_pres AS presentacion
+FROM Venta v
+JOIN Detalle_Venta dv ON dv.fk_vent = v.cod_vent
+JOIN CERV_PRES cp ON dv.fk_inve_tien_1 = cp.fk_cerv AND dv.fk_inve_tien_2 = cp.fk_pres
+JOIN Cerveza c ON cp.fk_cerv = c.cod_cerv
+JOIN Presentacion p ON cp.fk_pres = p.cod_pres
+LEFT JOIN Cliente cl ON v.fk_clie = cl.rif_clie
+LEFT JOIN Correo cr ON cl.rif_clie = cr.fk_clie
+LEFT JOIN Tienda t ON v.fk_tien = t.cod_tien;
+
+-- Vista para factura de venta de entradas de eventos
+CREATE OR REPLACE VIEW factura_venta_entradas_view AS
+SELECT 
+    v.cod_vent AS id_venta,
+    v.fecha_vent AS fecha,
+    v.iva_vent AS iva,
+    v.base_imponible_vent AS base_imponible,
+    v.total_vent AS total,
+    v.online AS venta_online,
+    v.fk_even AS id_evento,
+    e.nombre_even AS nombre_evento,
+    e.direccion_even AS direccion_evento,
+    cl.rif_clie AS rif_cliente,
+    cl.tipo_clie AS tipo_cliente,
+    cl.primer_nom_natu AS nombre_cliente,
+    cl.primer_ape_natu AS apellido_cliente,
+    cl.razon_social_juri AS razon_social,
+    cl.direccion_fiscal_clie AS direccion_fiscal,
+    cr.prefijo_corr || '@' || cr.dominio_corr AS correo_cliente,
+    de.cant_deta_entr AS cantidad,
+    de.precio_unitario_entr AS precio_unitario,
+    (de.cant_deta_entr * de.precio_unitario_entr) AS subtotal
+FROM Venta v
+JOIN Detalle_Entrada de ON de.fk_vent = v.cod_vent
+JOIN Evento e ON v.fk_even = e.cod_even
+LEFT JOIN Cliente cl ON v.fk_clie = cl.rif_clie
+LEFT JOIN Correo cr ON cl.rif_clie = cr.fk_clie;
+
+-- Fin vistas de factura
