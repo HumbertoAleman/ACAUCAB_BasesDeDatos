@@ -9,7 +9,7 @@ import {
 } from "@mui/material"
 import { Link as RouterLink, useNavigate } from "react-router-dom"
 import {
-  Dashboard as DashboardIcon,
+  Dashboard as HomepageIcon,
   ShoppingCart,
   Inventory,
   Assessment,
@@ -17,40 +17,45 @@ import {
   Settings,
   VerifiedUser,
   Receipt,
+  EventAvailable,
+  Insights,
 } from "@mui/icons-material"
 import { ROUTES } from "../config/routes"
 
 const routeIcons: Record<string, React.ReactElement> = {
-  "/dashboard": <DashboardIcon />,
+  "/homepage": <HomepageIcon />,
   "/ventas": <ShoppingCart />,
   "/inventario": <Inventory />,
   "/compras": <Receipt />,
   "/reportes": <Assessment />,
+  "/reportes/dashboard": <Insights />,
+  "/eventos": <EventAvailable />,
   "/usuarios": <People />,
   "/privilegios": <VerifiedUser />,
   "/configuracion": <Settings />,
 }
 
 const routeColors: Record<string, string> = {
-  "/dashboard": "#2E7D32",
+  "/homepage": "#2E7D32",
   "/ventas": "#4CAF50",
   "/inventario": "#FF9800",
   "/compras": "#9C27B0",
   "/reportes": "#2196F3",
+  "/reportes/dashboard": "#1976D2",
   "/usuarios": "#00ACC1",
   "/privilegios": "#F44336",
   "/configuracion": "#607D8B",
 }
 
-interface DashboardProps {
+interface HomepageProps {
   onVentaOnlineClick?: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onVentaOnlineClick }) => {
+export const Homepage: React.FC<HomepageProps> = ({ onVentaOnlineClick }) => {
   const navigate = useNavigate();
   // Solo módulos principales (inMenu)
   const mainRoutes = [
-    ...ROUTES.filter(r => r.inMenu && r.path !== "/dashboard"),
+    ...ROUTES.filter(r => r.inMenu && r.path !== "/homepage"),
   ];
 
   return (
@@ -106,4 +111,4 @@ export const Dashboard: React.FC<DashboardProps> = ({ onVentaOnlineClick }) => {
 }
 
 // Para identificar el componente en Layout
-Dashboard.displayName = 'Dashboard'
+Homepage.displayName = 'Homepage'

@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem("acaucab_token", token)
         localStorage.setItem("acaucab_user", JSON.stringify(userToStore))
         setUser(userToStore)
-        navigate("/dashboard", { replace: true })
+        navigate("/homepage", { replace: true })
       } else {
         throw new Error(response.error || "Credenciales inválidas")
       }

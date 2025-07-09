@@ -7,6 +7,7 @@ import { GestionPrivilegios } from "../pages/privilegios/GestionPrivilegios";
 import { GestionOrdenes } from "../pages/compras/GestionOrdenes";
 import PuntoVentaOnline from '../pages/ventas/PuntoVentaOnline';
 import GestionEventos from '../pages/eventos/GestionEventos';
+import Dashboard from "../pages/reportes/Dashboard";
 
 export interface RouteConfig {
   path: string
@@ -20,8 +21,8 @@ export interface RouteConfig {
 
 export const ROUTES: RouteConfig[] = [
   {
-    path: "/dashboard",
-    title: "Dashboard",
+    path: "/homepage",
+    title: "Homepage",
     description: "Panel principal del sistema",
     inMenu: true,
   },
@@ -51,6 +52,14 @@ export const ROUTES: RouteConfig[] = [
     permission: "reporte_read",
     title: "Reportes",
     description: "Reportes y estadísticas",
+    inMenu: true,
+  },
+  {
+    path: "/reportes/dashboard",
+    permission: "reporte_read",
+    title: "Dashboard",
+    description: "Dashboard de indicadores",
+    component: Dashboard,
     inMenu: true,
   },
   {
@@ -104,7 +113,7 @@ export const getFirstAccessibleRoute = (hasPermission: (perm: string) => boolean
       return route.path;
     }
   }
-  return "/dashboard";
+  return "/homepage";
 }
 
 export const checkRouteAccess = (path: string, hasPermission: (perm: string) => boolean): boolean => {

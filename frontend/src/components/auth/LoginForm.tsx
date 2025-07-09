@@ -23,9 +23,9 @@ export const LoginForm: React.FC = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // Si ya está autenticado, redirigir al dashboard o a la página original
+  // Si ya está autenticado, redirigir al homepage o a la página original
   if (user) {
-    const from = (location.state as any)?.from?.pathname || "/dashboard"
+    const from = (location.state as any)?.from?.pathname || "/homepage"
     return <Navigate to={from} replace />
   }
 

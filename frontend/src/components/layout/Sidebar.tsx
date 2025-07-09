@@ -12,16 +12,8 @@ import {
   Box,
   Typography,
 } from "@mui/material"
-import {
-  Dashboard,
-  ShoppingCart,
-  Inventory,
-  Assessment,
-  People,
-  Settings,
-  VerifiedUser, // Icono para privilegios
-  Receipt, // Icono para compras
-} from "@mui/icons-material"
+import { Dashboard as DashboardIcon, ShoppingCart, Inventory, Assessment, People, Settings, VerifiedUser, Receipt, EventAvailable, Insights } from "@mui/icons-material";
+import { Homepage } from "../../pages/Homepage";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import { getAccessibleRoutes } from "../../config/routes"
@@ -30,11 +22,13 @@ const drawerWidth = 280
 
 // Mapeo de iconos centralizado
 const routeIcons: Record<string, React.ReactElement> = {
-  "/dashboard": <Dashboard />,
+  "/homepage": <DashboardIcon />,
   "/ventas": <ShoppingCart />,
   "/inventario": <Inventory />,
   "/compras": <Receipt />,
   "/reportes": <Assessment />,
+  "/reportes/dashboard": <Insights />,
+  "/eventos": <EventAvailable />,
   "/usuarios": <People />,
   "/privilegios": <VerifiedUser />,
   "/configuracion": <Settings />,
@@ -52,6 +46,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Lógica original para obtener rutas basadas en permisos
   const accessibleRoutes = getAccessibleRoutes().filter(route => route.inMenu)
+
+  // Ordenar rutas: usuarios y privilegios al final
+  const orderedRoutes = [
+    ...accessibleRoutes.filter(r => r.path !== "/usuarios" && r.path !== "/privilegios"),
+    ...accessibleRoutes.filter(r => r.path === "/usuarios" || r.path === "/privilegios"),
+  ];
 
   return (
     <Drawer
@@ -79,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <Divider />
 
       <List>
-        {accessibleRoutes.map((route) => (
+        {orderedRoutes.map((route) => (
           <ListItem key={route.path} disablePadding component={RouterLink} to={route.path}>
             <ListItemButton
               selected={location.pathname === route.path}
