@@ -1564,6 +1564,46 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE insert_10venta_entrada ()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    fk_even integer;
+    monto numeric(32,2);
+    iva numeric(32,2);
+    total numeric (32,2);
+BEGIN
+    FOR i IN 1..10
+    LOOP
+        fk_even := (SELECT cod_even FROM evento ORDER BY RANDOM() LIMIT 1);
+        monto := (SELECT precio_entrada_even FROM Evento WHERE cod_even = fk_even);
+        iva := monto*0.16;
+        total := monto+iva;
+        INSERT INTO Venta (fecha_vent, iva_vent, base_imponible_vent, total_vent, fk_clie, fk_miem, fk_even, fk_tien, fk_cuot, fk_empl) VALUES (CURRENT_DATE, iva, monto, total, get_random_juridico(), null, fk_even, null, null, (SELECT cod_empl FROM Empleado ORDER BY RANDOM() LIMIT 1));
+    END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE insert_10detalle_entrada ()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    venta_entrada integer[];
+    evento_encontrado integer;
+    precio_entrada numeric(32,2);
+	v integer;
+BEGIN
+    SELECT array_agg(cod_vent) INTO venta_entrada FROM Venta WHERE fk_even IS NOT null LIMIT 10;
+    FOREACH v IN ARRAY venta_entrada
+    LOOP
+        evento_encontrado := (SELECT fk_even FROM Venta WHERE cod_vent = v);
+        precio_entrada := (SELECT precio_entrada_even FROM Evento WHERE cod_even = evento_encontrado); 
+        INSERT INTO Detalle_Entrada (cant_deta_entr, precio_unitario_entr, fk_vent, fk_even)
+        VALUES (1, precio_entrada, v, evento_encontrado);
+    END LOOP;
+END;
+$$;
+
 --[[[ TRIGGER BEGIN ]]]--
 
 -- Trigger to run before inserting on tasa, marks fecha_fin_tasa from latest one to the fecha_ini_tasa from NEW one
