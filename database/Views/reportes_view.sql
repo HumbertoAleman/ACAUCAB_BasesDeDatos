@@ -73,64 +73,33 @@ CREATE OR REPLACE VIEW obtener_ventas_view AS
 
 -- Procedimientos
 
-CREATE OR REPLACE FUNCTION periodo_ventas_totales (year int, month int, trimonth int, modalidad text)
-RETURNS TABLE ("Tipo" int, "Cantidad Ventas" bigint, "Total Ventas" numeric)
+CREATE OR REPLACE FUNCTION periodo_ventas_totales(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Tienda" varchar, "Total Ventas" numeric)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'mensual' THEN
-        RETURN QUERY
-        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
-        FROM ventas_totales_view
-        WHERE EXTRACT(MONTH FROM "Fecha de Venta") = month
-            AND EXTRACT(YEAR FROM "Fecha de Venta") = year
-        GROUP BY  "Tipo de Tienda";
-
-    ELSIF modalidad = 'trimestral' THEN
-        RETURN QUERY
-        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
-        FROM ventas_totales_view
-        WHERE EXTRACT(QUARTER FROM "Fecha de Venta") = trimonth
-            AND EXTRACT(YEAR FROM "Fecha de Venta") = year
-        GROUP BY  "Tipo de Tienda";
-
-    ELSIF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT CAST("Tipo de Tienda" AS int) "Tipo de Tienda", COUNT (*) "Cantidad por Tienda", SUM ("Total de Ventas") "Total de Ventas"
-        FROM ventas_totales_view
-        WHERE EXTRACT(YEAR FROM "Fecha de Venta") = year
-        GROUP BY  "Tipo de Tienda";
-
-    END IF;
+    RETURN QUERY
+    SELECT 
+      CASE WHEN v.online THEN 'Online' ELSE t.nombre_tien END AS "Tienda",
+      SUM(v.total_vent) AS "Total Ventas"
+    FROM Venta v
+    LEFT JOIN Tienda t ON v.fk_tien = t.cod_tien
+    WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY "Tienda";
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION crecimiento_ventas (ini varchar(10), fin varchar(10), modalidad text)
-RETURNS TABLE ("Rango de Fechas" text, "Diferencia" numeric, "Conclusión" text)
+CREATE OR REPLACE FUNCTION crecimiento_ventas(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Periodo" text, "Diferencia" numeric, "Conclusión" text)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'semanal' THEN
-        RETURN QUERY
-        SELECT (CAST(DATE_TRUNC('week', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('week', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
-        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('week', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('week', CAST(ini AS date))) AS ov1, 
-            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('week', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('week', CAST(fin AS date))) AS ov2;
-    ELSIF modalidad = 'mensual' THEN
-        RETURN QUERY
-        SELECT (CAST(DATE_TRUNC('month', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('month', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
-        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('month', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('month', CAST(ini AS date))) AS ov1, 
-            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('month', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('month', CAST(fin AS date))) AS ov2;
-    ELSIF modalidad = 'trimestral' THEN
-        RETURN QUERY
-        SELECT (CAST(DATE_TRUNC('quarter', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('quarter', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
-        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('quarter', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('quarter', CAST(ini AS date))) AS ov1, 
-            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('quarter', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('quarter', CAST(fin AS date))) AS ov2;
-    ELSIF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT (CAST(DATE_TRUNC('year', CAST(ini AS date)) AS date) || ' vs ' || CAST ( DATE_TRUNC('year', CAST(fin AS date)) AS date)) AS "Rango de Fechas", ov2."Total OV2" - ov1."Total OV1" AS "Diferencia", CASE WHEN ov2."Total OV2" - ov1."Total OV1" > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
-        FROM (SELECT SUM("Total de Ventas") AS "Total OV1" FROM obtener_ventas_view WHERE DATE_TRUNC('year', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('year', CAST(ini AS date))) AS ov1, 
-            (SELECT SUM("Total de Ventas")  AS "Total OV2" FROM obtener_ventas_view WHERE DATE_TRUNC('year', CAST("Fecha de Venta" AS date)) = DATE_TRUNC('year', CAST(fin AS date))) AS ov2;
-    END IF;
+    RETURN QUERY
+    SELECT (fecha_inicio::text || ' a ' || fecha_fin::text) AS "Periodo",
+           SUM("Total de Ventas") AS "Diferencia",
+           CASE WHEN SUM("Total de Ventas") > 0 THEN 'Crecimiento' ELSE 'Decrecimiento' END AS "Conclusión"
+    FROM obtener_ventas_view
+    WHERE "Fecha de Venta" BETWEEN fecha_inicio AND fecha_fin;
 END;
 $$;
 
@@ -350,228 +319,190 @@ SELECT * FROM Inventario_Tienda;
 -- FUNCIONES PARA DASHBOARD INTERACTIVO (NO MODIFICAR VISTAS EXISTENTES)
 
 -- Ticket Promedio (por periodo)
-CREATE OR REPLACE FUNCTION ticket_promedio_periodo(year int, month int, modalidad text)
-RETURNS TABLE ("Periodo" text, "Ticket Promedio" numeric)
+CREATE OR REPLACE FUNCTION ticket_promedio_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Periodo" varchar, "Ticket Promedio" numeric)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'mensual' THEN
-        RETURN QUERY
-        SELECT TO_CHAR(fecha_vent, 'YYYY-MM') as "Periodo", AVG(total_vent) as "Ticket Promedio"
-        FROM Venta
-        WHERE EXTRACT(YEAR FROM fecha_vent) = year AND EXTRACT(MONTH FROM fecha_vent) = month
-        GROUP BY TO_CHAR(fecha_vent, 'YYYY-MM');
-    ELSIF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT TO_CHAR(fecha_vent, 'YYYY') as "Periodo", AVG(total_vent) as "Ticket Promedio"
-        FROM Venta
-        WHERE EXTRACT(YEAR FROM fecha_vent) = year
-        GROUP BY TO_CHAR(fecha_vent, 'YYYY');
-    END IF;
+    RETURN QUERY
+    SELECT TO_CHAR(fecha_vent, 'YYYY-MM-DD')::varchar as "Periodo", AVG(total_vent) as "Ticket Promedio"
+    FROM Venta
+    WHERE fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY TO_CHAR(fecha_vent, 'YYYY-MM-DD');
 END;
 $$;
 
 -- Volumen de Unidades Vendidas (por periodo)
-CREATE OR REPLACE FUNCTION volumen_unidades_vendidas_periodo(year int, month int, modalidad text)
-RETURNS TABLE ("Periodo" text, "Unidades Vendidas" bigint)
+CREATE OR REPLACE FUNCTION volumen_unidades_vendidas_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Periodo" varchar, "Unidades Vendidas" bigint)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'mensual' THEN
-        RETURN QUERY
-        SELECT TO_CHAR(v.fecha_vent, 'YYYY-MM') as "Periodo", SUM(dv.cant_deta_vent) as "Unidades Vendidas"
-        FROM Venta v
-        JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
-        WHERE EXTRACT(YEAR FROM v.fecha_vent) = year AND EXTRACT(MONTH FROM v.fecha_vent) = month
-        GROUP BY TO_CHAR(v.fecha_vent, 'YYYY-MM');
-    ELSIF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT TO_CHAR(v.fecha_vent, 'YYYY') as "Periodo", SUM(dv.cant_deta_vent) as "Unidades Vendidas"
-        FROM Venta v
-        JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
-        WHERE EXTRACT(YEAR FROM v.fecha_vent) = year
-        GROUP BY TO_CHAR(v.fecha_vent, 'YYYY');
-    END IF;
+    RETURN QUERY
+    SELECT TO_CHAR(v.fecha_vent, 'YYYY-MM-DD')::varchar as "Periodo", SUM(dv.cant_deta_vent) as "Unidades Vendidas"
+    FROM Venta v
+    JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
+    WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY TO_CHAR(v.fecha_vent, 'YYYY-MM-DD');
 END;
 $$;
 
 -- Ventas por Estilo de Cerveza (por periodo)
-CREATE OR REPLACE FUNCTION ventas_por_estilo_periodo(year int, month int, modalidad text)
-RETURNS TABLE ("Estilo" text, "Unidades Vendidas" bigint)
+CREATE OR REPLACE FUNCTION ventas_por_estilo_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Estilo" varchar, "Unidades Vendidas" bigint)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'mensual' THEN
-        RETURN QUERY
-        SELECT tc.nombre_tipo_cerv as "Estilo", SUM(dv.cant_deta_vent) as "Unidades Vendidas"
-        FROM Venta v
-        JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
-        JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2
-        JOIN Cerveza c ON it.fk_cerv_pres_1 = c.cod_cerv
-        JOIN Tipo_Cerveza tc ON c.fk_tipo_cerv = tc.cod_tipo_cerv
-        WHERE EXTRACT(YEAR FROM v.fecha_vent) = year AND EXTRACT(MONTH FROM v.fecha_vent) = month
-        GROUP BY tc.nombre_tipo_cerv;
-    ELSIF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT tc.nombre_tipo_cerv as "Estilo", SUM(dv.cant_deta_vent) as "Unidades Vendidas"
-        FROM Venta v
-        JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
-        JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2
-        JOIN Cerveza c ON it.fk_cerv_pres_1 = c.cod_cerv
-        JOIN Tipo_Cerveza tc ON c.fk_tipo_cerv = tc.cod_tipo_cerv
-        WHERE EXTRACT(YEAR FROM v.fecha_vent) = year
-        GROUP BY tc.nombre_tipo_cerv;
-    END IF;
+    RETURN QUERY
+    SELECT tc.nombre_tipo_cerv::varchar as "Estilo", SUM(dv.cant_deta_vent) as "Unidades Vendidas"
+    FROM Venta v
+    JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
+    JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2
+    JOIN Cerveza c ON it.fk_cerv_pres_1 = c.cod_cerv
+    JOIN Tipo_Cerveza tc ON c.fk_tipo_cerv = tc.cod_tipo_cerv
+    WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY tc.nombre_tipo_cerv;
 END;
 $$;
 
 -- Clientes Nuevos vs Recurrentes (por periodo)
-CREATE OR REPLACE FUNCTION clientes_nuevos_vs_recurrentes(year int, modalidad text)
-RETURNS TABLE ("Tipo Cliente" text, "Cantidad" bigint)
+CREATE OR REPLACE FUNCTION clientes_nuevos_vs_recurrentes(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Tipo Cliente" varchar, "Cantidad" bigint)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT CASE WHEN COUNT(v.cod_vent) = 1 THEN 'Nuevo' ELSE 'Recurrente' END as "Tipo Cliente", COUNT(DISTINCT v.fk_clie) as "Cantidad"
+    RETURN QUERY
+    SELECT tipo_cliente::varchar as "Tipo Cliente", COUNT(*) as "Cantidad"
+    FROM (
+        SELECT CASE WHEN COUNT(v.cod_vent) = 1 THEN 'Nuevo' ELSE 'Recurrente' END as tipo_cliente, v.fk_clie
         FROM Venta v
-        WHERE EXTRACT(YEAR FROM v.fecha_vent) = year
-        GROUP BY "Tipo Cliente";
-    END IF;
+        WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin
+        GROUP BY v.fk_clie
+    ) sub
+    GROUP BY tipo_cliente;
 END;
 $$;
 
 -- Tasa de Retención de Clientes (por periodo)
-CREATE OR REPLACE FUNCTION tasa_retencion_clientes(year int, modalidad text)
-RETURNS TABLE ("Año" int, "Tasa Retención" numeric)
+CREATE OR REPLACE FUNCTION tasa_retencion_clientes(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Tasa Retención" numeric)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT year as "Año", (COUNT(DISTINCT v.fk_clie)::numeric / NULLIF((SELECT COUNT(*) FROM Cliente),0)) as "Tasa Retención"
-        FROM Venta v
-        WHERE EXTRACT(YEAR FROM v.fecha_vent) = year
-        GROUP BY year;
-    END IF;
+    RETURN QUERY
+    SELECT (COUNT(DISTINCT v.fk_clie)::numeric / NULLIF((SELECT COUNT(*) FROM Cliente),0)) as "Tasa Retención"
+    FROM Venta v
+    WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin;
 END;
 $$;
 
 -- Rotación de Inventario (por periodo)
-CREATE OR REPLACE FUNCTION rotacion_inventario_periodo(year int, month int, modalidad text)
-RETURNS TABLE ("Periodo" text, "Rotación" numeric)
+CREATE OR REPLACE FUNCTION rotacion_inventario_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Periodo" varchar, "Rotación" numeric)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'mensual' THEN
-        RETURN QUERY
-        SELECT TO_CHAR(i.fecha, 'YYYY-MM') as "Periodo", AVG(i.valor_promedio_inventario) / NULLIF(SUM(i.costo_productos),0) as "Rotación"
-        FROM inventario_periodo_view i
-        WHERE EXTRACT(YEAR FROM i.fecha) = year AND EXTRACT(MONTH FROM i.fecha) = month
-        GROUP BY TO_CHAR(i.fecha, 'YYYY-MM');
-    END IF;
+    RETURN QUERY
+    SELECT TO_CHAR(v.fecha_vent, 'YYYY-MM-DD')::varchar as "Periodo", 
+           SUM(dv.cant_deta_vent) / NULLIF(AVG(it.cant_pres),0) as "Rotación"
+    FROM Venta v
+    JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
+    JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2
+    WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY TO_CHAR(v.fecha_vent, 'YYYY-MM-DD');
 END;
 $$;
 
 -- Tasa de Ruptura de Stock (por periodo)
-CREATE OR REPLACE FUNCTION tasa_ruptura_stock_periodo(year int, month int, modalidad text)
-RETURNS TABLE ("Periodo" text, "Ruptura Stock" numeric)
+CREATE OR REPLACE FUNCTION tasa_ruptura_stock_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Periodo" varchar, "Ruptura Stock" numeric)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'mensual' THEN
-        RETURN QUERY
-        SELECT TO_CHAR(fecha, 'YYYY-MM') as "Periodo", SUM(rupturas) as "Ruptura Stock"
-        FROM ruptura_stock_view
-        WHERE EXTRACT(YEAR FROM fecha) = year AND EXTRACT(MONTH FROM fecha) = month
-        GROUP BY TO_CHAR(fecha, 'YYYY-MM');
-    END IF;
+    RETURN QUERY
+    SELECT TO_CHAR(v.fecha_vent, 'YYYY-MM-DD')::varchar as "Periodo", 
+           SUM(CASE WHEN it.cant_pres = 0 THEN 1 ELSE 0 END)::numeric as "Ruptura Stock"
+    FROM Venta v
+    JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
+    JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2
+    WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY TO_CHAR(v.fecha_vent, 'YYYY-MM-DD');
 END;
 $$;
 
 -- Ventas por Empleado (por periodo)
-CREATE OR REPLACE FUNCTION ventas_por_empleado_periodo(year int, month int, modalidad text)
-RETURNS TABLE ("Empleado" text, "Cantidad Ventas" bigint)
+CREATE OR REPLACE FUNCTION ventas_por_empleado_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Empleado" varchar, "Cantidad Ventas" bigint)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'mensual' THEN
-        RETURN QUERY
-        SELECT e.nombre_empl as "Empleado", COUNT(v.cod_vent) as "Cantidad Ventas"
-        FROM Venta v
-        JOIN Empleado e ON v.fk_empl = e.cod_empl
-        WHERE EXTRACT(YEAR FROM v.fecha_vent) = year AND EXTRACT(MONTH FROM v.fecha_vent) = month
-        GROUP BY e.nombre_empl;
-    END IF;
+    RETURN QUERY
+    SELECT (e.primer_nom_empl || ' ' || e.primer_ape_empl)::varchar as "Empleado", COUNT(v.cod_vent) as "Cantidad Ventas"
+    FROM Venta v
+    JOIN Empleado e ON v.fk_empl = e.cod_empl
+    WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY e.primer_nom_empl, e.primer_ape_empl;
 END;
 $$;
 
 -- Gráfico de Tendencia de Ventas (por periodo)
-CREATE OR REPLACE FUNCTION tendencia_ventas_periodo(year int, modalidad text)
-RETURNS TABLE ("Periodo" text, "Total Ventas" numeric)
+CREATE OR REPLACE FUNCTION tendencia_ventas_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Periodo" varchar, "Total Ventas" numeric)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT TO_CHAR(fecha_vent, 'YYYY-MM') as "Periodo", SUM(total_vent) as "Total Ventas"
-        FROM Venta
-        WHERE EXTRACT(YEAR FROM fecha_vent) = year
-        GROUP BY TO_CHAR(fecha_vent, 'YYYY-MM');
-    END IF;
+    RETURN QUERY
+    SELECT TO_CHAR(fecha_vent, 'YYYY-MM-DD')::varchar as "Periodo", SUM(total_vent) as "Total Ventas"
+    FROM Venta
+    WHERE fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY TO_CHAR(fecha_vent, 'YYYY-MM-DD');
 END;
 $$;
 
 -- Gráfico de Ventas por Canal (por periodo)
-CREATE OR REPLACE FUNCTION ventas_por_canal_periodo(year int, modalidad text)
-RETURNS TABLE ("Canal" text, "Total Ventas" numeric)
+CREATE OR REPLACE FUNCTION ventas_por_canal_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Canal" varchar, "Total Ventas" numeric)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT CASE WHEN online THEN 'Online' ELSE 'Física' END as "Canal", SUM(total_vent) as "Total Ventas"
-        FROM Venta
-        WHERE EXTRACT(YEAR FROM fecha_vent) = year
-        GROUP BY online;
-    END IF;
+    RETURN QUERY
+    SELECT (CASE WHEN online THEN 'Online' ELSE 'Física' END)::varchar as "Canal", SUM(total_vent) as "Total Ventas"
+    FROM Venta
+    WHERE fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY online;
 END;
 $$;
 
 -- Tabla de Productos con Mejor Rendimiento (por periodo)
-CREATE OR REPLACE FUNCTION productos_mejor_rendimiento_periodo(year int, modalidad text)
-RETURNS TABLE ("Producto" text, "Unidades Vendidas" bigint)
+CREATE OR REPLACE FUNCTION productos_mejor_rendimiento_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Producto" varchar, "Unidades Vendidas" bigint)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT c.nombre_cerv as "Producto", SUM(dv.cant_deta_vent) as "Unidades Vendidas"
-        FROM Venta v
-        JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
-        JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2
-        JOIN Cerveza c ON it.fk_cerv_pres_1 = c.cod_cerv
-        WHERE EXTRACT(YEAR FROM v.fecha_vent) = year
-        GROUP BY c.nombre_cerv
-        ORDER BY "Unidades Vendidas" DESC
-        LIMIT 10;
-    END IF;
+    RETURN QUERY
+    SELECT c.nombre_cerv::varchar as "Producto", SUM(dv.cant_deta_vent) as "Unidades Vendidas"
+    FROM Venta v
+    JOIN Detalle_Venta dv ON v.cod_vent = dv.fk_vent
+    JOIN Inventario_Tienda it ON dv.fk_inve_tien_1 = it.fk_cerv_pres_1 AND dv.fk_inve_tien_2 = it.fk_cerv_pres_2
+    JOIN Cerveza c ON it.fk_cerv_pres_1 = c.cod_cerv
+    WHERE v.fecha_vent BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY c.nombre_cerv
+    ORDER BY "Unidades Vendidas" DESC
+    LIMIT 10;
 END;
 $$;
 
 -- Reporte de Inventario Actual
-CREATE OR REPLACE FUNCTION inventario_actual_periodo(year int, modalidad text)
-RETURNS TABLE ("Producto" text, "Stock Actual" bigint)
+CREATE OR REPLACE FUNCTION inventario_actual_periodo(fecha_inicio date, fecha_fin date)
+RETURNS TABLE ("Producto" varchar, "Stock Actual" bigint)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF modalidad = 'anual' THEN
-        RETURN QUERY
-        SELECT c.nombre_cerv as "Producto", SUM(it.cant_inve_tien) as "Stock Actual"
-        FROM Inventario_Tienda it
-        JOIN Cerveza c ON it.fk_cerv_pres_1 = c.cod_cerv
-        WHERE EXTRACT(YEAR FROM it.fecha_inve_tien) = year
-        GROUP BY c.nombre_cerv;
-    END IF;
+    RETURN QUERY
+    SELECT c.nombre_cerv::varchar as "Producto", SUM(it.cant_pres) as "Stock Actual"
+    FROM Inventario_Tienda it
+    JOIN Cerveza c ON it.fk_cerv_pres_1 = c.cod_cerv
+    WHERE it.fecha_ult_act BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY c.nombre_cerv;
 END;
 $$;

@@ -1115,3 +1115,105 @@ export const procesarVentaEntrada = async (venta: VentaEntradaCompleta): Promise
     };
   }
 }; 
+
+// ===== SERVICIOS PARA DASHBOARD =====
+export const dashboardService = {
+  async ventasTotalesPorTienda(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/ventas-totales?${search.toString()}`);
+  },
+  async crecimientoVentas(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/crecimiento-ventas?${search.toString()}`);
+  },
+  async ticketPromedio(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/ticket-promedio?${search.toString()}`);
+  },
+  async volumenUnidadesVendidas(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/volumen-unidades?${search.toString()}`);
+  },
+  async ventasPorEstilo(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/ventas-por-estilo?${search.toString()}`);
+  },
+  async clientesNuevosVsRecurrentes(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/clientes-nuevos-vs-recurrentes?${search.toString()}`);
+  },
+  async tasaRetencionClientes(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/tasa-retencion-clientes?${search.toString()}`);
+  },
+  async rotacionInventario(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/rotacion-inventario?${search.toString()}`);
+  },
+  async tasaRupturaStock(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/tasa-ruptura-stock?${search.toString()}`);
+  },
+  async ventasPorEmpleado(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/ventas-por-empleado?${search.toString()}`);
+  },
+  async graficoTendenciaVentas(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/grafico-tendencia-ventas?${search.toString()}`);
+  },
+  async graficoVentasPorCanal(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/grafico-ventas-por-canal?${search.toString()}`);
+  },
+  async productosMejorRendimiento(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/productos-mejor-rendimiento?${search.toString()}`);
+  },
+  async reporteInventarioActual(params: { fecha_inicio: string; fecha_fin: string }) {
+    const search = new URLSearchParams({
+      fecha_inicio: params.fecha_inicio,
+      fecha_fin: params.fecha_fin,
+    });
+    return apiRequest<any>(`/dashboard/inventario-actual?${search.toString()}`);
+  },
+}; 
