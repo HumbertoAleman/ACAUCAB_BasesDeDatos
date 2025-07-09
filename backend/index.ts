@@ -42,6 +42,7 @@ Bun.serve({
 		"/usuario": { GET: getUsuario },
 
 		"/api/parroquias": {
+			OPTIONS: () => new Response("OK", CORS_HEADERS),
 			async GET() {
 				const res = await sql`
 					SELECT p.cod_luga, e.nombre_luga || ', ' || m.nombre_luga || ', ' || p.nombre_luga as "nombre_luga"
