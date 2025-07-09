@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import {
   Box, Grid, Paper, Typography, TextField, Button, Card, CardContent, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, Chip, Divider, Alert, List, ListItem, ListItemText, ListItemSecondaryAction, Stepper, Step, StepLabel, StepContent, Pagination
 } from "@mui/material"
-import { Add, Remove, Delete, Payment, Search, ShoppingCart, CreditCard, Close } from "@mui/icons-material"
+import { Add, Remove, Delete, Payment, Search, ShoppingCart, CreditCard, Close, Receipt } from "@mui/icons-material"
 import type { ProductoInventario, TasaVenta, MetodoPagoCompleto, ItemVenta, PagoVenta, ResumenVenta } from "../../interfaces/ventas"
 import { getProductosInventario, getTasaActual, procesarVenta, getBancos, getTableData, getCarrito, createCarrito, addItemsToCarrito, deleteCarrito, removeItemsFromCarrito } from "../../services/api"
 import { useAuth } from '../../contexts/AuthContext'
@@ -31,6 +31,8 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
   const [paginaActual, setPaginaActual] = useState(1);
   const metodosPagoDisponibles: MetodoPagoCompleto[] = [ { cod_meto_pago: 2, tipo: "Tarjeta", credito: true } ];
   const { user } = useAuth();
+  const [idVentaFactura, setIdVentaFactura] = useState<string | null>(null)
+  const [openDialogFactura, setOpenDialogFactura] = useState(false)
 
   // Verifica si el usuario es cliente
   const esCliente = !!user?.fk_clie;
@@ -342,15 +344,9 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
       
       const resultado = await procesarVenta(ventaData as any);
       if (resultado.success) {
-        // Eliminar el carrito del backend después de procesar la venta exitosamente
-        if (user?.fk_clie) {
-          await deleteCarrito(user.fk_clie);
-        }
-        alert(`Venta online procesada exitosamente. Código: ${resultado.cod_vent}`);
-        setItemsVenta([]);
-        setPagos([]);
-        setDialogPago(false);
-        if (onClose) onClose();
+        setIdVentaFactura(String(resultado.cod_vent))
+        setOpenDialogFactura(true)
+        return
       } else {
         alert(`Error al procesar la venta: ${resultado.message}`);
       }
@@ -552,6 +548,18 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
               }} sx={{ backgroundColor: "#2E7D32", "&:hover": { backgroundColor: "#1B5E20" } }}>Pagar con Tarjeta</Button>
               <Button fullWidth variant="outlined" size="large" sx={{ mt: 1 }} onClick={() => guardarComoPresupuesto()} disabled={!esCliente || procesandoVenta}>Guardar y Salir</Button></>)}
             {itemsVenta.length > 0 && resumenVenta && (<Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Total:</Typography><Typography variant="h6" color="primary">${typeof resumenVenta.total === 'number' ? resumenVenta.total.toFixed(2) : resumenVenta.total}</Typography></Box>)}
+            {resumenVenta && resumenVenta.id_venta && (
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<Receipt />}
+                onClick={() => {
+                  window.open(`/api/factura/producto/pdf?id_venta=${resumenVenta.id_venta}`, '_blank');
+                }}
+              >
+                Descargar Factura
+              </Button>
+            )}
           </Paper>
         </Grid>
       </Grid>
@@ -657,6 +665,43 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
           </Stepper>
         </DialogContent>
         <DialogActions><Button onClick={() => setDialogPago(false)}>Cancelar</Button></DialogActions>
+      </Dialog>
+      {/* Dialog de éxito y descarga de factura */}
+      <Dialog open={openDialogFactura} onClose={() => {
+        setOpenDialogFactura(false)
+        setIdVentaFactura(null)
+        setItemsVenta([])
+        setPagos([])
+        setDialogPago(false)
+        setPasoActual(0)
+      }}>
+        <DialogTitle>Venta procesada exitosamente</DialogTitle>
+        <DialogContent>
+          <Typography>La venta fue registrada correctamente.</Typography>
+          {idVentaFactura && (
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<Receipt />}
+              sx={{ mt: 2, width: '100%' }}
+              onClick={() => {
+                window.open(`http://localhost:3000/api/factura/producto/pdf?id_venta=${idVentaFactura}`, '_blank')
+              }}
+            >
+              Descargar Factura
+            </Button>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setOpenDialogFactura(false)
+            setIdVentaFactura(null)
+            setItemsVenta([])
+            setPagos([])
+            setDialogPago(false)
+            setPasoActual(0)
+          }} color="primary">Cerrar</Button>
+        </DialogActions>
       </Dialog>
     </Box>
   )

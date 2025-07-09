@@ -396,6 +396,9 @@ export const PuntoVenta: React.FC = () => {
   const montoTotalPagosBs = pagos.reduce((total, pago) => total + pago.monto, 0);
   const montoRestanteBs = (resumenVenta?.total_bs || 0) - montoTotalPagosBs;
 
+  const [idVentaFactura, setIdVentaFactura] = useState<string | null>(null)
+  const [openDialogFactura, setOpenDialogFactura] = useState(false)
+
   const procesarVentaFinal = async () => {
     if (!resumenVenta || !tasaActual || montoRestanteBs > 0.01) {
       alert('El monto total de los pagos debe ser igual al total de la venta y la tasa debe estar disponible.')
@@ -458,13 +461,10 @@ export const PuntoVenta: React.FC = () => {
       const resultado = await procesarVenta(ventaData as any)
       
       if (resultado.success) {
-        alert(`Venta procesada exitosamente. Código: ${resultado.cod_vent}`)
-        // Limpiar formulario
-        setItemsVenta([])
-        setClienteSeleccionado(null)
-        setPagos([])
-        setDialogPago(false)
-        setPasoActual(0)
+        setIdVentaFactura(String(resultado.cod_vent))
+        setOpenDialogFactura(true)
+        // No limpiar aquí, solo cuando se cierre el dialog
+        return
       } else {
         alert(`Error al procesar la venta: ${resultado.message}`)
       }
@@ -1058,6 +1058,45 @@ export const PuntoVenta: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogPago(false)}>Cancelar</Button>
+        </DialogActions>
+      </Dialog>
+      {/* Dialog de éxito y descarga de factura */}
+      <Dialog open={openDialogFactura} onClose={() => {
+        setOpenDialogFactura(false)
+        setIdVentaFactura(null)
+        setItemsVenta([])
+        setClienteSeleccionado(null)
+        setPagos([])
+        setDialogPago(false)
+        setPasoActual(0)
+      }}>
+        <DialogTitle>Venta procesada exitosamente</DialogTitle>
+        <DialogContent>
+          <Typography>La venta fue registrada correctamente.</Typography>
+          {idVentaFactura && (
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<Receipt />}
+              sx={{ mt: 2, width: '100%' }}
+              onClick={() => {
+                window.open(`http://localhost:3000/api/factura/producto/pdf?id_venta=${idVentaFactura}`, '_blank')
+              }}
+            >
+              Descargar Factura
+            </Button>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setOpenDialogFactura(false)
+            setIdVentaFactura(null)
+            setItemsVenta([])
+            setClienteSeleccionado(null)
+            setPagos([])
+            setDialogPago(false)
+            setPasoActual(0)
+          }} color="primary">Cerrar</Button>
         </DialogActions>
       </Dialog>
     </Box>
