@@ -181,3 +181,22 @@ BEGIN
         END LOOP;
 END
 $$;
+
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN
+        SELECT n.nspname, p.proname, pg_get_function_identity_arguments(p.oid) AS args
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE p.prokind = 'p'
+        AND n.nspname = 'public'
+    LOOP
+        EXECUTE format(
+            'DROP PROCEDURE IF EXISTS "%I"."%I"(%s);',
+            r.nspname, r.proname, r.args
+        );
+    END LOOP;
+END
+$$;

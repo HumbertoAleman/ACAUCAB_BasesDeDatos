@@ -19,6 +19,7 @@ import BancoService from "./src/BancoService";
 import CarritoService from "./src/CarritoService";
 import EventoService from "./src/EventoService";
 import TipoEventoService from "./src/TipoEventoService";
+import { dashboardRoutes } from "./src/DashboardService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -102,5 +103,6 @@ Bun.serve({
 		...CarritoService.routes,
 		...EventoService.routes,
 		...TipoEventoService.routes,
+		...dashboardRoutes({}),
 	}
 });
