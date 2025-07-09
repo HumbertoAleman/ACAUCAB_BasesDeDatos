@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useNavigate } from "react-router-dom"
 import type { UsuarioFront } from "../interfaces/auth"
-import { authService, userService } from "../services/api"
+import { authService } from "../services/api"
 
 export interface LoginCredentials {
   username: string
@@ -69,28 +69,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authService.login(credentials.username, credentials.password)
       if (response.success && response.data?.authenticated) {
         const { token, user: userData } = response.data
-        
-        // Obtener el fk_rol del usuario usando el endpoint de usuarios con detalles
-        const usersResponse = await userService.getUsersWithRoles()
-        let fk_rol: number | null = null
-        
-        if (usersResponse.success && usersResponse.data) {
-          const currentUser = usersResponse.data.find((u: any) => u.username_usua === userData.username)
-          if (currentUser && currentUser.fk_rol) {
-            fk_rol = currentUser.fk_rol
-          }
-        }
-        
-        // Si no se pudo obtener el fk_rol, continuar sin él
-        console.log('User fk_rol:', fk_rol)
-        
-        const userToStore: UsuarioFront = {
+        const userToStore: UsuarioFront & { cod_usua?: number } = {
           username: userData.username,
           rol: userData.rol,
-          fk_rol: fk_rol, // Agregar el fk_rol al usuario
           fk_clie: 'fk_clie' in userData ? (userData.fk_clie !== undefined && userData.fk_clie !== null ? String(userData.fk_clie) : null) : null,
           fk_empl: 'fk_empl' in userData ? (userData.fk_empl !== undefined && userData.fk_empl !== null ? Number(userData.fk_empl) : null) : null,
-          fk_miem: 'fk_miem' in userData ? (userData.fk_miem !== undefined && userData.fk_miem !== null ? String(userData.fk_miem) : null) : null
+          fk_miem: 'fk_miem' in userData ? (userData.fk_miem !== undefined && userData.fk_miem !== null ? String(userData.fk_miem) : null) : null,
+          ...('cod_usua' in userData && typeof userData.cod_usua === 'number' ? { cod_usua: userData.cod_usua } : {})
         }
         localStorage.setItem("acaucab_token", token)
         localStorage.setItem("acaucab_user", JSON.stringify(userToStore))

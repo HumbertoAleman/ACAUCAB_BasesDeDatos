@@ -39,56 +39,51 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
-    const token = localStorage.getItem('acaucab_token')
-    const savedUser = localStorage.getItem('acaucab_user')
-    let fk_rol: string | null = null
-    
-    if (savedUser) {
+    const token = localStorage.getItem('acaucab_token');
+    const userStr = localStorage.getItem('acaucab_user');
+    let codUsua: string | undefined = undefined;
+    if (userStr) {
       try {
-        const user = JSON.parse(savedUser)
-        fk_rol = user.fk_rol ? String(user.fk_rol) : null
-      } catch (error) {
-        console.error('Error parsing user data:', error)
-      }
+        const userObj = JSON.parse(userStr);
+        if (userObj && (userObj.cod_usua || userObj.codUsua)) {
+          codUsua = String(userObj.cod_usua ?? userObj.codUsua);
+        }
+      } catch {}
     }
-    
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
-    
-    // Agregar headers adicionales si existen
-    if (options.headers) {
-      Object.assign(headers, options.headers)
-    }
-    
-    // Agregar token y fk_rol al header de autorización
-    if (token) {
-      if (fk_rol) {
-        headers.Authorization = `Bearer ${token} Role:${fk_rol}`
-      } else {
-        headers.Authorization = `Bearer ${token}`
-      }
+
+    // Construir el header Authorization
+    let authorizationHeader: string | undefined = undefined;
+    if (token && codUsua) {
+      authorizationHeader = `Bearer ${token};UserCode ${codUsua}`;
+    } else if (token) {
+      authorizationHeader = `Bearer ${token}`;
+    } else if (codUsua) {
+      authorizationHeader = `UserCode ${codUsua}`;
     }
 
     const config: RequestInit = {
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
+        ...options.headers,
+      },
       ...options,
-    }
+    };
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
-    const data = await response.json()
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `Error ${response.status}: ${response.statusText}`)
+      throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
     }
 
-    return data
+    return data;
   } catch (error) {
-    console.error('API Error:', error)
+    console.error('API Error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Error desconocido',
-    }
+    };
   }
 }
 
@@ -828,8 +823,7 @@ export const registerPayment = async (clienteID: string, paymentData: any): Prom
  * Obtiene todos los tipos de evento
  */
 export const getTiposEvento = async (): Promise<any[]> => {
-  const response = await apiRequest<any[]>('/tipo_evento');
-  return response.success && response.data ? response.data : [];
+  return apiRequest<any[]>('/tipo_evento');
 };
 
 /**
