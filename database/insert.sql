@@ -1365,8 +1365,8 @@ BEGIN
     -- Create Venta record
     -- * This shoots set_estatus_for_new_venta that creates ESTA_VENT, in "Pagado" since we assume that it's already paid for
     ----
-    INSERT INTO Venta (fecha_vent, base_imponible_vent, iva_vent, total_vent, online, fk_clie, fk_tien)
-        VALUES (p_fecha_vent, 0, 0, 0, p_online, p_fk_clie, p_fk_tien)
+    INSERT INTO Venta (fecha_vent, base_imponible_vent, iva_vent, total_vent, online, fk_clie, fk_tien, fk_empl)
+        VALUES (p_fecha_vent, 0, 0, 0, p_online, p_fk_clie, p_fk_tien,(SELECT cod_empl FROM Empleado ORDER BY RANDOM() LIMIT 1))
     RETURNING
         cod_vent INTO v_cod_vent;
     ----
@@ -1579,12 +1579,10 @@ BEGIN
         monto := (SELECT precio_entrada_even FROM Evento WHERE cod_even = fk_even);
         iva := monto*0.16;
         total := monto+iva;
-        INSERT INTO Venta (fecha_vent, iva_vent, base_imponible_vent, total_vent, fk_clie, fk_miem, fk_even, fk_tien, fk_cuot, fk_empl) VALUES (CURRENT_DATE, iva, monto, total, get_random_juridico(), null, fk_even, null, null, (SELECT cod_empl FROM Empleado ORDER BY RANDOM() LIMIT 1));
+        INSERT INTO Venta (fecha_vent, iva_vent, base_imponible_vent, total_vent, online, fk_clie, fk_miem, fk_even, fk_tien, fk_cuot, fk_empl) VALUES (CURRENT_DATE, iva, monto, total, true, get_random_juridico(), null, fk_even, null, null, null);
     END LOOP;
 END;
 $$;
-
-CALL insert_10venta_entrada();
 
 CREATE OR REPLACE PROCEDURE insert_10detalle_entrada ()
 LANGUAGE plpgsql
@@ -1605,8 +1603,6 @@ BEGIN
     END LOOP;
 END;
 $$;
-
-CALL insert_10detalle_entrada();
 
 --[[[ TRIGGER BEGIN ]]]--
 
@@ -4056,3 +4052,6 @@ BEGIN
     END IF;
 END;
 $$;
+
+CALL insert_10venta_entrada();
+CALL insert_10detalle_entrada();

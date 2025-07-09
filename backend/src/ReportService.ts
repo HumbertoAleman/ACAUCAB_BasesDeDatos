@@ -402,6 +402,182 @@ class ReportService {
 						});
 					}
 				}
+			},
+
+			"/api/reportes/orden_compra/pdf": {
+				OPTIONS: () => new Response('Departed', CORS_HEADERS),
+				GET: async (req) => {
+					try {
+						// Obtener parámetros de la URL
+						const url = new URL(req.url);
+						const producto = url.searchParams.get("producto");
+						const fecha = url.searchParams.get("fecha");
+						const cantidad = url.searchParams.get("cantidad");
+						const precio_total = url.searchParams.get("precio_total");
+						const miembro = url.searchParams.get("miembro");
+						if (!producto || !fecha || !cantidad || !precio_total || !miembro) {
+							return new Response("Faltan parámetros requeridos", { status: 400 });
+						}
+
+						// Normalizar la fecha a formato yyyy-mm-dd
+						function toSQLDate(fechaStr: string): string {
+						    // Si ya está en formato yyyy-mm-dd, la devolvemos igual
+						    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) return fechaStr;
+						    // Si está en formato dd/mm/yyyy, la convertimos
+						    const match = fechaStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+						    if (match) {
+						        const [, dd, mm, yyyy] = match;
+						        return `${yyyy}-${mm}-${dd}`;
+						    }
+						    // Si no, la devolvemos igual (puede fallar la consulta, pero es lo más seguro)
+						    return fechaStr;
+						}
+						const fechaSQL = toSQLDate(fecha);
+
+						// Buscar datos del proveedor (miembro)
+						const proveedor = (await sql`
+							SELECT razon_social_miem, rif_miem, direccion_fiscal_miem
+							FROM Miembro
+							WHERE denom_comercial_miem = ${miembro}
+							LIMIT 1
+						`)[0];
+						if (!proveedor) {
+							return new Response("Proveedor no encontrado", { status: 404 });
+						}
+						// Buscar teléfono del proveedor
+						const telefonoProveedor = (await sql`
+							SELECT cod_area_tele, num_tele
+							FROM Telefono
+							WHERE fk_miem = ${proveedor.rif_miem}
+							LIMIT 1
+						`)[0];
+						const telefono = telefonoProveedor
+							? `+${telefonoProveedor.cod_area_tele}-${telefonoProveedor.num_tele}`
+							: "N/A";
+
+						// Buscar datos del producto
+						const prod = (await sql`
+							SELECT c.cod_cerv, c.nombre_cerv
+							FROM Cerveza c
+							WHERE c.nombre_cerv = ${producto}
+							LIMIT 1
+						`)[0];
+						if (!prod) {
+							return new Response("Producto no encontrado", { status: 404 });
+						}
+
+						// Buscar el código de la orden de compra usando fechaSQL
+						const orden = (await sql`
+							SELECT c.cod_comp
+							FROM Compra c
+							JOIN Detalle_Compra dc ON dc.fk_comp = c.cod_comp
+							JOIN CERV_PRES cp ON cp.fk_cerv = dc.fk_cerv_pres_1 AND cp.fk_miem = c.fk_miem
+							WHERE c.fecha_comp = ${fechaSQL}
+								AND c.fk_miem = ${proveedor.rif_miem}
+								AND dc.fk_cerv_pres_1 = ${prod.cod_cerv}
+							LIMIT 1
+						`)[0];
+						const cod_comp = orden ? orden.cod_comp : 'N/A';
+
+						// Datos del cliente (ACAUCAB, fijo)
+						const cliente = {
+							razon_social: "ACAUCAB",
+							rif: "J-12345678-9",
+							direccion: "Av. Universidad, Caracas, Venezuela",
+							telefono: "+58 212-555-1234"
+						};
+
+						// Calcular precio unitario
+						const precioUnitario = (parseFloat(precio_total) / parseFloat(cantidad)).toFixed(2);
+
+						// Crear PDF
+						const pdfDoc = await PDFDocument.create();
+						let page = pdfDoc.addPage([780, 900]);
+						const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+						let y = 850;
+
+						// Título
+						page.drawText("ACAUCAB", { x: 600, y, size: 32, font, color: rgb(0, 0.2, 0.6) });
+						y -= 50;
+						page.drawText("Propuesta de Orden de Compra", { x: 50, y, size: 16, font });
+						y -= 30;
+						page.drawText(`Orden de Compra Número: ${cod_comp}` , { x: 50, y, size: 12, font });
+						y -= 20;
+						page.drawText(`Fecha: ${fecha}` , { x: 50, y, size: 12, font });
+						y -= 30;
+
+						// Datos del proveedor y cliente (tabla)
+						page.drawText("Datos del Proveedor", { x: 50, y, size: 12, font });
+						page.drawText("Datos del cliente", { x: 400, y, size: 12, font });
+						y -= 18;
+						// Proveedor
+						page.drawText(`Razón Social: ${proveedor.razon_social_miem}`, { x: 50, y, size: 11, font });
+						page.drawText(`Razón Social: ${cliente.razon_social}`, { x: 400, y, size: 11, font });
+						y -= 15;
+						page.drawText(`RIF/CI: ${proveedor.rif_miem}`, { x: 50, y, size: 11, font });
+						page.drawText(`RIF/CI: ${cliente.rif}`, { x: 400, y, size: 11, font });
+						y -= 15;
+						page.drawText(`Dirección: ${proveedor.direccion_fiscal_miem}`, { x: 50, y, size: 11, font });
+						page.drawText(`Dirección: ${cliente.direccion}`, { x: 400, y, size: 11, font });
+						y -= 15;
+						page.drawText(`Teléfono: ${telefono}`, { x: 50, y, size: 11, font });
+						page.drawText(`Teléfono: ${cliente.telefono}`, { x: 400, y, size: 11, font });
+						y -= 30;
+
+						// Asunto
+						page.drawText("Departamento de Compras ACAUCAB", { x: 50, y, size: 12, font });
+						y -= 18;
+						page.drawText("Asunto: Este es un mensaje automáticamente enviado por el sistema de ACAUCAB debido a que el producto de nombre " + producto + " cuenta con menos de 100 unidades disponibles para la venta.", { x: 50, y, size: 11, font, maxWidth: 680 });
+						y -= 40;
+
+						// Productos solicitados
+						page.drawText("1. Producto(s) solicitado(s):", { x: 50, y, size: 12, font });
+						y -= 15;
+						page.drawText(`   - Nombre: ${prod.nombre_cerv}`, { x: 70, y, size: 11, font });
+						y -= 13;
+						page.drawText(`   - Código del Producto: ${prod.cod_cerv}`, { x: 70, y, size: 11, font });
+						y -= 20;
+						page.drawText("2. Cantidad Requerida:", { x: 50, y, size: 12, font });
+						y -= 15;
+						page.drawText(`   - Cantidad: ${cantidad}`, { x: 70, y, size: 11, font });
+						y -= 13;
+						page.drawText(`   - Unidad de Medida: unidades`, { x: 70, y, size: 11, font });
+						y -= 20;
+						page.drawText("3. Precio Unitario:", { x: 50, y, size: 12, font });
+						y -= 15;
+						page.drawText(`   - Precio por Unidad: $${precioUnitario}`, { x: 70, y, size: 11, font });
+						y -= 13;
+						page.drawText(`   - Total Estimado: $${parseFloat(precio_total).toFixed(2)}`, { x: 70, y, size: 11, font });
+						y -= 20;
+						page.drawText("4. Observaciones Adicionales:", { x: 50, y, size: 12, font });
+						y -= 15;
+						page.drawText("   {{ Incluir cualquier otra información relevante, como requisitos especiales de envío, condiciones de garantía, etc. }}", { x: 70, y, size: 10, font });
+						y -= 30;
+						page.drawText("Autorizado por: {{ NOMBRE DEL JEFE DE COMPRAS }}", { x: 50, y, size: 12, font });
+
+						const pdfBytes = await pdfDoc.save();
+						return new Response(pdfBytes, {
+							headers: {
+								"Content-Type": "application/pdf",
+								"Content-Disposition": `attachment; filename=orden_compra_${cod_comp}.pdf`,
+								"Access-Control-Allow-Origin": "*",
+								"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+								"Access-Control-Allow-Headers": "Content-Type, Authorization",
+							},
+						});
+					} catch (error) {
+						console.error(error);
+						return new Response("Error interno del servidor", {
+							status: 500,
+							headers: {
+								"Access-Control-Allow-Origin": "*",
+								"Access-Control-Allow-Methods": "GET,POST,OPTIONS,DELETE,PUT",
+								"Access-Control-Allow-Headers": "Content-Type, Authorization",
+								"Content-Type": "text/plain",
+							},
+						});
+					}
+				}
 			}
 		}
 	}

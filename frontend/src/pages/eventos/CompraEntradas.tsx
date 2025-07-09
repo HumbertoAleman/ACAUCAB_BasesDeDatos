@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../../contexts/AuthContext';
+import Receipt from '@mui/icons-material/Receipt';
 
 interface CompraEntradasProps {
   isOpen: boolean;
@@ -33,6 +34,8 @@ const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento
   const [resumen, setResumen] = useState<any>(null);
   const [procesando, setProcesando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState<string | null>(null);
+  const [idVentaFactura, setIdVentaFactura] = useState<string | null>(null)
+  const [openDialogFactura, setOpenDialogFactura] = useState(false)
 
   useEffect(() => {
     if (isOpen && evento) {
@@ -118,11 +121,10 @@ const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento
       };
       const resultado = await procesarVentaEntrada(ventaEntradaData);
       if (resultado.success && resultado.cod_vent) {
-        setMensajeExito(`¡Compra realizada exitosamente! Código de venta: ${resultado.cod_vent}`);
-        setTimeout(() => {
-          setMensajeExito(null);
-          onClose(); // El padre debe recargar eventos
-        }, 2000);
+        setIdVentaFactura(String(resultado.cod_vent))
+        setMensajeExito(`¡Compra realizada exitosamente! Código de venta: ${resultado.cod_vent}`)
+        setOpenDialogFactura(true)
+        return
       } else {
         alert('Error al procesar la compra: ' + (resultado.message || ''));
       }
@@ -134,68 +136,106 @@ const CompraEntradas: React.FC<CompraEntradasProps> = ({ isOpen, onClose, evento
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        Comprar Entradas - {evento.nombre_even}
-        <IconButton onClick={onClose}><CloseIcon /></IconButton>
-      </DialogTitle>
-      <DialogContent dividers>
-        <Stack spacing={2}>
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>Información del Evento</Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Typography variant="body2"><b>Fecha:</b> {new Date(evento.fecha_hora_ini_even).toLocaleDateString()} <b>Hora:</b> {new Date(evento.fecha_hora_ini_even).toLocaleTimeString()}</Typography>
-              <Typography variant="body2"><b>Dirección:</b> {evento.direccion_even}</Typography>
-            </Stack>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Typography variant="body2"><b>Precio:</b> ${evento.precio_entrada_even || 'Gratis'}</Typography>
-              <Typography variant="body2"><b>Entradas disponibles:</b> {evento.cant_entradas_evento}</Typography>
-            </Stack>
-          </Box>
-          <Divider />
-          <TextField
-            label="Cantidad de Entradas"
-            type="number"
-            value={cantidad}
-            onChange={handleCantidadChange}
-            inputProps={{ min: 1, max: evento.cant_entradas_evento }}
-            fullWidth
-          />
-          <Divider />
-          {resumen && (
+    <>
+      <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          Comprar Entradas - {evento.nombre_even}
+          <IconButton onClick={onClose}><CloseIcon /></IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2}>
             <Box>
-              <Typography variant="subtitle2">Resumen de Compra</Typography>
-              <Stack direction="row" spacing={2}>
-                <Typography>Subtotal: <b>${resumen.subtotal.toFixed(2)}</b></Typography>
-                <Typography>IVA (16%): <b>${resumen.iva.toFixed(2)}</b></Typography>
+              <Typography variant="subtitle1" gutterBottom>Información del Evento</Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Typography variant="body2"><b>Fecha:</b> {new Date(evento.fecha_hora_ini_even).toLocaleDateString()} <b>Hora:</b> {new Date(evento.fecha_hora_ini_even).toLocaleTimeString()}</Typography>
+                <Typography variant="body2"><b>Dirección:</b> {evento.direccion_even}</Typography>
               </Stack>
-              <Stack direction="row" spacing={2}>
-                <Typography>Total: <b>${resumen.total.toFixed(2)}</b></Typography>
-                <Typography>Total en Bs: <b>{resumen.totalBs.toFixed(2)}</b> (Tasa: {resumen.tasa})</Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Typography variant="body2"><b>Precio:</b> ${evento.precio_entrada_even || 'Gratis'}</Typography>
+                <Typography variant="body2"><b>Entradas disponibles:</b> {evento.cant_entradas_evento}</Typography>
               </Stack>
             </Box>
+            <Divider />
+            <TextField
+              label="Cantidad de Entradas"
+              type="number"
+              value={cantidad}
+              onChange={handleCantidadChange}
+              inputProps={{ min: 1, max: evento.cant_entradas_evento }}
+              fullWidth
+            />
+            <Divider />
+            {resumen && (
+              <Box>
+                <Typography variant="subtitle2">Resumen de Compra</Typography>
+                <Stack direction="row" spacing={2}>
+                  <Typography>Subtotal: <b>${resumen.subtotal.toFixed(2)}</b></Typography>
+                  <Typography>IVA (16%): <b>${resumen.iva.toFixed(2)}</b></Typography>
+                </Stack>
+                <Stack direction="row" spacing={2}>
+                  <Typography>Total: <b>${resumen.total.toFixed(2)}</b></Typography>
+                  <Typography>Total en Bs: <b>{resumen.totalBs.toFixed(2)}</b> (Tasa: {resumen.tasa})</Typography>
+                </Stack>
+              </Box>
+            )}
+            <Divider />
+            <Box>
+              <Typography variant="subtitle2">Pago con Tarjeta</Typography>
+              <Stack spacing={1}>
+                <TextField label="Número de Tarjeta" name="numero_tarj" value={camposTarjeta.numero_tarj} onChange={handleTarjetaChange} fullWidth />
+                <TextField label="Fecha de Vencimiento" name="fecha_venci_tarj" value={camposTarjeta.fecha_venci_tarj} onChange={handleTarjetaChange} fullWidth />
+                <TextField label="CVV" name="cvv_tarj" value={camposTarjeta.cvv_tarj} onChange={handleTarjetaChange} fullWidth />
+                <TextField label="Nombre del Titular" name="nombre_titu_tarj" value={camposTarjeta.nombre_titu_tarj} onChange={handleTarjetaChange} fullWidth />
+                <FormControlLabel control={<Checkbox name="credito" checked={camposTarjeta.credito} onChange={handleTarjetaChange} />} label="¿Es tarjeta de crédito?" />
+              </Stack>
+            </Box>
+            {mensajeExito && (
+              <Alert severity="success">{mensajeExito}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} color="secondary">Cancelar</Button>
+          <Button onClick={handlePagar} color="primary" variant="contained" disabled={procesando || cantidad < 1 || cantidad > evento.cant_entradas_evento}>
+            {procesando ? 'Procesando...' : 'Pagar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Dialog de éxito y descarga de factura */}
+      <Dialog open={openDialogFactura} onClose={() => {
+        setOpenDialogFactura(false)
+        setIdVentaFactura(null)
+        setMensajeExito(null)
+        onClose()
+      }}>
+        <DialogTitle>Compra procesada exitosamente</DialogTitle>
+        <DialogContent>
+          <Typography>La compra fue registrada correctamente.</Typography>
+          {idVentaFactura && (
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<Receipt />}
+              sx={{ mt: 2, width: '100%' }}
+              onClick={() => {
+                console.log("ID venta para factura:", idVentaFactura);
+                window.open(`http://localhost:3000/api/factura/entrada/pdf?id_venta=${idVentaFactura}`, '_blank')
+              }}
+            >
+              Descargar Factura
+            </Button>
           )}
-          <Divider />
-          <Box>
-            <Typography variant="subtitle2">Pago con Tarjeta</Typography>
-            <Stack spacing={1}>
-              <TextField label="Número de Tarjeta" name="numero_tarj" value={camposTarjeta.numero_tarj} onChange={handleTarjetaChange} fullWidth />
-              <TextField label="Fecha de Vencimiento" name="fecha_venci_tarj" value={camposTarjeta.fecha_venci_tarj} onChange={handleTarjetaChange} fullWidth />
-              <TextField label="CVV" name="cvv_tarj" value={camposTarjeta.cvv_tarj} onChange={handleTarjetaChange} fullWidth />
-              <TextField label="Nombre del Titular" name="nombre_titu_tarj" value={camposTarjeta.nombre_titu_tarj} onChange={handleTarjetaChange} fullWidth />
-              <FormControlLabel control={<Checkbox name="credito" checked={camposTarjeta.credito} onChange={handleTarjetaChange} />} label="¿Es tarjeta de crédito?" />
-            </Stack>
-          </Box>
-          {mensajeExito && <Alert severity="success">{mensajeExito}</Alert>}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="secondary">Cancelar</Button>
-        <Button onClick={handlePagar} color="primary" variant="contained" disabled={procesando || cantidad < 1 || cantidad > evento.cant_entradas_evento}>
-          {procesando ? 'Procesando...' : 'Pagar'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setOpenDialogFactura(false)
+            setIdVentaFactura(null)
+            setMensajeExito(null)
+            onClose()
+          }} color="primary">Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

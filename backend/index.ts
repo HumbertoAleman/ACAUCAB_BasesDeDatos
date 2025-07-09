@@ -19,6 +19,8 @@ import BancoService from "./src/BancoService";
 import CarritoService from "./src/CarritoService";
 import EventoService from "./src/EventoService";
 import TipoEventoService from "./src/TipoEventoService";
+import FacturaService from "./src/FacturaService";
+import { dashboardRoutes } from "./src/DashboardService";
 
 console.log("Opening Backend on Port 3000");
 
@@ -41,6 +43,7 @@ Bun.serve({
 		"/usuario": { GET: getUsuario },
 
 		"/api/parroquias": {
+			OPTIONS: () => new Response("OK", CORS_HEADERS),
 			async GET() {
 				const res = await sql`
 					SELECT p.cod_luga, e.nombre_luga || ', ' || m.nombre_luga || ', ' || p.nombre_luga as "nombre_luga"
@@ -96,11 +99,13 @@ Bun.serve({
 		...VentaService.routes,
 		...InventoryService.routes,
 		...ReportService.routes,
+		...FacturaService.routes,
 		...UsuarioService.routes,
 		...CompraService.routes,
 		...BancoService.routes,
 		...CarritoService.routes,
 		...EventoService.routes,
 		...TipoEventoService.routes,
+		...dashboardRoutes({}),
 	}
 });
