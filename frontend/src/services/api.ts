@@ -33,6 +33,18 @@ export interface AuthResponse {
   };
 }
 
+// Helper para obtener cod_usua del usuario autenticado
+function getCodUsuaFromStorage(): string | undefined {
+  const savedUser = localStorage.getItem('acaucab_user');
+  if (savedUser) {
+    try {
+      const user = JSON.parse(savedUser);
+      if (user.cod_usua) return String(user.cod_usua);
+    } catch {}
+  }
+  return undefined;
+}
+
 // Función helper para hacer peticiones HTTP
 async function apiRequest<T>(
   endpoint: string,
@@ -40,38 +52,14 @@ async function apiRequest<T>(
 ): Promise<ApiResponse<T>> {
   try {
     const token = localStorage.getItem('acaucab_token')
-    const savedUser = localStorage.getItem('acaucab_user')
-    let fk_rol: string | null = null
+    const codUsua = getCodUsuaFromStorage();
     
-    if (savedUser) {
-      try {
-        const user = JSON.parse(savedUser)
-        fk_rol = user.fk_rol ? String(user.fk_rol) : null
-      } catch (error) {
-        console.error('Error parsing user data:', error)
-      }
-    }
-    
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
-    
-    // Agregar headers adicionales si existen
-    if (options.headers) {
-      Object.assign(headers, options.headers)
-    }
-    
-    // Agregar token y fk_rol al header de autorización
-    if (token) {
-      if (fk_rol) {
-        headers.Authorization = `Bearer ${token} Role:${fk_rol}`
-      } else {
-        headers.Authorization = `Bearer ${token}`
-      }
-    }
-
     const config: RequestInit = {
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(codUsua && { Authorization: codUsua }),
+        ...options.headers,
+      },
       ...options,
     }
 
@@ -273,7 +261,12 @@ export const handleAuthError = (error: any) => {
  */
 export const getTableData = async (tableName: string): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_URL}/quick/${tableName}`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_URL}/quick/${tableName}`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) {
       throw new Error(`Error al obtener datos de la tabla ${tableName}`);
     }
@@ -291,7 +284,12 @@ export const getTableData = async (tableName: string): Promise<any[]> => {
  */
 export const getProductosInventario = async (): Promise<ProductoInventario[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/inventory`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/inventory`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) {
       throw new Error('Error al obtener productos del inventario');
     }
@@ -354,7 +352,12 @@ export const getProductosInventario = async (): Promise<ProductoInventario[]> =>
  */
 export const getClientesDetallados = async (): Promise<ClienteDetallado[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/clientes`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/clientes`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) {
       throw new Error('Error al obtener clientes');
     }
@@ -401,7 +404,12 @@ export const getClientesDetallados = async (): Promise<ClienteDetallado[]> => {
  */
 export const getTasaActual = async (): Promise<TasaVenta[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/tasa`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/tasa`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) {
       throw new Error('Error al obtener tasa actual');
     }
@@ -424,7 +432,12 @@ export const getTasaActual = async (): Promise<TasaVenta[]> => {
  */
 export const getBancos = async (): Promise<Banco[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/bancos`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/bancos`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) {
       throw new Error('Error al obtener bancos');
     }
@@ -456,7 +469,12 @@ export const getBancos = async (): Promise<Banco[]> => {
  */
 export const getMetodosPago = async (): Promise<MetodoPagoCompleto[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/metodos_pago`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/metodos_pago`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) {
       throw new Error('Error al obtener métodos de pago');
     }
@@ -496,10 +514,12 @@ export const procesarVenta = async (venta: VentaCompleta): Promise<{ success: bo
     // Aquí es donde realizarías la petición POST al endpoint /venta
     // Ejemplo usando fetch:
 
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/venta`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(codUsua && { Authorization: codUsua })
       },
       body: JSON.stringify(venta),
     });
@@ -531,10 +551,12 @@ export const actualizarStockProducto = async (
   cantidad_vendida: number
 ): Promise<boolean> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/inventario/actualizar-stock`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...(codUsua && { Authorization: codUsua })
       },
       body: JSON.stringify({
         fk_cerv_pres_1,
@@ -558,9 +580,10 @@ export const actualizarStockProducto = async (
  */
 export const updateUser = async (userData: { cod_usua: number; username_usua?: string; fk_rol?: number }): Promise<boolean> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/user`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(codUsua && { Authorization: codUsua }) },
       body: JSON.stringify(userData),
     });
     if (!response.ok) {
@@ -580,7 +603,12 @@ export const updateUser = async (userData: { cod_usua: number; username_usua?: s
  */
 export const getParroquias = async (): Promise<Lugar[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/parroquias`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/parroquias`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) {
       throw new Error('Error al obtener parroquias');
     }
@@ -595,9 +623,13 @@ export const getParroquias = async (): Promise<Lugar[]> => {
  * Registra un cliente natural
  */
 export const registrarClienteNatural = async (cliente: any): Promise<ApiResponse<any>> => {
+  const codUsua = getCodUsuaFromStorage();
   return apiRequest<any>('/natural', {
     method: 'POST',
     body: JSON.stringify(cliente),
+    headers: {
+      ...(codUsua && { Authorization: codUsua })
+    }
   });
 };
 
@@ -605,9 +637,13 @@ export const registrarClienteNatural = async (cliente: any): Promise<ApiResponse
  * Registra un cliente jurídico
  */
 export const registrarClienteJuridico = async (cliente: any): Promise<ApiResponse<any>> => {
+  const codUsua = getCodUsuaFromStorage();
   return apiRequest<any>('/juridico', {
     method: 'POST',
     body: JSON.stringify(cliente),
+    headers: {
+      ...(codUsua && { Authorization: codUsua })
+    }
   });
 };
 
@@ -621,9 +657,13 @@ export const updateInventarioItem = async (item: {
   fk_luga_tien: number,
   cant_pres: number
 }): Promise<ApiResponse<any>> => {
+  const codUsua = getCodUsuaFromStorage();
   return apiRequest<any>('/inventory', {
     method: 'PUT',
     body: JSON.stringify(item),
+    headers: {
+      ...(codUsua && { Authorization: codUsua })
+    }
   });
 };
 
@@ -636,20 +676,24 @@ export const createUsuarioCliente = async (data: {
   fk_clie: string,
   tipo_clie: string
 }): Promise<ApiResponse<any>> => {
+  const codUsua = getCodUsuaFromStorage();
   return apiRequest<any>('/user', {
     method: 'POST',
     body: JSON.stringify(data),
+    headers: {
+      ...(codUsua && { Authorization: codUsua })
+    }
   });
 };
 
 // Obtener todas las compras
 export const getCompras = async (): Promise<any[]> => {
   try {
-    const token = localStorage.getItem('acaucab_token');
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch('http://127.0.0.1:3000/api/compra', {
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(codUsua && { Authorization: codUsua })
       },
     });
     const data = await response.json();
@@ -663,12 +707,12 @@ export const getCompras = async (): Promise<any[]> => {
 
 export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
   try {
-    const token = localStorage.getItem('acaucab_token');
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch('http://127.0.0.1:3000/api/set_compra_pagada', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(codUsua && { Authorization: codUsua })
       },
       body: JSON.stringify({ fk_comp }),
     });
@@ -685,7 +729,12 @@ export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
  */
 export const getCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (response.status === 204) return null; // No hay carrito
     if (!response.ok) throw new Error('Error al obtener el carrito');
     // Manejar respuesta vacía o no JSON
@@ -707,8 +756,12 @@ export const getCarrito = async (clienteID: string): Promise<any> => {
  */
 export const createCarrito = async (clienteID: string): Promise<any> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
       method: 'POST',
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
     });
     if (!response.ok) throw new Error('Error al crear el carrito');
     try {
@@ -727,8 +780,12 @@ export const createCarrito = async (clienteID: string): Promise<any> => {
  */
 export const deleteCarrito = async (clienteID: string): Promise<boolean> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}`, {
       method: 'DELETE',
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
     });
     return response.ok;
   } catch (error) {
@@ -742,9 +799,10 @@ export const deleteCarrito = async (clienteID: string): Promise<boolean> => {
  */
 export const addItemsToCarrito = async (clienteID: string, items: any[]): Promise<any> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(codUsua && { Authorization: codUsua }) },
       body: JSON.stringify(items),
     });
     if (!response.ok) throw new Error('Error al agregar items al carrito');
@@ -764,9 +822,10 @@ export const addItemsToCarrito = async (clienteID: string, items: any[]): Promis
  */
 export const removeItemsFromCarrito = async (clienteID: string, items: any[]): Promise<any> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/items`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(codUsua && { Authorization: codUsua }) },
       body: JSON.stringify(items),
     });
     if (!response.ok) throw new Error('Error al eliminar items del carrito');
@@ -786,7 +845,12 @@ export const removeItemsFromCarrito = async (clienteID: string, items: any[]): P
  */
 export const payForCarrito = async (clienteID: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (response.status === 204) return null;
     if (!response.ok) throw new Error('Error al pagar el carrito');
     try {
@@ -805,9 +869,10 @@ export const payForCarrito = async (clienteID: string): Promise<any> => {
  */
 export const registerPayment = async (clienteID: string, paymentData: any): Promise<any> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/carrito/${clienteID}/pay`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(codUsua && { Authorization: codUsua }) },
       body: JSON.stringify(paymentData),
     });
     if (!response.ok) throw new Error('Error al registrar el pago');
@@ -828,8 +893,7 @@ export const registerPayment = async (clienteID: string, paymentData: any): Prom
  * Obtiene todos los tipos de evento
  */
 export const getTiposEvento = async (): Promise<any[]> => {
-  const response = await apiRequest<any[]>('/tipo_evento');
-  return response.success && response.data ? response.data : [];
+  return apiRequest<any[]>('/tipo_evento');
 };
 
 /**
@@ -837,7 +901,12 @@ export const getTiposEvento = async (): Promise<any[]> => {
  */
 export const getLugares = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/parroquias`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/parroquias`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) throw new Error('Error al obtener lugares');
     return await response.json();
   } catch (error) {
@@ -851,7 +920,12 @@ export const getLugares = async (): Promise<any[]> => {
  */
 export const getEventos = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_URL}/quick/Evento`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_URL}/quick/Evento`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) throw new Error('Error al obtener eventos');
     return await response.json();
   } catch (error) {
@@ -865,9 +939,10 @@ export const getEventos = async (): Promise<any[]> => {
  */
 export const createEvento = async (eventoData: any): Promise<any> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/evento`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(codUsua && { Authorization: codUsua }) },
       body: JSON.stringify(eventoData),
     });
     if (!response.ok) throw new Error('Error al crear evento');
@@ -883,9 +958,10 @@ export const createEvento = async (eventoData: any): Promise<any> => {
  */
 export const createEventoRecursivo = async (eventoId: number, eventoData: any): Promise<any> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/evento/${eventoId}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(codUsua && { Authorization: codUsua }) },
       body: JSON.stringify(eventoData),
     });
     if (!response.ok) throw new Error('Error al crear evento recursivo');
@@ -901,7 +977,12 @@ export const createEventoRecursivo = async (eventoId: number, eventoData: any): 
  */
 export const getJueces = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_URL}/quick/Juez`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_URL}/quick/Juez`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) throw new Error('Error al obtener jueces');
     return await response.json();
   } catch (error) {
@@ -915,7 +996,12 @@ export const getJueces = async (): Promise<any[]> => {
  */
 export const getEmpleados = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/quick/Empleado`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/quick/Empleado`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) throw new Error('Error al obtener empleados');
     return await response.json();
   } catch (error) {
@@ -929,7 +1015,12 @@ export const getEmpleados = async (): Promise<any[]> => {
  */
 export const getMiembros = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/quick/Miembro`);
+    const codUsua = getCodUsuaFromStorage();
+    const response = await fetch(`${API_BASE_URL}/quick/Miembro`, {
+      headers: {
+        ...(codUsua && { Authorization: codUsua })
+      }
+    });
     if (!response.ok) throw new Error('Error al obtener miembros');
     return await response.json();
   } catch (error) {
@@ -946,9 +1037,10 @@ export const createJuez = async (juezData: {
   ci_juez: number;
 }): Promise<any> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_URL}/quick/Juez`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(codUsua && { Authorization: codUsua }) },
       body: JSON.stringify({ info: juezData }),
     });
     if (!response.ok) throw new Error('Error al crear juez');
@@ -975,15 +1067,21 @@ export const updateTipoEvento = async (cod_tipo_even: number, tipoEventoData: { 
 
 // Obtener jueces de un evento
 export const getJuecesEvento = async (eventoId: number): Promise<any[]> => {
-  const response = await fetch(`${API_BASE_URL}/evento/${eventoId}/jueces`);
+  const codUsua = getCodUsuaFromStorage();
+  const response = await fetch(`${API_BASE_URL}/evento/${eventoId}/jueces`, {
+    headers: {
+      ...(codUsua && { Authorization: codUsua })
+    }
+  });
   if (!response.ok) return [];
   return await response.json();
 };
 
 export const addJuecesEvento = async (eventoId: number, jueces: number[], fecha_hora_regi_even: string): Promise<any> => {
+  const codUsua = getCodUsuaFromStorage();
   const response = await fetch(`${API_BASE_URL}/evento/${eventoId}/jueces`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(codUsua && { Authorization: codUsua }) },
     body: JSON.stringify({ jueces, fecha_hora_regi_even })
   });
   return await response.json();
@@ -994,10 +1092,12 @@ export const addJuecesEvento = async (eventoId: number, jueces: number[], fecha_
  */
 export const procesarVentaEntrada = async (venta: VentaEntradaCompleta): Promise<{ success: boolean; cod_vent?: number; message?: string }> => {
   try {
+    const codUsua = getCodUsuaFromStorage();
     const response = await fetch(`${API_BASE_URL}/venta-entrada`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(codUsua && { Authorization: codUsua })
       },
       body: JSON.stringify(venta),
     });

@@ -38,6 +38,7 @@ class AuthService {
 							"authenticated": true,
 							"token": token,
 							"user": {
+								"cod_usua": user.cod_usua,
 								"username": user.username_usua,
 								"rol": user.nombre_rol,
 								"fk_clie": user.fk_clie,
