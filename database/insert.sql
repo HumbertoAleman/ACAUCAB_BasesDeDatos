@@ -1584,6 +1584,8 @@ BEGIN
 END;
 $$;
 
+CALL insert_10venta_entrada();
+
 CREATE OR REPLACE PROCEDURE insert_10detalle_entrada ()
 LANGUAGE plpgsql
 AS $$
@@ -1603,6 +1605,8 @@ BEGIN
     END LOOP;
 END;
 $$;
+
+CALL insert_10detalle_entrada();
 
 --[[[ TRIGGER BEGIN ]]]--
 
