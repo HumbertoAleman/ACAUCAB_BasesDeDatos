@@ -100,6 +100,11 @@ class CarritoService {
 		return Response.json(body, CORS_HEADERS)
 	}
 
+	async getItemsFromCarrito(clienteID: string) {
+		const carrito = await ((await this.createCarritoForCliente(clienteID)).json()) as Carrito
+		return Response.json(carrito.items, CORS_HEADERS);
+	}
+
 	@sqlProtection
 	@LogFunctionExecution
 	async addItemsToCarrito(clienteID: string, items: CarritoItem[]) {
@@ -156,7 +161,7 @@ class CarritoService {
 			FROM Detalle_Venta 
 			WHERE fk_vent = ${ventaID}
 		`
-		
+
 		const baseImponibleValue = baseImponible[0]?.base_imponible || 0
 		const ivaValue = baseImponibleValue * 0.16 // 16% IVA
 		const totalValue = baseImponibleValue + ivaValue
@@ -217,7 +222,7 @@ class CarritoService {
 		},
 		"/api/carrito/:clienteID/items": {
 			GET: async (req: any) =>
-				(await this.getCarritoObjectFromCliente(req.params.clienteID))?.items || new Response('', { ...CORS_HEADERS, status: 204 }),
+				await this.getItemsFromCarrito(req.params.clienteID),
 			POST: async (req: any) =>
 				await this.addItemsToCarrito(req.params.clienteID, await req.json()),
 			DELETE: async (req: any) =>
