@@ -40,13 +40,38 @@ async function apiRequest<T>(
 ): Promise<ApiResponse<T>> {
   try {
     const token = localStorage.getItem('acaucab_token')
+    const savedUser = localStorage.getItem('acaucab_user')
+    let fk_rol: string | null = null
     
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser)
+        fk_rol = user.fk_rol ? String(user.fk_rol) : null
+      } catch (error) {
+        console.error('Error parsing user data:', error)
+      }
+    }
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+    
+    // Agregar headers adicionales si existen
+    if (options.headers) {
+      Object.assign(headers, options.headers)
+    }
+    
+    // Agregar token y fk_rol al header de autorización
+    if (token) {
+      if (fk_rol) {
+        headers.Authorization = `Bearer ${token} Role:${fk_rol}`
+      } else {
+        headers.Authorization = `Bearer ${token}`
+      }
+    }
+
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
+      headers,
       ...options,
     }
 
@@ -803,7 +828,8 @@ export const registerPayment = async (clienteID: string, paymentData: any): Prom
  * Obtiene todos los tipos de evento
  */
 export const getTiposEvento = async (): Promise<any[]> => {
-  return apiRequest<any[]>('/tipo_evento');
+  const response = await apiRequest<any[]>('/tipo_evento');
+  return response.success && response.data ? response.data : [];
 };
 
 /**
