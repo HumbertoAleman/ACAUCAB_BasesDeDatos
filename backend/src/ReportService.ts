@@ -421,18 +421,26 @@ class ReportService {
 
 						// Normalizar la fecha a formato yyyy-mm-dd
 						function toSQLDate(fechaStr: string): string {
-						    // Si ya está en formato yyyy-mm-dd, la devolvemos igual
-						    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) return fechaStr;
-						    // Si está en formato dd/mm/yyyy, la convertimos
-						    const match = fechaStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-						    if (match) {
-						        const [, dd, mm, yyyy] = match;
-						        return `${yyyy}-${mm}-${dd}`;
-						    }
-						    // Si no, la devolvemos igual (puede fallar la consulta, pero es lo más seguro)
-						    return fechaStr;
+							// Si ya está en formato yyyy-mm-dd, la devolvemos igual
+							if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) return fechaStr;
+							// Si está en formato dd/mm/yyyy, la convertimos
+							const match = fechaStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+							if (match) {
+								const [, dd, mm, yyyy] = match;
+								return `${yyyy}-${mm}-${dd}`;
+							}
+							// Si no, la devolvemos igual (puede fallar la consulta, pero es lo más seguro)
+							return fechaStr;
 						}
 						const fechaSQL = toSQLDate(fecha);
+						
+						console.log('DEBUG - Parámetros recibidos:');
+						console.log('  - producto:', producto);
+						console.log('  - fecha original:', fecha);
+						console.log('  - fechaSQL:', fechaSQL);
+						console.log('  - cantidad:', cantidad);
+						console.log('  - precio_total:', precio_total);
+						console.log('  - miembro:', miembro);
 
 						// Buscar datos del proveedor (miembro)
 						const proveedor = (await sql`
@@ -444,7 +452,7 @@ class ReportService {
 						if (!proveedor) {
 							return new Response("Proveedor no encontrado", { status: 404 });
 						}
-						// Eliminar la consulta y uso de teléfono del proveedor
+						console.log('DEBUG - Proveedor encontrado:', proveedor);
 
 						// Buscar datos del producto
 						const prod = (await sql`
@@ -456,18 +464,18 @@ class ReportService {
 						if (!prod) {
 							return new Response("Producto no encontrado", { status: 404 });
 						}
+						console.log('DEBUG - Producto encontrado:', prod);
 
-						// Buscar el código de la orden de compra usando fechaSQL
+						// Buscar el código de la orden de compra usando todos los parámetros relevantes
 						const orden = (await sql`
-							SELECT c.cod_comp
-							FROM Compra c
-							JOIN Detalle_Compra dc ON dc.fk_comp = c.cod_comp
-							JOIN CERV_PRES cp ON cp.fk_cerv = dc.fk_cerv_pres_1 AND cp.fk_miem = c.fk_miem
-							WHERE c.fecha_comp = ${fechaSQL}
-								AND c.fk_miem = ${proveedor.rif_miem}
-								AND dc.fk_cerv_pres_1 = ${prod.cod_cerv}
-							LIMIT 1
+							select cod_comp from compra c, detalle_compra dc, cerv_pres cp, miembro m, cerveza ce
+							where c.fk_miem = m.rif_miem and  c.cod_comp= dc.fk_comp and dc.fk_cerv_pres_1 = cp.fk_cerv and dc.fk_cerv_pres_2 = cp.fk_pres
+							and cp.fk_cerv = ce.cod_cerv and ce.nombre_cerv = ${producto}  and m.denom_comercial_miem = ${miembro}
+							and c.fecha_comp = ${fechaSQL}
 						`)[0];
+						
+						console.log('DEBUG - Orden encontrada:', orden);
+						
 						const cod_comp = orden ? orden.cod_comp : 'N/A';
 
 						// Formatear la fecha a dd/mm/yyyy

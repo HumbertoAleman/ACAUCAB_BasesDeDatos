@@ -30,7 +30,7 @@ class CompraService {
 				JOIN cerv_pres AS cp ON cp.fk_cerv = dc.fk_cerv_pres_1
 					AND cp.fk_pres = dc.fk_cerv_pres_2
 				JOIN cerveza AS ce ON cp.fk_cerv = ce.cod_cerv
-				JOIN miembro AS m ON m.rif_miem = cp.fk_miem`
+				JOIN miembro AS m ON m.rif_miem = c.fk_miem`;
 
 		for (const compra of res) {
 			const status = await sql`SELECT E.nombre_esta
