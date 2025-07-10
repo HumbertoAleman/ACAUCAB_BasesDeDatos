@@ -68,6 +68,20 @@ class EventoService {
 		return Response.json({ success: true }, CORS_HEADERS);
 	}
 
+	@sqlProtection
+	@LogFunctionExecution
+	async getProductosEvento(id: number) {
+		const res = await sql`
+			SELECT c.nombre_cerv AS nombre, p.nombre_pres AS presentacion, ie.cant_pres AS cantidad, ie.precio_actual_pres AS precio
+			FROM Inventario_Evento ie
+			JOIN CERV_PRES cp ON ie.fk_cerv_pres_1 = cp.fk_cerv AND ie.fk_cerv_pres_2 = cp.fk_pres
+			JOIN Cerveza c ON cp.fk_cerv = c.cod_cerv
+			JOIN Presentacion p ON cp.fk_pres = p.cod_pres
+			WHERE ie.fk_even = ${id}
+		`;
+		return Response.json({ success: true, data: res }, CORS_HEADERS);
+	}
+
 	routes = {
 		"/api/evento": {
 			GET: async () => await this.getEventos(),
@@ -84,6 +98,9 @@ class EventoService {
 				const body = await req.json();
 				return await this.addJuecesEvento(Number(req.params.id), body.jueces, body.fecha_hora_regi_even);
 			}
+		},
+		"/api/evento/:id/productos": {
+			GET: async (req: any) => await this.getProductosEvento(Number(req.params.id))
 		}
 	}
 }

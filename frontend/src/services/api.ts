@@ -1262,3 +1262,12 @@ export const dashboardService = {
     return apiRequest<any>(`/dashboard/inventario-actual?${search.toString()}`);
   },
 }; 
+
+// Obtener productos de un evento específico
+export const getProductosEvento = async (eventoId: number): Promise<any[]> => {
+  const res = await apiRequest<any[]>(`/evento/${eventoId}/productos`);
+  if (res && res.success && Array.isArray(res.data)) {
+    return res.data;
+  }
+  return [];
+}; 
