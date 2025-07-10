@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import RegistroEvento from './RegistroEvento';
 import CompraEntradas from './CompraEntradas';
-import { getEventos, getTiposEvento, getLugares, getJuecesEvento } from '../../services/api';
+import { getEventos, getTiposEvento, getLugares, getJuecesEvento, getProductosEvento } from '../../services/api';
 import type { Evento, TipoEvento } from '../../interfaces/eventos';
 import type { Lugar } from '../../interfaces/common';
 import {
@@ -32,9 +32,72 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
+import ShoppingCart from '@mui/icons-material/ShoppingCart';
 
-const DetalleEventoModal = ({ open, onClose, evento, tiposEvento, lugares }) => {
-  const [jueces, setJueces] = useState([]);
+// Modal para mostrar productos del evento
+interface ProductoEvento {
+  nombre: string;
+  presentacion: string;
+  cantidad: number;
+  precio: number;
+}
+
+interface ProductosEventoModalProps {
+  open: boolean;
+  onClose: () => void;
+  productos: ProductoEvento[];
+  nombreEvento: string;
+}
+
+const ProductosEventoModal: React.FC<ProductosEventoModalProps> = ({ open, onClose, productos, nombreEvento }) => (
+  <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      Productos disponibles en "{nombreEvento}"
+      <IconButton onClick={onClose}><CloseIcon /></IconButton>
+    </DialogTitle>
+    <DialogContent dividers sx={{ p: 0 }}>
+      <Table size="small" stickyHeader>
+        <TableHead>
+          <TableRow>
+            <TableCell>Nombre</TableCell>
+            <TableCell>Presentación</TableCell>
+            <TableCell>Cantidad</TableCell>
+            <TableCell>Precio</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {productos.length === 0 ? (
+            <TableRow><TableCell colSpan={4} align="center">No hay productos para este evento.</TableCell></TableRow>
+          ) : (
+            productos.map((prod, idx) => (
+              <TableRow key={idx}>
+                <TableCell>{prod.nombre}</TableCell>
+                <TableCell>{prod.presentacion}</TableCell>
+                <TableCell>{prod.cantidad}</TableCell>
+                <TableCell>${prod.precio}</TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={onClose} color="secondary">Cerrar</Button>
+    </DialogActions>
+  </Dialog>
+);
+
+// Tipar DetalleEventoModal
+interface DetalleEventoModalProps {
+  open: boolean;
+  onClose: () => void;
+  evento: Evento;
+  tiposEvento: TipoEvento[];
+  lugares: Lugar[];
+}
+
+const DetalleEventoModal: React.FC<DetalleEventoModalProps> = ({ open, onClose, evento, tiposEvento, lugares }) => {
+  const [jueces, setJueces] = useState<any[]>([]);
 
   useEffect(() => {
     if (open && evento) {
@@ -43,13 +106,13 @@ const DetalleEventoModal = ({ open, onClose, evento, tiposEvento, lugares }) => 
   }, [open, evento]);
 
   // Obtener tipo de evento padre e hijos
-  const tipoEvento = tiposEvento.find(t => t.cod_tipo_even === evento.fk_tipo_even);
-  const tipoPadre = tipoEvento && tipoEvento.fk_tipo_even ? tiposEvento.find(t => t.cod_tipo_even === tipoEvento.fk_tipo_even) : null;
-  const hijos = tiposEvento.filter(t => t.fk_tipo_even === evento.fk_tipo_even);
-  const lugar = lugares.find(l => l.cod_luga === evento.fk_luga);
+  const tipoEvento = tiposEvento.find((t: TipoEvento) => t.cod_tipo_even === evento.fk_tipo_even);
+  const tipoPadre = tipoEvento && tipoEvento.fk_tipo_even ? tiposEvento.find((t: TipoEvento) => t.cod_tipo_even === tipoEvento.fk_tipo_even) : null;
+  const hijos = tiposEvento.filter((t: TipoEvento) => t.fk_tipo_even === evento.fk_tipo_even);
+  const lugar = lugares.find((l: Lugar) => l.cod_luga === evento.fk_luga);
 
   // Formatear fecha y hora
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
   };
@@ -77,7 +140,7 @@ const DetalleEventoModal = ({ open, onClose, evento, tiposEvento, lugares }) => 
             <Box sx={{ mt: 1 }}>
               <Typography variant="body2">Actividades (Tipos de Evento Hijo):</Typography>
               <ul>
-                {hijos.map(hijo => <li key={hijo.cod_tipo_even}>{hijo.nombre_tipo_even}</li>)}
+                {hijos.map((hijo: TipoEvento) => <li key={hijo.cod_tipo_even}>{hijo.nombre_tipo_even}</li>)}
               </ul>
             </Box>
           )}
@@ -88,7 +151,7 @@ const DetalleEventoModal = ({ open, onClose, evento, tiposEvento, lugares }) => 
             <Typography variant="body2">No hay jueces asociados a este evento.</Typography>
           ) : (
             <ul>
-              {jueces.map(juez => (
+              {jueces.map((juez: any) => (
                 <li key={juez.cod_juez}>{juez.primar_nom_juez} {juez.primar_ape_juez} (CI: {juez.ci_juez})</li>
               ))}
             </ul>
@@ -117,6 +180,9 @@ const GestionEventos: React.FC = () => {
   const eventosPorPagina = 15;
   const [showDetalleModal, setShowDetalleModal] = useState(false);
   const [eventoDetalle, setEventoDetalle] = useState<Evento | null>(null);
+  const [showProductosModal, setShowProductosModal] = useState(false);
+  const [productosEvento, setProductosEvento] = useState<any[]>([]);
+  const [eventoProductosNombre, setEventoProductosNombre] = useState<string>('');
 
   useEffect(() => {
     loadData();
@@ -153,6 +219,14 @@ const GestionEventos: React.FC = () => {
   const openCompraModal = (evento: Evento) => {
     setEventoSeleccionado(evento);
     setShowCompraModal(true);
+  };
+
+  const handleVerProductos = async (evento: Evento) => {
+    setEventoProductosNombre(evento.nombre_even);
+    setShowProductosModal(true);
+    setProductosEvento([]);
+    const productos = await getProductosEvento(evento.cod_even);
+    setProductosEvento(productos);
   };
 
   const getTipoEventoNombre = (codTipo: number) => {
@@ -305,6 +379,9 @@ const GestionEventos: React.FC = () => {
                       <Button size="small" variant="outlined" onClick={() => openCompraModal(evento)}>
                         Comprar
                       </Button>
+                      <IconButton size="small" color="primary" onClick={() => handleVerProductos(evento)} title="Ver productos del evento">
+                        <ShoppingCart />
+                      </IconButton>
                     </Stack>
                   </TableCell>
                 </TableRow>
@@ -357,6 +434,14 @@ const GestionEventos: React.FC = () => {
           isOpen={showCompraModal}
           onClose={() => setShowCompraModal(false)}
           evento={eventoSeleccionado}
+        />
+      )}
+      {showProductosModal && (
+        <ProductosEventoModal
+          open={showProductosModal}
+          onClose={() => setShowProductosModal(false)}
+          productos={productosEvento}
+          nombreEvento={eventoProductosNombre}
         />
       )}
     </Box>

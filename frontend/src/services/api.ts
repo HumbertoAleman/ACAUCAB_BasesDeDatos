@@ -722,6 +722,51 @@ export const setCompraPagada = async (fk_comp: number): Promise<boolean> => {
   }
 };
 
+// Función para descargar el PDF de orden de compra
+export const downloadOrdenCompraPDF = async (params: {
+  producto: string;
+  fecha: string;
+  cantidad: number;
+  precio_total: number;
+  miembro: string;
+}): Promise<void> => {
+  try {
+    const codUsua = getCodUsuaFromStorage();
+    const queryParams = new URLSearchParams({
+      producto: params.producto,
+      fecha: params.fecha,
+      cantidad: params.cantidad.toString(),
+      precio_total: params.precio_total.toString(),
+      miembro: params.miembro,
+    });
+
+    const response = await fetch(`${API_BASE_URL}/reportes/orden_compra/pdf?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        ...(codUsua && { Authorization: codUsua }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    // Crear blob y descargar
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `orden_compra_${params.producto.replace(/\s+/g, '_')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error al descargar PDF:', error);
+    throw error;
+  }
+};
+
 // ===== SERVICIOS DE CARRITO RESTFUL =====
 
 /**
@@ -1216,4 +1261,13 @@ export const dashboardService = {
     });
     return apiRequest<any>(`/dashboard/inventario-actual?${search.toString()}`);
   },
+}; 
+
+// Obtener productos de un evento específico
+export const getProductosEvento = async (eventoId: number): Promise<any[]> => {
+  const res = await apiRequest<any[]>(`/evento/${eventoId}/productos`);
+  if (res && res.success && Array.isArray(res.data)) {
+    return res.data;
+  }
+  return [];
 }; 
