@@ -33,6 +33,7 @@ import {
   Group,
 } from "@mui/icons-material";
 import { dashboardService } from "../../services/api";
+import { PieChart as RechartsPieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 // Definición de tipo para los indicadores
 interface IndicadorDashboard {
@@ -169,6 +170,48 @@ const grupos = [
   "Inventario y Operaciones",
   "Reportes Clave",
 ];
+
+// Paleta de colores para los gráficos circulares
+const pieColors = [
+  '#2E7D32', '#66BB6A', '#A5D6A7', '#388E3C', '#81C784', '#C8E6C9', '#43A047', '#B9F6CA', '#00C853', '#B2FF59'
+];
+
+// Componente para renderizar un gráfico circular con recharts
+const SimplePieChart = ({ data, dataKey, nameKey }: { data: any[], dataKey: string, nameKey: string }) => (
+  <ResponsiveContainer width="100%" height={220}>
+    <PieChart>
+      <Pie
+        data={data}
+        dataKey={dataKey}
+        nameKey={nameKey}
+        cx="50%"
+        cy="50%"
+        outerRadius={80}
+        label
+      >
+        {data.map((entry, idx) => (
+          <Cell key={`cell-${idx}`} fill={pieColors[idx % pieColors.length]} />
+        ))}
+      </Pie>
+      <Tooltip />
+      <Legend />
+    </PieChart>
+  </ResponsiveContainer>
+);
+
+// Componente para renderizar un gráfico de barras con recharts
+const SimpleBarChart = ({ data, xKey, yKey }: { data: any[], xKey: string, yKey: string }) => (
+  <ResponsiveContainer width="100%" height={220}>
+    <RechartsBarChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey={xKey} />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Bar dataKey={yKey} fill="#2E7D32" />
+    </RechartsBarChart>
+  </ResponsiveContainer>
+);
 
 const Dashboard: React.FC = () => {
   const [indicadorSeleccionado, setIndicadorSeleccionado] = useState<IndicadorDashboard | null>(null);
@@ -338,7 +381,16 @@ const Dashboard: React.FC = () => {
                   ) : error ? (
                     <Typography variant="body2" color="error">{error}</Typography>
                   ) : resultado ? (
-                    Array.isArray(resultado) && resultado.length > 0 && typeof resultado[0] === 'object' ? (
+                    // Mostrar gráficos de barras para todos los reportes clave
+                    (indicadorSeleccionado.id === 'grafico-ventas-por-canal' && Array.isArray(resultado)) ? (
+                      <SimpleBarChart data={resultado} xKey="Canal" yKey="Total Ventas" />
+                    ) : (indicadorSeleccionado.id === 'productos-mejor-rendimiento' && Array.isArray(resultado)) ? (
+                      <SimpleBarChart data={resultado} xKey="Producto" yKey="Unidades Vendidas" />
+                    ) : (indicadorSeleccionado.id === 'reporte-inventario-actual' && Array.isArray(resultado)) ? (
+                      <SimpleBarChart data={resultado} xKey="Producto" yKey="Stock Actual" />
+                    ) : (indicadorSeleccionado.id === 'grafico-tendencia-ventas' && Array.isArray(resultado)) ? (
+                      <SimpleBarChart data={resultado} xKey={Object.keys(resultado[0])[0]} yKey={Object.keys(resultado[0])[1]} />
+                    ) : Array.isArray(resultado) && resultado.length > 0 && typeof resultado[0] === 'object' ? (
                       <TableContainer>
                         <Table size="small">
                           <TableHead>
