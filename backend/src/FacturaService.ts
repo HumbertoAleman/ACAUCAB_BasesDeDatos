@@ -31,8 +31,9 @@ class FacturaService {
           y -= 30;
           const fechaVenta = new Date(factura.fecha);
           const fechaStr = `${fechaVenta.getDate().toString().padStart(2, '0')}/${(fechaVenta.getMonth()+1).toString().padStart(2, '0')}/${fechaVenta.getFullYear()}`;
-          const horaStr = `${fechaVenta.getHours().toString().padStart(2, '0')}:${fechaVenta.getMinutes().toString().padStart(2, '0')}`;
-          page.drawText(`Fecha: ${fechaStr}  Hora: ${horaStr}`, { x: 50, y, size: 12, font });
+          const now = new Date();
+          const horaActualStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+          page.drawText(`Fecha: ${fechaStr}  Hora: ${horaActualStr}`, { x: 50, y, size: 12, font });
           y -= 20;
           page.drawText(`N° Venta: ${factura.id_venta}`, { x: 50, y, size: 12, font });
           y -= 20;
@@ -118,8 +119,9 @@ class FacturaService {
           y -= 30;
           const fechaVenta2 = new Date(factura.fecha);
           const fechaStr2 = `${fechaVenta2.getDate().toString().padStart(2, '0')}/${(fechaVenta2.getMonth()+1).toString().padStart(2, '0')}/${fechaVenta2.getFullYear()}`;
-          const horaStr2 = `${fechaVenta2.getHours().toString().padStart(2, '0')}:${fechaVenta2.getMinutes().toString().padStart(2, '0')}`;
-          page.drawText(`Fecha: ${fechaStr2}  Hora: ${horaStr2}`, { x: 50, y, size: 12, font });
+          const now2 = new Date();
+          const horaActualStr2 = `${now2.getHours().toString().padStart(2, '0')}:${now2.getMinutes().toString().padStart(2, '0')}`;
+          page.drawText(`Fecha: ${fechaStr2}  Hora: ${horaActualStr2}`, { x: 50, y, size: 12, font });
           y -= 20;
           page.drawText(`N° Venta: ${factura.id_venta}`, { x: 50, y, size: 12, font });
           y -= 20;

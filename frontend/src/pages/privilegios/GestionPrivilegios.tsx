@@ -165,7 +165,7 @@ export const GestionPrivilegios: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Gestión de Privilegios por Rol</Typography>
+      <Typography variant="h4" gutterBottom sx={{ color: '#2E7D32', fontWeight: 'bold' }}>Gestión de Privilegios por Rol</Typography>
       
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 

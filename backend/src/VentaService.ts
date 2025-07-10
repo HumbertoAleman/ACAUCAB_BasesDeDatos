@@ -141,7 +141,7 @@ class VentaService {
 				for (const item of venta.items) {
 					await sql`
 						INSERT INTO Detalle_Venta (cant_deta_vent, precio_unitario_vent, fk_vent, fk_inve_tien_1, fk_inve_tien_2, fk_inve_tien_3, fk_inve_tien_4)
-						VALUES (${item.cantidad}, 0, ${cod_vent}, ${item.fk_cerv_pres_1}, ${item.fk_cerv_pres_2}, 1, ${item.fk_luga_tien})
+						VALUES (${item.cantidad}, ${item.precio_unitario}, ${cod_vent}, ${item.fk_cerv_pres_1}, ${item.fk_cerv_pres_2}, 1, ${item.fk_luga_tien})
 					`
 				}
 				const tasa = (await TasaService.getTasaDiaActualObject())[0]

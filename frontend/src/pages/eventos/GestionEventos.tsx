@@ -26,6 +26,7 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
+  Pagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -289,7 +290,7 @@ const GestionEventos: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" gutterBottom>Gestión de Eventos</Typography>
+        <Typography variant="h4" gutterBottom sx={{ color: '#2E7D32', fontWeight: 'bold' }}>Gestión de Eventos</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowRegistroModal(true)}>
           Registrar Nuevo Evento
         </Button>
@@ -391,25 +392,15 @@ const GestionEventos: React.FC = () => {
         )}
         {totalPaginas > 1 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
-              disabled={paginaActual === 1}
-              sx={{ mr: 1 }}
-            >
-              Anterior
-            </Button>
-            <Typography variant="body2" sx={{ mx: 2 }}>
-              Página {paginaActual} de {totalPaginas}
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
-              disabled={paginaActual === totalPaginas}
-              sx={{ ml: 1 }}
-            >
-              Siguiente
-            </Button>
+            <Pagination
+              count={totalPaginas}
+              page={paginaActual}
+              onChange={(_, value) => setPaginaActual(value)}
+              color="primary"
+              shape="rounded"
+              showFirstButton
+              showLastButton
+            />
           </Box>
         )}
       </Paper>

@@ -413,12 +413,14 @@ export const PuntoVenta: React.FC = () => {
         fk_tien: number;
         fk_luga_tien: number;
         cantidad: number;
+        precio_unitario: number;
       }[] = itemsVenta.map((item) => ({
         fk_cerv_pres_1: (item.producto as any).fk_cerv_pres_1,
         fk_cerv_pres_2: (item.producto as any).fk_cerv_pres_2,
         fk_tien: 1, // Fijo según la especificación
         fk_luga_tien: (item.producto as any).fk_luga_tien,
         cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario,
       }));
 
       const apiPagos: {
@@ -519,7 +521,7 @@ export const PuntoVenta: React.FC = () => {
           <Typography variant="body2">
             Tasa BCV: {tasaActual.tasa_dolar_bcv.toFixed(2)} Bs/USD | 
             Tasa Punto: {tasaActual.tasa_punto.toFixed(2)} Bs/USD | 
-            Fecha: {tasaActual.fecha_ini_tasa}
+            Fecha: {new Date(tasaActual.fecha_ini_tasa).toLocaleDateString('es-ES')}
           </Typography>
         </Alert>
       )}

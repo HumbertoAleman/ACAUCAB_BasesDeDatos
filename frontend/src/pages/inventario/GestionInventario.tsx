@@ -175,7 +175,7 @@ export const GestionInventario: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" gutterBottom>Gestión de Inventario</Typography>
+        <Typography variant="h4" gutterBottom sx={{ color: '#2E7D32', fontWeight: 'bold' }}>Gestión de Inventario</Typography>
         <Button variant="outlined" startIcon={<Refresh />} onClick={cargarInventario}>Actualizar</Button>
       </Box>
 

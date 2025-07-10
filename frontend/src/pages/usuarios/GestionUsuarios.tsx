@@ -183,7 +183,7 @@ export const GestionUsuarios: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4" gutterBottom>Gestión de Usuarios</Typography>
+        <Typography variant="h4" gutterBottom sx={{ color: '#2E7D32', fontWeight: 'bold' }}>Gestión de Usuarios</Typography>
         <Box sx={{ display: "flex", gap: 2 }}>
           <Button variant="outlined" startIcon={<Refresh />} onClick={refreshUsers}>
             Actualizar

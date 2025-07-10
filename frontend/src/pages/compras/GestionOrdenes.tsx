@@ -141,7 +141,7 @@ export const GestionOrdenes: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" gutterBottom>Gestión de Órdenes de Compra</Typography>
+        <Typography variant="h4" gutterBottom sx={{ color: '#2E7D32', fontWeight: 'bold' }}>Gestión de Órdenes de Compra</Typography>
         <Button variant="outlined" startIcon={<Refresh />} onClick={cargarOrdenes}>Actualizar</Button>
       </Box>
 
@@ -223,7 +223,7 @@ export const GestionOrdenes: React.FC = () => {
 
       {totalPaginas > 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <Pagination count={totalPaginas} page={paginaActual} onChange={(_, p) => setPaginaActual(p)} color="primary" />
+          <Pagination count={totalPaginas} page={paginaActual} onChange={(_, p) => setPaginaActual(p)} color="primary" shape="rounded" showFirstButton showLastButton />
         </Box>
       )}
 

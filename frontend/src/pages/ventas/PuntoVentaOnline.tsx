@@ -449,7 +449,7 @@ const PuntoVentaOnline: React.FC<PuntoVentaOnlineProps> = ({ onClose }) => {
       {tasaActual && (
         <Alert severity="info" sx={{ mb: 2 }}>
           <Typography variant="body2">
-            Tasa BCV: {Number(tasaActual.tasa_dolar_bcv).toFixed(2)} Bs/USD | Tasa Punto: {Number(tasaActual.tasa_punto).toFixed(2)} Bs/USD | Fecha: {tasaActual.fecha_ini_tasa}
+            Tasa BCV: {Number(tasaActual.tasa_dolar_bcv).toFixed(2)} Bs/USD | Tasa Punto: {Number(tasaActual.tasa_punto).toFixed(2)} Bs/USD | Fecha: {new Date(tasaActual.fecha_ini_tasa).toLocaleDateString('es-ES')}
           </Typography>
         </Alert>
       )}
