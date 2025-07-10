@@ -1177,8 +1177,8 @@ CREATE OR REPLACE PROCEDURE add_metodo_pago (out id_metodo integer)
 BEGIN
     INSERT INTO Metodo_Pago DEFAULT
         VALUES
-        RETURNING
-            cod_meto_pago INTO id_metodo;
+    RETURNING
+        cod_meto_pago INTO id_metodo;
 END
 $$
 LANGUAGE plpgsql;
@@ -4055,3 +4055,29 @@ $$;
 
 CALL insert_10venta_entrada();
 CALL insert_10detalle_entrada();
+
+--[[ PROCEDIMIENTO PARA ACTUALIZAR FECHAS ALEATORIAS EN INVENTARIO_EVENTO E INVENTARIO_TIENDA ]]
+-- Este bloque asigna fechas aleatorias desde el 1 de enero de 2025 en adelante a todos los registros
+-- cuya columna fecha_ult_act esté en NULL en ambas tablas.
+
+DO $$
+DECLARE
+    r RECORD;
+    dias_offset INTEGER;
+BEGIN
+    -- Actualizar Inventario_Evento
+    FOR r IN SELECT fk_cerv_pres_1, fk_cerv_pres_2, fk_even FROM Inventario_Evento WHERE fecha_ult_act IS NULL LOOP
+        dias_offset := FLOOR(random() * 365); -- hasta 1 año después del 1/1/2025
+        UPDATE Inventario_Evento
+        SET fecha_ult_act = DATE '2025-01-01' + dias_offset
+        WHERE fk_cerv_pres_1 = r.fk_cerv_pres_1 AND fk_cerv_pres_2 = r.fk_cerv_pres_2 AND fk_even = r.fk_even;
+    END LOOP;
+
+    -- Actualizar Inventario_Tienda
+    FOR r IN SELECT fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, fk_luga_tien FROM Inventario_Tienda WHERE fecha_ult_act IS NULL LOOP
+        dias_offset := FLOOR(random() * 365); -- hasta 1 año después del 1/1/2025
+        UPDATE Inventario_Tienda
+        SET fecha_ult_act = DATE '2025-01-01' + dias_offset
+        WHERE fk_cerv_pres_1 = r.fk_cerv_pres_1 AND fk_cerv_pres_2 = r.fk_cerv_pres_2 AND fk_tien = r.fk_tien AND fk_luga_tien = r.fk_luga_tien;
+    END LOOP;
+END $$;

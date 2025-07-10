@@ -29,8 +29,8 @@ import {
   MenuItem,
   Pagination,
 } from "@mui/material"
-import { Search, Refresh, CheckCircle, Pending, Cancel } from "@mui/icons-material"
-import { getCompras, setCompraPagada } from '../../services/api';
+import { Search, Refresh, CheckCircle, Pending, Cancel, Download } from "@mui/icons-material"
+import { getCompras, setCompraPagada, downloadOrdenCompraPDF } from '../../services/api';
 
 // Interfaces - Se deberian mover a su propio archivo en /interfaces
 interface OrdenCompra {
@@ -116,6 +116,21 @@ export const GestionOrdenes: React.FC = () => {
     }
     setConfirmModalOpen(false);
   };
+
+  const handleDownloadPDF = async (orden: OrdenCompra) => {
+    try {
+      await downloadOrdenCompraPDF({
+        producto: orden.producto,
+        fecha: orden.fecha,
+        cantidad: orden.cantidad,
+        precio_total: orden.precioTotal,
+        miembro: orden.miembro,
+      });
+    } catch (error) {
+      console.error('Error al descargar PDF:', error);
+      // Aquí podrías mostrar un mensaje de error al usuario
+    }
+  };
   
   const getEstatusChip = (estatus: OrdenCompra['estatus']) => {
     const color = estatus === "Compra Pagada" ? "success" : estatus === "Por aprobar" ? "warning" : "error";
@@ -181,13 +196,24 @@ export const GestionOrdenes: React.FC = () => {
                 <TableCell>{orden.miembro}</TableCell>
                 <TableCell align="center">{getEstatusChip(orden.estatus)}</TableCell>
                 <TableCell align="center">
-                  {orden.estatus === 'Por aprobar' && (
-                    <Tooltip title="Marcar como Pagada">
-                      <Button variant="contained" size="small" onClick={() => handleOpenConfirmModal(orden)}>
-                        Marcar Pagada
-                      </Button>
+                  <Stack direction="row" spacing={1} justifyContent="center">
+                    <Tooltip title="Descargar PDF de Orden de Compra">
+                      <IconButton
+                        color="primary"
+                        size="small"
+                        onClick={() => handleDownloadPDF(orden)}
+                      >
+                        <Download />
+                      </IconButton>
                     </Tooltip>
-                  )}
+                    {orden.estatus === 'Por aprobar' && (
+                      <Tooltip title="Marcar como Pagada">
+                        <Button variant="contained" size="small" onClick={() => handleOpenConfirmModal(orden)}>
+                          Marcar Pagada
+                        </Button>
+                      </Tooltip>
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

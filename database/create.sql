@@ -368,6 +368,7 @@ CREATE TABLE IF NOT EXISTS Inventario_Tienda (
     fk_luga_tien integer,
     cant_pres integer NOT NULL,
     precio_actual_pres numeric(32, 2) NOT NULL,
+    fecha_ult_act date,
     PRIMARY KEY (fk_cerv_pres_1, fk_cerv_pres_2, fk_tien, fk_luga_tien),
     CONSTRAINT conformado FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres),
     CONSTRAINT posicionado FOREIGN KEY (fk_tien) REFERENCES Tienda (cod_tien),
@@ -380,6 +381,7 @@ CREATE TABLE IF NOT EXISTS Inventario_Evento (
     fk_even integer,
     cant_pres integer NOT NULL,
     precio_actual_pres numeric(32, 2) NOT NULL,
+    fecha_ult_act date,
     PRIMARY KEY (fk_cerv_pres_1, fk_cerv_pres_2, fk_even),
     CONSTRAINT dispone FOREIGN KEY (fk_cerv_pres_1, fk_cerv_pres_2) REFERENCES CERV_PRES (fk_cerv, fk_pres),
     CONSTRAINT administra FOREIGN KEY (fk_even) REFERENCES Evento (cod_even)
