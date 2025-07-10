@@ -444,16 +444,7 @@ class ReportService {
 						if (!proveedor) {
 							return new Response("Proveedor no encontrado", { status: 404 });
 						}
-						// Buscar teléfono del proveedor
-						const telefonoProveedor = (await sql`
-							SELECT cod_area_tele, num_tele
-							FROM Telefono
-							WHERE fk_miem = ${proveedor.rif_miem}
-							LIMIT 1
-						`)[0];
-						const telefono = telefonoProveedor
-							? `+${telefonoProveedor.cod_area_tele}-${telefonoProveedor.num_tele}`
-							: "N/A";
+						// Eliminar la consulta y uso de teléfono del proveedor
 
 						// Buscar datos del producto
 						const prod = (await sql`
@@ -479,6 +470,35 @@ class ReportService {
 						`)[0];
 						const cod_comp = orden ? orden.cod_comp : 'N/A';
 
+						// Formatear la fecha a dd/mm/yyyy
+						function toDisplayDate(fechaStr) {
+						  const d = new Date(fechaStr);
+						  if (!isNaN(d.getTime())) {
+						    const day = String(d.getDate()).padStart(2, '0');
+						    const month = String(d.getMonth() + 1).padStart(2, '0');
+						    const year = d.getFullYear();
+						    return `${day}/${month}/${year}`;
+						  }
+						  // Si no es una fecha válida, devolver como está
+						  return fechaStr;
+						}
+						const fechaDisplay = toDisplayDate(fechaSQL);
+
+						// Buscar el nombre del jefe de compras (primer usuario con rol 'Empleado Compras' y empleado asociado)
+						const jefeCompras = (await sql`
+							SELECT e.primer_nom_empl, e.segundo_nom_empl, e.primer_ape_empl, e.segundo_ape_empl
+							FROM Usuario u
+							JOIN Rol r ON u.fk_rol = r.cod_rol
+							JOIN Empleado e ON u.fk_empl = e.cod_empl
+							WHERE r.nombre_rol = 'Empleado Compras'
+							LIMIT 1
+						`)[0];
+						let nombreJefeCompras = 'Empleado Compras';
+						if (jefeCompras) {
+						  nombreJefeCompras = [jefeCompras.primer_nom_empl, jefeCompras.segundo_nom_empl, jefeCompras.primer_ape_empl, jefeCompras.segundo_ape_empl]
+						    .filter(Boolean).join(' ');
+						}
+
 						// Datos del cliente (ACAUCAB, fijo)
 						const cliente = {
 							razon_social: "ACAUCAB",
@@ -503,12 +523,12 @@ class ReportService {
 						y -= 30;
 						page.drawText(`Orden de Compra Número: ${cod_comp}` , { x: 50, y, size: 12, font });
 						y -= 20;
-						page.drawText(`Fecha: ${fecha}` , { x: 50, y, size: 12, font });
+						page.drawText(`Fecha: ${fechaDisplay}` , { x: 50, y, size: 12, font });
 						y -= 30;
 
 						// Datos del proveedor y cliente (tabla)
 						page.drawText("Datos del Proveedor", { x: 50, y, size: 12, font });
-						page.drawText("Datos del cliente", { x: 400, y, size: 12, font });
+						page.drawText("Datos del Cliente", { x: 400, y, size: 12, font });
 						y -= 18;
 						// Proveedor
 						page.drawText(`Razón Social: ${proveedor.razon_social_miem}`, { x: 50, y, size: 11, font });
@@ -520,8 +540,7 @@ class ReportService {
 						page.drawText(`Dirección: ${proveedor.direccion_fiscal_miem}`, { x: 50, y, size: 11, font });
 						page.drawText(`Dirección: ${cliente.direccion}`, { x: 400, y, size: 11, font });
 						y -= 15;
-						page.drawText(`Teléfono: ${telefono}`, { x: 50, y, size: 11, font });
-						page.drawText(`Teléfono: ${cliente.telefono}`, { x: 400, y, size: 11, font });
+						// Quitar línea de teléfono del proveedor
 						y -= 30;
 
 						// Asunto
@@ -548,12 +567,10 @@ class ReportService {
 						page.drawText(`   - Precio por Unidad: $${precioUnitario}`, { x: 70, y, size: 11, font });
 						y -= 13;
 						page.drawText(`   - Total Estimado: $${parseFloat(precio_total).toFixed(2)}`, { x: 70, y, size: 11, font });
-						y -= 20;
-						page.drawText("4. Observaciones Adicionales:", { x: 50, y, size: 12, font });
-						y -= 15;
-						page.drawText("   {{ Incluir cualquier otra información relevante, como requisitos especiales de envío, condiciones de garantía, etc. }}", { x: 70, y, size: 10, font });
 						y -= 30;
-						page.drawText("Autorizado por: {{ NOMBRE DEL JEFE DE COMPRAS }}", { x: 50, y, size: 12, font });
+						// Quitar Observaciones Adicionales
+						// Agregar autorizado por
+						page.drawText(`Autorizado por: ${nombreJefeCompras}`, { x: 50, y, size: 12, font });
 
 						const pdfBytes = await pdfDoc.save();
 						return new Response(pdfBytes, {
