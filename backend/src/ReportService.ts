@@ -471,7 +471,10 @@ class ReportService {
 						const cod_comp = orden ? orden.cod_comp : 'N/A';
 
 						// Formatear la fecha a dd/mm/yyyy
-						function toDisplayDate(fechaStr) {
+						function toDisplayDate(fechaStr: string) {
+						  // Si la fecha ya está en formato dd/mm/yyyy, la devolvemos igual
+						  if (/^\d{2}\/\d{2}\/\d{4}$/.test(fechaStr)) return fechaStr;
+						  
 						  const d = new Date(fechaStr);
 						  if (!isNaN(d.getTime())) {
 						    const day = String(d.getDate()).padStart(2, '0');

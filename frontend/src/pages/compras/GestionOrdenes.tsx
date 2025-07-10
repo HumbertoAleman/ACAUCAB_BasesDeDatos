@@ -51,6 +51,44 @@ const ordenesDeEjemplo: OrdenCompra[] = [
   { id: 4, producto: "Cerveza Amber Ale", fecha: "2024-05-17", cantidad: 80, precioTotal: 180.0, miembro: "Proveedor C", estatus: "Cancelada" },
 ]
 
+// Función para formatear fechas de manera consistente
+const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  
+  // Si la fecha ya está en formato dd/mm/yyyy, la devolvemos igual
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return dateString;
+  
+  // Forzar interpretación como fecha local agregando 'T00:00:00'
+  // Esto evita que JavaScript interprete la fecha como UTC
+  const localDateString = dateString.includes('T') ? dateString : `${dateString}T00:00:00`;
+  const date = new Date(localDateString);
+  
+  if (isNaN(date.getTime())) {
+    return dateString; // Si no es una fecha válida, devolver como está
+  }
+  
+  // Usar formato dd/mm/yyyy consistente
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Función específica para fechas de base de datos (YYYY-MM-DD)
+const formatDatabaseDate = (dateString: string) => {
+  if (!dateString) return '';
+  
+  // Parsear manualmente la fecha YYYY-MM-DD para evitar problemas de zona horaria
+  const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, year, month, day] = match;
+    return `${day}/${month}/${year}`;
+  }
+  
+  // Si no coincide el formato, usar la función general
+  return formatDate(dateString);
+};
+
 export const GestionOrdenes: React.FC = () => {
   const [ordenes, setOrdenes] = useState<OrdenCompra[]>([]);
   const [loading, setLoading] = useState(true);
@@ -190,7 +228,7 @@ export const GestionOrdenes: React.FC = () => {
             ) : ordenesPagina.map((orden) => (
               <TableRow key={orden.id}>
                 <TableCell sx={{ fontWeight: 'bold' }}>{orden.producto}</TableCell>
-                <TableCell>{new Date(orden.fecha).toLocaleDateString()}</TableCell>
+                <TableCell>{formatDatabaseDate(orden.fecha)}</TableCell>
                 <TableCell align="right">{orden.cantidad}</TableCell>
                 <TableCell align="right">{orden.precioTotal.toFixed(2)}</TableCell>
                 <TableCell>{orden.miembro}</TableCell>

@@ -416,12 +416,18 @@ export const getTasaActual = async (): Promise<TasaVenta[]> => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching tasa actual:', error);
-    // Tasa de ejemplo para desarrollo
+    // Tasa de ejemplo para desarrollo - usar fecha en formato YYYY-MM-DD
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const fechaHoy = `${year}-${month}-${day}`;
+    
     return [{
       cod_tasa: 1,
       tasa_dolar_bcv: 35.50,
       tasa_punto: 35.50,
-      fecha_ini_tasa: new Date().toISOString().split('T')[0],
+      fecha_ini_tasa: fechaHoy,
       fecha_fin_tasa: undefined
     }];
   }
